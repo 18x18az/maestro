@@ -113,7 +113,7 @@ export class AllianceSelection {
         this.getNextPicker();
 
     } // end accept
-    // FIXME: when a team declines they are not a captain
+
     decline(){
         // generate metadata
         let id = getNextId();
@@ -163,7 +163,7 @@ export class AllianceSelection {
         }
         record(meta, LogType.LOG, this.state.picking + " is now picking");
     }
-    // FIXME: undo doesnt work
+    // FIXME: undo doesnt work; check history probably
     undo(){
         // generate metadata
         let id = getNextId();
@@ -173,13 +173,23 @@ export class AllianceSelection {
         
         if(this.history.length == 0){
             record(meta, LogType.ERROR, "bruh, history is empty");
+            return;
         }
 
-        this.state = this.history.pop() as IAllianceStatus;
-
+        let pState: IAllianceStatus = this.history.pop() as IAllianceStatus;
+        this.state.alliances = [...pState.alliances];
+        this.state.eligible = [...pState.eligible];
+        this.state.remaining = [...pState.remaining];
+        this.state.picking = pState.picking;
+        this.state.selected = pState.selected;
+        console.log("previous picking: " + pState.picking);
+        console.log("previous selected: " + pState.selected);
         // TODO: it could be useful to include what the action was
         // would need some string inside of IAllianceStatus that describes the action completed
         record(meta, LogType.LOG, "undoing action")
+        console.log("history stack size: " + this.history.length);
+        console.log("now picking: " + this.state.picking);
+        console.log("currently selected: " + this.state.selected);
     }
 
     selectionComplete(){
@@ -196,7 +206,9 @@ export class AllianceSelection {
     }
 
     onUpdate(){
+
         this.history.push(this.state);
+        console.log("history stack size: " + this.history.length);
         // TODO: send data to clients
     }
 }
