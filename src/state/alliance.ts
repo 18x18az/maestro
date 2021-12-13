@@ -18,7 +18,7 @@ interface IAllianceStatus{
     alliances: Array<IAlliance>
 }
 
-class AllianceSelection {
+export class AllianceSelection {
 
     // current state
     state: IAllianceStatus = {
@@ -38,8 +38,9 @@ class AllianceSelection {
     */
     constructor(teams: Array<TeamId>){
 
-        this.state.eligible = teams;
-        this.state.remaining = teams;
+        // copy teams into eligible and remaining
+        this.state.eligible = [...teams];
+        this.state.remaining = [...teams];
         this.getNextPicker();
     }
 
@@ -112,7 +113,7 @@ class AllianceSelection {
         this.getNextPicker();
 
     } // end accept
-
+    // FIXME: when a team declines they are not a captain
     decline(){
         // generate metadata
         let id = getNextId();
@@ -134,9 +135,9 @@ class AllianceSelection {
                 break;
             }
         }
-        this.state.selected = "";
+        
         record(meta, LogType.LOG, this.state.selected + " has declined " + this.state.picking);
-
+        this.state.selected = "";
         // if eligible.length becomes 0 as a result, then we are done and call selectionComplete
         if(this.state.eligible.length == 0){
             this.selectionComplete();
@@ -162,7 +163,7 @@ class AllianceSelection {
         }
         record(meta, LogType.LOG, this.state.picking + " is now picking");
     }
-
+    // FIXME: undo doesnt work
     undo(){
         // generate metadata
         let id = getNextId();
@@ -187,7 +188,11 @@ class AllianceSelection {
         let meta: IMetadata = {
             id
         }
-        record(meta, LogType.LOG, `selection is now complete, alliances are ${this.state.alliances}`);
+        let output = "selection is now complete, alliances are:\n";
+        for(let i = 0; i < this.state.alliances.length; i++){
+            output += "seed " + (i+1) + ": " + this.state.alliances[i].team1 + " and " + this.state.alliances[i].team2 + "\n";
+        }
+        record(meta, LogType.LOG, output);
     }
 
     onUpdate(){

@@ -1,4 +1,6 @@
+import { TeamId } from "@18x18az/rosetta";
 import { record, getNextId, LogType, IMetadata } from "./utils/log"
+import { AllianceSelection } from "./state/alliance"
 
 const id = getNextId();
 const meta: IMetadata = {
@@ -9,5 +11,33 @@ function doTheThing(metadata: IMetadata){
     record(metadata, LogType.LOG, "hello world");
 }
 
+
 doTheThing(meta);
 
+let stdin = process.openStdin();
+
+let als: AllianceSelection = new AllianceSelection(["1", "2","3","4","5", "6","7", "8","9", "10","11", "12","13", "14","15", "16",]);
+
+stdin.addListener("data", function(d) {
+    // note:  d is an object, and when converted to a string it will
+    // end with a linefeed.  so we (rather crudely) account for that  
+    // with toString() and then substring() 
+    console.log("you entered: [" + d.toString().trim() + "]");
+    switch(d.toString().trim()[0]){
+        case "p":
+            als.pick(d.toString().trim().substring(1));
+            break;
+        case "a":
+            als.accept();
+            break;
+        case "d":
+            als.decline();
+            break;
+        case "u":
+            als.undo();
+            break;
+    }
+        
+    
+
+});
