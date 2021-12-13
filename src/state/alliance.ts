@@ -2,7 +2,7 @@ import { Team, TeamId } from "@18x18az/rosetta";
 import { getNextId, record, IMetadata, LogType } from "../utils/log";
 
 
-var MAX_NUM_ALLIANCES = 16;
+const MAX_NUM_ALLIANCES = 16;
 
 // TODO: define this in rosetta
 interface IAlliance {
@@ -45,8 +45,8 @@ class AllianceSelection {
 
     pick(team: TeamId){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
 
@@ -59,7 +59,7 @@ class AllianceSelection {
         this.onUpdate();
 
         // remove from eligible and set selected
-        for(var i = 0; i < this.state.eligible.length; i++){
+        for(let i = 0; i < this.state.eligible.length; i++){
             if(team == this.state.eligible[i]){
                 this.state.eligible.splice(i, 1);
                 break;
@@ -73,8 +73,8 @@ class AllianceSelection {
 
     accept(){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
 
@@ -85,7 +85,7 @@ class AllianceSelection {
         // TODO: same as in pick()
         this.onUpdate();
 
-        for(var i = 0; i < this.state.remaining.length; i++){
+        for(let i = 0; i < this.state.remaining.length; i++){
             if(this.state.selected == this.state.remaining[i]){
                 this.state.remaining.splice(i, 1);
                 break;
@@ -93,7 +93,7 @@ class AllianceSelection {
         }
 
         // make an alliance object and add it to this.state.alliances
-        var alliance: IAlliance = {
+        let alliance: IAlliance = {
             team1: this.state.picking as string,
             team2: this.state.selected as string
         };
@@ -115,8 +115,8 @@ class AllianceSelection {
 
     decline(){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
         
@@ -128,7 +128,7 @@ class AllianceSelection {
         
 
         // remove selected from eligible
-        for(var i = 0; i < this.state.eligible.length; i++){
+        for(let i = 0; i < this.state.eligible.length; i++){
             if(this.state.selected == this.state.eligible[i]){
                 this.state.eligible.splice(i, 1);
                 break;
@@ -145,8 +145,8 @@ class AllianceSelection {
 
     getNextPicker(){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
 
@@ -154,7 +154,7 @@ class AllianceSelection {
 
         this.state.picking = this.state.remaining.shift() as string;
 
-        for(var i = 0; i < this.state.eligible.length; i++){
+        for(let i = 0; i < this.state.eligible.length; i++){
             if(this.state.selected == this.state.eligible[i]){
                 this.state.eligible.splice(i, 1);
                 break;
@@ -165,8 +165,8 @@ class AllianceSelection {
 
     undo(){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
         
@@ -183,8 +183,8 @@ class AllianceSelection {
 
     selectionComplete(){
         // generate metadata
-        var id = getNextId();
-        var meta: IMetadata = {
+        let id = getNextId();
+        let meta: IMetadata = {
             id
         }
         record(meta, LogType.LOG, `selection is now complete, alliances are ${this.state.alliances}`);
