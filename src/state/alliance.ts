@@ -36,20 +36,15 @@ export class AllianceSelection {
     precondition for constructor:
     - teams must already be sorted, from first seed -> lowest seed
     */
-    constructor(teams: Array<TeamId>){
+    constructor(teams: Array<TeamId>, meta: IMetadata){
 
         // copy teams into eligible and remaining
         this.state.eligible = [...teams];
         this.state.remaining = [...teams];
-        this.getNextPicker();
+        this.getNextPicker(meta);
     }
 
-    pick(team: TeamId){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    pick(team: TeamId, meta: IMetadata){
 
         if(!this.state.eligible.includes(team)){
             record(meta, LogType.ERROR, team + " is not in eligible")
@@ -72,12 +67,7 @@ export class AllianceSelection {
         record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected)
     } // end pick
 
-    accept(){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    accept(meta: IMetadata){
 
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
@@ -106,20 +96,15 @@ export class AllianceSelection {
         // we have already reached the max number of alliances
 
         if(this.state.alliances.length == MAX_NUM_ALLIANCES || this.state.remaining.length == 0){
-            this.selectionComplete();
+            this.selectionComplete(meta);
             return;
         }
 
-        this.getNextPicker();
+        this.getNextPicker(meta);
 
     } // end accept
 
-    decline(){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    decline(meta: IMetadata){
         
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
@@ -140,16 +125,11 @@ export class AllianceSelection {
         this.state.selected = "";
         // if eligible.length becomes 0 as a result, then we are done and call selectionComplete
         if(this.state.eligible.length == 0){
-            this.selectionComplete();
+            this.selectionComplete(meta);
         }
     }
 
-    getNextPicker(){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    getNextPicker(meta: IMetadata){
 
         this.onUpdate();
 
@@ -164,12 +144,8 @@ export class AllianceSelection {
         record(meta, LogType.LOG, this.state.picking + " is now picking");
     }
     // FIXME: undo doesnt work; check history probably
-    undo(){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    undo(meta: IMetadata){
+
         
         if(this.history.length == 0){
             record(meta, LogType.ERROR, "bruh, history is empty");
@@ -192,12 +168,8 @@ export class AllianceSelection {
         console.log("currently selected: " + this.state.selected);
     }
 
-    selectionComplete(){
-        // generate metadata
-        let id = getNextId();
-        let meta: IMetadata = {
-            id
-        }
+    selectionComplete(meta: IMetadata){
+
         let output = "selection is now complete, alliances are:\n";
         for(let i = 0; i < this.state.alliances.length; i++){
             output += "seed " + (i+1) + ": " + this.state.alliances[i].team1 + " and " + this.state.alliances[i].team2 + "\n";

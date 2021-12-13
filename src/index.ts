@@ -16,7 +16,7 @@ doTheThing(meta);
 
 let stdin = process.openStdin();
 
-let als: AllianceSelection = new AllianceSelection(["1", "2","3","4","5", "6","7", "8","9", "10","11", "12","13", "14","15", "16",]);
+let als: AllianceSelection = new AllianceSelection(["1", "2","3","4","5", "6","7", "8","9", "10","11", "12","13", "14","15", "16",], meta);
 
 stdin.addListener("data", function(d) {
     // note:  d is an object, and when converted to a string it will
@@ -25,16 +25,16 @@ stdin.addListener("data", function(d) {
     console.log("you entered: [" + d.toString().trim() + "]");
     switch(d.toString().trim()[0]){
         case "p":
-            als.pick(d.toString().trim().substring(1));
+            als.pick(d.toString().trim().substring(1), meta);
             break;
         case "a":
-            als.accept();
+            als.accept(meta);
             break;
         case "d":
-            als.decline();
+            als.decline(meta);
             break;
         case "u":
-            als.undo();
+            als.undo(meta);
             break;
     }
         
