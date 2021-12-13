@@ -51,8 +51,7 @@ export class AllianceSelection {
             return;
         }
 
-        // TODO: do we wanna push history before checking for error? we probably should
-        this.onUpdate();
+        
 
         // remove from eligible and set selected
         for(let i = 0; i < this.state.eligible.length; i++){
@@ -63,7 +62,7 @@ export class AllianceSelection {
         }
         this.state.selected = team;
 
-
+        this.onUpdate();
         record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected)
     } // end pick
 
@@ -72,9 +71,6 @@ export class AllianceSelection {
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
         }
-
-        // TODO: same as in pick()
-        this.onUpdate();
 
         for(let i = 0; i < this.state.remaining.length; i++){
             if(this.state.selected == this.state.remaining[i]){
@@ -89,12 +85,14 @@ export class AllianceSelection {
             team2: this.state.selected as string
         };
         this.state.alliances.push(alliance);
-
+        
+        
         record(meta, LogType.LOG, this.state.selected + " has accepted " + this.state.picking);
-
+        this.state.selected = "";
+        this.onUpdate();
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
-
+        
         if(this.state.alliances.length == MAX_NUM_ALLIANCES || this.state.remaining.length == 0){
             this.selectionComplete(meta);
             return;
@@ -110,9 +108,6 @@ export class AllianceSelection {
             record(meta, LogType.ERROR, "selected is empty");
         }
 
-        this.onUpdate();
-        
-
         // remove selected from eligible
         for(let i = 0; i < this.state.eligible.length; i++){
             if(this.state.selected == this.state.eligible[i]){
@@ -123,6 +118,7 @@ export class AllianceSelection {
         
         record(meta, LogType.LOG, this.state.selected + " has declined " + this.state.picking);
         this.state.selected = "";
+        this.onUpdate();
         // if eligible.length becomes 0 as a result, then we are done and call selectionComplete
         if(this.state.eligible.length == 0){
             this.selectionComplete(meta);
@@ -131,39 +127,29 @@ export class AllianceSelection {
 
     getNextPicker(meta: IMetadata){
 
-        this.onUpdate();
-
         this.state.picking = this.state.remaining.shift() as string;
 
         for(let i = 0; i < this.state.eligible.length; i++){
-            if(this.state.selected == this.state.eligible[i]){
+            if(this.state.picking == this.state.eligible[i]){
                 this.state.eligible.splice(i, 1);
                 break;
             }
         }
         record(meta, LogType.LOG, this.state.picking + " is now picking");
     }
-    // FIXME: undo doesnt work; check history probably
-    undo(meta: IMetadata){
 
-        
+    undo(meta: IMetadata){
         if(this.history.length == 0){
-            record(meta, LogType.ERROR, "bruh, history is empty");
+            record(meta, LogType.ERROR, "history is empty");
             return;
         }
-
-        let pState: IAllianceStatus = this.history.pop() as IAllianceStatus;
-        this.state.alliances = [...pState.alliances];
-        this.state.eligible = [...pState.eligible];
-        this.state.remaining = [...pState.remaining];
-        this.state.picking = pState.picking;
-        this.state.selected = pState.selected;
+        
+        let pState: IAllianceStatus = this.history.splice(this.history.length-2, 1)[0] as IAllianceStatus;
+        this.state = pState;
         console.log("previous picking: " + pState.picking);
         console.log("previous selected: " + pState.selected);
-        // TODO: it could be useful to include what the action was
-        // would need some string inside of IAllianceStatus that describes the action completed
+
         record(meta, LogType.LOG, "undoing action")
-        console.log("history stack size: " + this.history.length);
         console.log("now picking: " + this.state.picking);
         console.log("currently selected: " + this.state.selected);
     }
@@ -179,8 +165,7 @@ export class AllianceSelection {
 
     onUpdate(){
 
-        this.history.push(this.state);
-        console.log("history stack size: " + this.history.length);
+        this.history.push(JSON.parse(JSON.stringify(this.state)));
         // TODO: send data to clients
     }
 }
