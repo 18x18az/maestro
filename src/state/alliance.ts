@@ -41,6 +41,7 @@ export class AllianceSelection {
         // copy teams into eligible and remaining
         this.state.eligible = [...teams];
         this.state.remaining = [...teams];
+        this.state.selected = ""
         this.getNextPicker(meta);
     }
 
@@ -70,6 +71,7 @@ export class AllianceSelection {
 
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
+            return;
         }
 
         for(let i = 0; i < this.state.remaining.length; i++){
@@ -106,6 +108,7 @@ export class AllianceSelection {
         
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
+            return;
         }
 
         // remove selected from eligible
