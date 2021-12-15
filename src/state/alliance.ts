@@ -92,7 +92,7 @@ export class AllianceSelection {
         this.onUpdate();
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
-        // FIXME: max alliance end condition does not work
+
         if(this.state.alliances.length == MAX_NUM_ALLIANCES || this.state.remaining.length == 0 || this.state.eligible.length < 2){
             this.selectionComplete(meta);
             return;

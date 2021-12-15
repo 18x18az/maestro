@@ -16,7 +16,11 @@ doTheThing(meta);
 
 let stdin = process.openStdin();
 
-let als: AllianceSelection = new AllianceSelection(["1", "2","3","4","5", "6","7", "8","9", "10","11", "12","13", "14","15", "16","17"], meta);
+let teams: Array<string> = [];
+for(let i = 1; i <= 38; i++){
+    teams.push(i.toString());
+}
+let als: AllianceSelection = new AllianceSelection(teams, meta);
 
 stdin.addListener("data", function(d) {
     // note:  d is an object, and when converted to a string it will
