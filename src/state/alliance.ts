@@ -52,18 +52,8 @@ export class AllianceSelection {
             return;
         }
 
-        
-
-        // remove from eligible and set selected
-        for(let i = 0; i < this.state.eligible.length; i++){
-            if(team == this.state.eligible[i]){
-                this.state.eligible.splice(i, 1);
-                break;
-            }
-        }
         this.state.selected = team;
 
-        this.onUpdate();
         record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected)
     } // end pick
 
@@ -72,6 +62,14 @@ export class AllianceSelection {
         if(this.state.selected == ""){
             record(meta, LogType.ERROR, "selected is empty");
             return;
+        }
+
+        // remove from eligible and remaining
+        for(let i = 0; i < this.state.eligible.length; i++){
+            if(this.state.selected == this.state.eligible[i]){
+                this.state.eligible.splice(i, 1);
+                break;
+            }
         }
 
         for(let i = 0; i < this.state.remaining.length; i++){
@@ -95,7 +93,7 @@ export class AllianceSelection {
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
         // FIXME: max alliance end condition does not work
-        if(this.state.alliances.length == MAX_NUM_ALLIANCES || this.state.remaining.length == 0){
+        if(this.state.alliances.length == MAX_NUM_ALLIANCES || this.state.remaining.length == 0 || this.state.eligible.length < 2){
             this.selectionComplete(meta);
             return;
         }
