@@ -2,6 +2,8 @@
 
 ## Build Requirements
 - `yarn`
+For automated scene-switching in OBS...
+- `obs-websocket == 4.x.x`
 ### Build Instructions
 ```bat
 :: clone the project

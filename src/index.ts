@@ -2,6 +2,7 @@ import { TeamId } from "@18x18az/rosetta";
 import { record, getNextId, LogType, IMetadata } from "./utils/log"
 import { AllianceSelection } from "./state/alliance"
 import ObsWebSocket from "obs-websocket-js";
+import { SceneManager } from "./managers/scenemanager";
 
 const id = getNextId();
 const meta: IMetadata = {
@@ -15,38 +16,7 @@ function doTheThing(metadata: IMetadata){
 
 doTheThing(meta);
 
-// create websocket
-const obs = new ObsWebSocket();
-obs.connect({address: 'localhost:4444'}).then(() => {
-    console.log(`Success! We're connected & authenticated.`);
-
-    return obs.send('GetSceneList');
-}).then(data => {
-    console.log(`${data.scenes.length} Available Scenes!`);
-
-    data.scenes.forEach(scene => {
-        if (scene.name !== data["current-scene"]) {
-            console.log(`Found a different scene! Switching to Scene: ${scene.name}`);
-
-            obs.send('SetCurrentScene', {
-                'scene-name': scene.name
-            });
-        }
-    });
-});
-
-
-const callback = (data: any) => {
-	console.log(data);
-};
-
-// The following are additional supported events.
-obs.on('ConnectionOpened', (data) => callback(data));
-obs.on('ConnectionClosed', (data) => callback(data));
-obs.on('AuthenticationSuccess', (data) => callback(data));
-obs.on('AuthenticationFailure', (data) => callback(data));
-
-
+let sm: SceneManager = new SceneManager('localhost:4444', meta);
 
 /* // alliance selection test
 let stdin = process.openStdin();

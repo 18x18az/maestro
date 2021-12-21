@@ -1,5 +1,5 @@
 import { Team, TeamId } from "@18x18az/rosetta";
-import { getNextId, record, IMetadata, LogType } from "../utils/log";
+import { record, IMetadata, LogType } from "../utils/log";
 
 
 const MAX_NUM_ALLIANCES = 16;
