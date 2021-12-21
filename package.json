@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@18x18az/rosetta": "^1.0.7",
-    "@types/node": "^16.11.12"
+    "@types/node": "^16.11.12",
+    "obs-websocket-js": "^4.0.3"
   }
 }
