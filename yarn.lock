@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@18x18az/rosetta@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-1.0.7.tgz#4919a62e7d6f51ea896f0352f1ad318c51f3e118"
-  integrity sha512-fdwWsGOdnpDSspgmiJhD5Rx1IpLCh1NPSJfbttM+AehbAyKdy+SdibqQu6IFeBkuwZy++uzY1MxQ/WzxrfTrcQ==
+"@18x18az/rosetta@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-1.1.1.tgz#0827e6fb9293f13afc286d9ba28d5e7aedd5d12a"
+  integrity sha512-eLopJDlFrHzjusGXZLTFHW11ivlzGfGVPwx3TV8i76AgooBqAAbrfj4AP5L7t7O3139aAHnxV7Aywqs3i26wVQ==
 
 "@cspotcode/source-map-consumer@0.8.0":
   version "0.8.0"
@@ -39,10 +39,22 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.2.tgz#423c77877d0569db20e1fc80885ac4118314010e"
   integrity sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==
 
+"@types/node@*":
+  version "17.0.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.6.tgz#cc1589c9ee853b389e67e8fb4384e0f250a139b9"
+  integrity sha512-+XBAjfZmmivILUzO0HwBJoYkAyyySSLg5KCGBDFLomJo0sV6szvVLAf4ANZZ0pfWzgEds5KmGLG9D5hfEqOhaA==
+
 "@types/node@^16.11.12":
   version "16.11.12"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
   integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
+
+"@types/ws@^8.2.2":
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.2.2.tgz#7c5be4decb19500ae6b3d563043cd407bf366c21"
+  integrity sha512-NOn5eIcgWLOo6qW8AcuLZ7G8PycXu0xTxxkS6Q18VWFxgPUSOwV0pBj2a/4viNZVu25i7RIB7GttdkAIUUXOOg==
+  dependencies:
+    "@types/node" "*"
 
 acorn-walk@^8.1.1:
   version "8.2.0"
@@ -146,6 +158,11 @@ ws@^7.2.0:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.6.tgz#e59fc509fb15ddfb65487ee9765c5a51dec5fe7b"
   integrity sha512-6GLgCqo2cy2A2rjCNFlxQS6ZljG/coZfZXclldI8FB/1G3CCI36Zd8xy2HrFVACi8tfk5XrgLQEk+P0Tnz9UcA==
+
+ws@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.4.0.tgz#f05e982a0a88c604080e8581576e2a063802bed6"
+  integrity sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==
 
 yn@3.1.1:
   version "3.1.1"

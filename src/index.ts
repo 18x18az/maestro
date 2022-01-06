@@ -1,22 +1,43 @@
-import { TeamId } from "@18x18az/rosetta";
-import { record, getNextId, LogType, IMetadata } from "./utils/log"
-import { AllianceSelection } from "./state/alliance"
-import ObsWebSocket from "obs-websocket-js";
-import { SceneManager } from "./managers/scenemanager";
+import { getNextId, record, IMetadata, LogType } from "./utils/log";
+import WebSocket from "ws";
+import { IMessage, SimpleMatchResult } from "@18x18az/rosetta";
 
-const id = getNextId();
-const meta: IMetadata = {
-    id
+const wss = new WebSocket.Server({
+    port: 8081
+});
+
+function messageHandler(metadata: IMetadata, message: IMessage): string | null{
+    const route = message.path[0];
+    if(route === "score"){
+        const score = JSON.parse(message.payload) as SimpleMatchResult;
+        console.log(score);
+    } else {
+        record(metadata, LogType.ERROR, `Unknown path start ${route}`)
+    }
+
+    return null;
 }
 
-function doTheThing(metadata: IMetadata){
-    record(metadata, LogType.LOG, "hello world");
+function send(metadata: IMetadata, ws: WebSocket, message: any){
+    record(metadata, LogType.LOG, `TX - ${message}`);
+    ws.send(JSON.stringify({
+        type: "POST",
+        path: ["test"],
+        payload: message
+    }));
 }
 
-
-doTheThing(meta);
-
-let sm: SceneManager = new SceneManager('localhost:4444', meta);
+wss.on('connection', function connection(ws) {
+    console.log("Connection");
+    ws.on('message', function message(data) {
+        const message = JSON.parse(data.toString()) as IMessage;
+        const id = getNextId();
+        const metadata: IMetadata = {id};
+        record(metadata, LogType.LOG, `RX - ${JSON.stringify(message)}`);
+        const reply = messageHandler(metadata, message);
+        send(metadata, ws, reply);
+    });
+});
 
 /* // alliance selection test
 let stdin = process.openStdin();
