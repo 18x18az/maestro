@@ -6,20 +6,22 @@ type ILogId = number;
 
 export enum LogType {
     ERROR = "ERROR",
-    LOG = "LOG"
+    LOG = "LOG",
+    DATA = "DATA"
 }
 
 
-export interface IMetadata{
+export interface IMetadata {
     id: ILogId
     connection: IConnectionId | null
 }
 
-export function getNextId(): ILogId{
+export function getNextId(): ILogId {
     return id++;
 }
 
-export function record(metadata: IMetadata, type: LogType, message: string){
-    const payload = {message, ...metadata, type};
-    console.log(`${type}: ${message} - ${JSON.stringify(metadata)}`);
+export function record(metadata: IMetadata, type: LogType, message: string) {
+    if (type != LogType.DATA) {
+        console.log(`${type}: ${message} - ${JSON.stringify(metadata)}`);
+    }
 }
