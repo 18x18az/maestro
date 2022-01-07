@@ -1,43 +1,17 @@
-import { getNextId, record, IMetadata, LogType } from "./utils/log";
-import WebSocket from "ws";
-import { IMessage, SimpleMatchResult } from "@18x18az/rosetta";
+import { record, IMetadata, LogType } from "./utils/log";
+import { IMessage } from "@18x18az/rosetta";
+import { ScoreHandler as scoreHandler } from "./handlers/score";
 
-const wss = new WebSocket.Server({
-    port: 8081
-});
-
-function messageHandler(metadata: IMetadata, message: IMessage): string | null{
+export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null{
     const route = message.path[0];
     if(route === "score"){
-        const score = JSON.parse(message.payload) as SimpleMatchResult;
-        console.log(score);
+        scoreHandler(metadata, message);
     } else {
         record(metadata, LogType.ERROR, `Unknown path start ${route}`)
     }
 
     return null;
 }
-
-function send(metadata: IMetadata, ws: WebSocket, message: any){
-    record(metadata, LogType.LOG, `TX - ${message}`);
-    ws.send(JSON.stringify({
-        type: "POST",
-        path: ["test"],
-        payload: message
-    }));
-}
-
-wss.on('connection', function connection(ws) {
-    console.log("Connection");
-    ws.on('message', function message(data) {
-        const message = JSON.parse(data.toString()) as IMessage;
-        const id = getNextId();
-        const metadata: IMetadata = {id};
-        record(metadata, LogType.LOG, `RX - ${JSON.stringify(message)}`);
-        const reply = messageHandler(metadata, message);
-        send(metadata, ws, reply);
-    });
-});
 
 /* // alliance selection test
 let stdin = process.openStdin();

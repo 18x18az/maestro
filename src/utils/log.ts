@@ -1,3 +1,4 @@
+import { IConnectionId } from "./wss";
 let id = 0;
 
 type ILogId = number;
@@ -11,6 +12,7 @@ export enum LogType {
 
 export interface IMetadata{
     id: ILogId
+    connection: IConnectionId | null
 }
 
 export function getNextId(): ILogId{
