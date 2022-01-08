@@ -13,3 +13,12 @@ export function postTeamsHandler(metadata: IMetadata, message: IMessage){
         payload: teams
     });
 };
+
+export function getTeamsHandler(metadata: IMetadata): IMessage {
+    record(metadata, LogType.LOG, 'teams requested');
+    return{
+        type: MESSAGE_TYPE.POST,
+        path: ['teams'],
+        payload: teams
+    }
+}
