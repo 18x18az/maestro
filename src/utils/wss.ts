@@ -2,6 +2,11 @@ import WebSocket from "ws";
 import { getNextId, record, IMetadata, LogType } from "./log";
 import { IMessage } from "@18x18az/rosetta";
 import { messageHandler } from "..";
+import { config } from "dotenv";
+
+config();
+
+const port = parseInt(process.env.WS_PORT as string);
 
 let connectionPool = 0;
 
@@ -31,7 +36,7 @@ export function removeConnection(metadata: IMetadata) {
 }
 
 const wss = new WebSocket.Server({
-    port: 8081
+    port
 });
 
 function send(metadata: IMetadata, ws: WebSocket, message: IMessage) {

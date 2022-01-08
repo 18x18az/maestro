@@ -18,6 +18,7 @@
     "@18x18az/rosetta": "^1.1.1",
     "@types/node": "^16.11.12",
     "@types/ws": "^8.2.2",
+    "dotenv": "^10.0.0",
     "obs-websocket-js": "^4.0.3",
     "ws": "^8.4.0"
   }
