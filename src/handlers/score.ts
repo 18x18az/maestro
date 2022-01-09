@@ -6,11 +6,12 @@ let latestScore: SimpleMatchResult | null = null;
 
 export function postScoreHandler(metadata: IMetadata, message: IMessage) {
     latestScore = message.payload as SimpleMatchResult;
+    record(metadata, LogType.LOG, `match ${latestScore.name} scored`);
     broadcast(metadata, message);
 }
 
 export function getScoreHandler(metadata: IMetadata): IMessage | null {
-    record(metadata, LogType.DATA, "latest score requested");
+    record(metadata, LogType.LOG, "latest score requested");
     if (latestScore) {
         return {
             type: MESSAGE_TYPE.POST,
