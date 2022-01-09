@@ -3,9 +3,9 @@
 
 
 "@18x18az/rosetta@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-1.1.1.tgz#0827e6fb9293f13afc286d9ba28d5e7aedd5d12a"
-  integrity sha512-eLopJDlFrHzjusGXZLTFHW11ivlzGfGVPwx3TV8i76AgooBqAAbrfj4AP5L7t7O3139aAHnxV7Aywqs3i26wVQ==
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-1.1.5.tgz#ae2662f31c94016ce53e93b8de93f5f84821f49d"
+  integrity sha512-dU0UmbbizUVcQNSn2I/EBrIPavzyEGL3yrFa68ET0sS1ENj6vYd9eqgohT6HQ9j3cLMxrHtq4CxyBNKYCngFQg==
 
 "@cspotcode/source-map-consumer@0.8.0":
   version "0.8.0"
