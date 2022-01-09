@@ -1,6 +1,6 @@
 import { record, IMetadata, LogType } from "./utils/log";
 import { IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
-import { postScoreHandler } from "./handlers/score";
+import { getScoreHandler, postScoreHandler } from "./handlers/score";
 import { getTeamsHandler, postTeamsHandler } from "./handlers/teams";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
@@ -18,7 +18,9 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
     } else if (method === MESSAGE_TYPE.GET){
         if (route === "teams") {
             return getTeamsHandler(metadata);
-        } else {
+        } else if (route === "score") {
+            return getScoreHandler(metadata);
+        }else {
             record(metadata, LogType.ERROR, `Unhandled GET path start ${route}`);
         }
     } else {
