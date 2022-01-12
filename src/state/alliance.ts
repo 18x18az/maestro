@@ -2,7 +2,7 @@ import { Team, TeamId } from "@18x18az/rosetta";
 import { record, IMetadata, LogType } from "../utils/log";
 
 
-const MAX_NUM_ALLIANCES = 16;
+let MAX_NUM_ALLIANCES = 16;
 
 // TODO: define this in rosetta
 interface IAlliance {
