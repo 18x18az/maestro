@@ -1,4 +1,5 @@
 import { IAllianceSelectionStatus, IAllianceTeams, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
+import { getNumber } from "../handlers/teams";
 import { record, IMetadata, LogType } from "../utils/log";
 import { broadcast } from "../utils/wss";
 
@@ -30,18 +31,19 @@ export class AllianceSelection {
         this.state.remaining = [...teams];
         this.state.selected = ""
         this.getNextPicker(meta);
+        this.onUpdate(meta);
     }
 
     pick(team: TeamId, meta: IMetadata){
 
         if(!this.state.eligible.includes(team)){
-            record(meta, LogType.ERROR, team + " is not in eligible")
+            record(meta, LogType.ERROR, getNumber(team) + " is not in eligible")
             return;
         }
 
         this.state.selected = team;
 
-        record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected);
+        record(meta, LogType.LOG, getNumber(this.state.picking) + " has selected " + getNumber(this.state.selected));
         this.broadcastState(meta);
     } // end pick
 
@@ -85,7 +87,7 @@ export class AllianceSelection {
         this.state.alliances.push(alliance);
         
         
-        record(meta, LogType.LOG, this.state.selected + " has accepted " + this.state.picking);
+        record(meta, LogType.LOG, getNumber(this.state.selected) + " has accepted " + getNumber(this.state.picking));
         this.state.selected = "";
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
@@ -114,7 +116,7 @@ export class AllianceSelection {
             }
         }
         
-        record(meta, LogType.LOG, this.state.selected + " has declined " + this.state.picking);
+        record(meta, LogType.LOG, getNumber(this.state.selected) + " has declined " + getNumber(this.state.picking));
         this.state.selected = "";
         this.onUpdate(meta);
         // if eligible.length becomes 0 as a result, then we are done and call selectionComplete
@@ -133,11 +135,11 @@ export class AllianceSelection {
                 break;
             }
         }
-        record(meta, LogType.LOG, this.state.picking + " is now picking");
+        record(meta, LogType.LOG, getNumber(this.state.picking) + " is now picking");
     }
 
     undo(meta: IMetadata){
-        if(this.history.length == 0){
+        if(this.history.length == 1){
             record(meta, LogType.ERROR, "history is empty");
             return;
         }
@@ -150,6 +152,7 @@ export class AllianceSelection {
         record(meta, LogType.LOG, "undoing action")
         console.log("now picking: " + this.state.picking);
         console.log("currently selected: " + this.state.selected);
+        this.broadcastState(meta);
     }
 
     selectionComplete(meta: IMetadata){

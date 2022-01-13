@@ -1,9 +1,9 @@
-import { IMessage, MESSAGE_TYPE, Teams } from "@18x18az/rosetta";
+import { IMessage, MESSAGE_TYPE, TeamId, Teams } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 let teams: Teams;
 
-export function postTeamsHandler(metadata: IMetadata, message: IMessage){
+export function postTeamsHandler(metadata: IMetadata, message: IMessage) {
     teams = message.payload;
     record(metadata, LogType.LOG, 'teams updated')
     record(metadata, LogType.DATA, JSON.stringify(message.payload));
@@ -16,9 +16,15 @@ export function postTeamsHandler(metadata: IMetadata, message: IMessage){
 
 export function getTeamsHandler(metadata: IMetadata): IMessage {
     record(metadata, LogType.LOG, 'teams requested');
-    return{
+    return {
         type: MESSAGE_TYPE.POST,
         path: ['teams'],
         payload: teams
+    }
+}
+
+export function getNumber(team: TeamId | null) {
+    if (team) {
+        return teams[team].number;
     }
 }
