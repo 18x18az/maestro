@@ -23,6 +23,19 @@ export function postAllianceSelectionHandler(meta: IMetadata, message: IMessage)
                 path: ['rankings']
             });
         }
+    } else {
+        const action = message.path[1];
+        if(action === "pick"){
+            allianceSelection.pick(message.payload, meta);
+        } else if (action === "cancel") {
+            allianceSelection.cancel(meta);
+        } else if (action === "accept") {
+            allianceSelection.accept(meta);
+        } else if (action === "decline") {
+            allianceSelection.decline(meta);
+        } else {
+            record(meta, LogType.ERROR, `Unknown alliance selection action ${action}`);
+        }
     }
 }
 

@@ -41,8 +41,19 @@ export class AllianceSelection {
 
         this.state.selected = team;
 
-        record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected)
+        record(meta, LogType.LOG, this.state.picking + " has selected " + this.state.selected);
+        this.broadcastState(meta);
     } // end pick
+
+    cancel(meta: IMetadata){
+        record(meta, LogType.LOG, "cancelling current selection");
+        if(!this.state.selected) {
+            record(meta, LogType.ERROR, "No team selected");
+        } else {
+            this.state.selected = null;
+            this.broadcastState(meta);
+        }
+    }
 
     accept(meta: IMetadata){
 
@@ -76,7 +87,6 @@ export class AllianceSelection {
         
         record(meta, LogType.LOG, this.state.selected + " has accepted " + this.state.picking);
         this.state.selected = "";
-        this.onUpdate(meta);
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
 
@@ -86,7 +96,7 @@ export class AllianceSelection {
         }
 
         this.getNextPicker(meta);
-
+        this.onUpdate(meta);
     } // end accept
 
     decline(meta: IMetadata){
@@ -149,16 +159,21 @@ export class AllianceSelection {
             output += "seed " + (i+1) + ": " + this.state.alliances[i].team1 + " and " + this.state.alliances[i].team2 + "\n";
         }
         record(meta, LogType.LOG, output);
+        this.state.picking = null;
+        this.broadcastState(meta);
     }
 
     onUpdate(meta: IMetadata){
-
         this.history.push(JSON.parse(JSON.stringify(this.state)));
+        this.broadcastState(meta);
+    }
+
+    broadcastState(meta: IMetadata){
         broadcast(meta, {
             type: MESSAGE_TYPE.POST,
             path: ['allianceSelection'],
             payload: this.state
-        })
+        });
     }
 }
 
