@@ -4,7 +4,7 @@ import { getScoreHandler, postScoreHandler } from "./handlers/score";
 import { getTeamsHandler, postTeamsHandler } from "./handlers/teams";
 import { getFieldHandler, postFieldHandler } from "./state/field";
 import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
-import { postAllianceSelectionHandler } from "./handlers/allianceSelection";
+import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
@@ -33,6 +33,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             return getMatchesHandler(metadata);
         } else if (route === "field") {
             return getFieldHandler(metadata);
+        } else if (route === "allianceSelection") {
+            return getAllianceSelectionHandler(metadata);
         } else {
             record(metadata, LogType.ERROR, `Unhandled GET path start ${route}`);
         }
