@@ -1,27 +1,14 @@
-import { Team, TeamId } from "@18x18az/rosetta";
+import { IAllianceSelectionStatus, IAllianceTeams, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
 import { record, IMetadata, LogType } from "../utils/log";
+import { broadcast } from "../utils/wss";
 
 
 let MAX_NUM_ALLIANCES = 16;
 
-// TODO: define this in rosetta
-interface IAlliance {
-    team1: TeamId
-    team2: TeamId
-}
-
-interface IAllianceStatus{
-    picking: TeamId | null
-    selected: TeamId | null
-    eligible: Array<TeamId> // can be picked by an alliance captain
-    remaining: Array<TeamId> // can not be picked, but can still be alliance captain
-    alliances: Array<IAlliance>
-}
-
 export class AllianceSelection {
 
     // current state
-    state: IAllianceStatus = {
+    state: IAllianceSelectionStatus = {
         picking: null,
         selected: null,
         eligible: [],
@@ -30,7 +17,7 @@ export class AllianceSelection {
     };
 
     // a stack of previous states
-    history: Array<IAllianceStatus> = [];
+    history: Array<IAllianceSelectionStatus> = [];
 
     /*
     precondition for constructor:
@@ -80,7 +67,7 @@ export class AllianceSelection {
         }
 
         // make an alliance object and add it to this.state.alliances
-        let alliance: IAlliance = {
+        let alliance: IAllianceTeams = {
             team1: this.state.picking as string,
             team2: this.state.selected as string
         };
@@ -89,7 +76,7 @@ export class AllianceSelection {
         
         record(meta, LogType.LOG, this.state.selected + " has accepted " + this.state.picking);
         this.state.selected = "";
-        this.onUpdate();
+        this.onUpdate(meta);
         // before getting the next picker, make sure we have teams remaining or 
         // we have already reached the max number of alliances
 
@@ -119,7 +106,7 @@ export class AllianceSelection {
         
         record(meta, LogType.LOG, this.state.selected + " has declined " + this.state.picking);
         this.state.selected = "";
-        this.onUpdate();
+        this.onUpdate(meta);
         // if eligible.length becomes 0 as a result, then we are done and call selectionComplete
         if(this.state.eligible.length == 0){
             this.selectionComplete(meta);
@@ -145,7 +132,7 @@ export class AllianceSelection {
             return;
         }
         
-        let pState: IAllianceStatus = this.history.splice(this.history.length-2, 1)[0] as IAllianceStatus;
+        let pState: IAllianceSelectionStatus = this.history.splice(this.history.length-2, 1)[0] as IAllianceSelectionStatus;
         this.state = pState;
         console.log("previous picking: " + pState.picking);
         console.log("previous selected: " + pState.selected);
@@ -164,10 +151,14 @@ export class AllianceSelection {
         record(meta, LogType.LOG, output);
     }
 
-    onUpdate(){
+    onUpdate(meta: IMetadata){
 
         this.history.push(JSON.parse(JSON.stringify(this.state)));
-        // TODO: send data to clients
+        broadcast(meta, {
+            type: MESSAGE_TYPE.POST,
+            path: ['allianceSelection'],
+            payload: this.state
+        })
     }
 }
 

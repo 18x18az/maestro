@@ -1,25 +1,25 @@
 {
-  "name": "talos",
-  "version": "1.0.0",
-  "main": "index.js",
-  "repository": "https://github.com/18x18az/talos.git",
-  "author": "Alec Miller <alecmichaelmiller@gmail.com>",
-  "license": "MIT",
-  "scripts": {
-    "build": "tsc",
-    "start": "node ./bin/index.js",
-    "dev": "ts-node ./src/index.ts"
-  },
-  "devDependencies": {
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.3"
-  },
-  "dependencies": {
-    "@18x18az/rosetta": "^1.1.1",
-    "@types/node": "^16.11.12",
-    "@types/ws": "^8.2.2",
-    "dotenv": "^10.0.0",
-    "obs-websocket-js": "^4.0.3",
-    "ws": "^8.4.0"
-  }
+    "name": "talos",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "https://github.com/18x18az/talos.git",
+    "author": "Alec Miller <alecmichaelmiller@gmail.com>",
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc",
+        "start": "node ./bin/index.js",
+        "dev": "ts-node ./src/index.ts"
+    },
+    "devDependencies": {
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.3"
+    },
+    "dependencies": {
+        "@18x18az/rosetta": "^1.1.6",
+        "@types/node": "^16.11.12",
+        "@types/ws": "^8.2.2",
+        "dotenv": "^10.0.0",
+        "obs-websocket-js": "^4.0.3",
+        "ws": "^8.4.0"
+    }
 }
