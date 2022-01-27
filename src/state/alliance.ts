@@ -155,6 +155,16 @@ export class AllianceSelection {
         this.broadcastState(meta);
     }
 
+    noShow(meta: IMetadata){
+        record(meta, LogType.LOG, `${getNumber(this.state.picking)} is a no show`);
+        this.getNextPicker(meta);
+        this.onUpdate(meta);
+
+        if(this.state.eligible.length == 0){
+            this.selectionComplete(meta);
+        }
+    }
+
     selectionComplete(meta: IMetadata){
 
         let output = "selection is now complete, alliances are:\n";

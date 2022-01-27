@@ -30,6 +30,8 @@ export function postAllianceSelectionHandler(meta: IMetadata, message: IMessage)
             allianceSelection.decline(meta);
         } else if (action === "undo") {
             allianceSelection.undo(meta);
+        } else if (action === "noShow") {
+            allianceSelection.noShow(meta);
         } else {
             record(meta, LogType.ERROR, `Unknown alliance selection action ${action}`);
         }
