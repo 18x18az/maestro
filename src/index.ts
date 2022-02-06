@@ -2,6 +2,7 @@ import { record, IMetadata, LogType } from "./utils/log";
 import { IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { getScoreHandler, postScoreHandler } from "./handlers/score";
 import { getTeamsHandler, postTeamsHandler } from "./handlers/teams";
+import { getFieldsHandler, postFieldsHandler} from "./handlers/fields";
 import { getFieldHandler, postFieldHandler } from "./state/field";
 import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
@@ -21,6 +22,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             postMatchesHandler(metadata, message);
         } else if (route === "allianceSelection") {
             postAllianceSelectionHandler(metadata, message);
+        } else if (route === "fields"){
+            postFieldsHandler(metadata, message);
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
@@ -33,6 +36,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             return getMatchesHandler(metadata);
         } else if (route === "field") {
             return getFieldHandler(metadata);
+        } else if (route === "fields") {
+            return getFieldsHandler(metadata);
         } else if (route === "allianceSelection") {
             return getAllianceSelectionHandler(metadata);
         } else {
