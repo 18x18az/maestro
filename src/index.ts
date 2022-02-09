@@ -6,6 +6,7 @@ import { getFieldsHandler, postFieldsHandler} from "./handlers/fields";
 import { getFieldHandler, postFieldHandler } from "./state/field";
 import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
+import { postAwardsHandler } from "./handlers/awards";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
@@ -24,6 +25,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             postAllianceSelectionHandler(metadata, message);
         } else if (route === "fields"){
             postFieldsHandler(metadata, message);
+        } else if (route === "awards") {
+            postAwardsHandler(metadata, message);
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
