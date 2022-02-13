@@ -1,4 +1,8 @@
 # Talos
+## Branch Info
+- this branch is for developing logging cycle times
+- will probably need to edit state/field.ts, but need to test
+- we want to save cycle times in a csv file, and we also want to send it to showman so we can see it in the control panel
 
 ## Build Requirements
 - `yarn`
