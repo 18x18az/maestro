@@ -38,7 +38,8 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         payload: {
             startTime: new Date().toUTCString(),
             currentCycleTime: delta,
-            rollingAvg: rollingAvgCycleTime
+            rollingAvg: rollingAvgCycleTime,
+            recentCycleTimes: cycleTimes
         }
     };
     broadcast(metadata, cycleTimeMsg);
