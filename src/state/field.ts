@@ -3,23 +3,45 @@ import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 
 let fieldState: IFieldState;
-let start: number = 0;
+let lastStartTime: number = 0;
+let delta: number;
+let cycleTimes : number[] = [];
+let rollingAvgCycleTime: number = 0;
 
 export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     fieldState = message.payload;
-    // fieldState.control = 0 is auto
-    // fieldState.timeRemaining = 15 brrr
     // this checks for if a new match starts
     if(fieldState.control == 0 && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
-        let delta = Date.now() - start; // in milliseconds
-        if(fieldState.match == 'Q1'){ // TODO: if we have a bool for lunch break put it here
+        delta = (Date.now() - lastStartTime)/60000;
+        if(fieldState.match == 'Q1' || delta > 30){
             delta = 0;
         }
-        console.log(delta);
-        start = Date.now();
+        else{ // if delta is nonzero then include it in rolling avg calculation
+            cycleTimes.push(delta);
+            rollingAvgCycleTime = 0;
+            if(cycleTimes.length > 5) cycleTimes.shift(); 
+            for(let i = 0; i < cycleTimes.length; i++){
+                rollingAvgCycleTime += cycleTimes[i];
+            }
+            rollingAvgCycleTime /= cycleTimes.length;
+        }
+        console.log(delta + " minutes since last match");
+        console.log("rolling average: " + rollingAvgCycleTime);
+        // TODO: write to .csv file
+        lastStartTime = Date.now();
     }
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
+    let cycleTimeMsg: IMessage = {
+        type: MESSAGE_TYPE.POST,
+        path: ["cycleTime"],
+        payload: {
+            startTime: new Date().toUTCString(),
+            currentCycleTime: delta,
+            rollingAvg: rollingAvgCycleTime
+        }
+    };
+    broadcast(metadata, cycleTimeMsg);
 }
 
 export function getFieldHandler(metadata: IMetadata): IMessage {
