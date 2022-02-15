@@ -29,20 +29,24 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         console.log("rolling average: " + rollingAvgCycleTime);
         // TODO: write to .csv file
         lastStartTime = Date.now();
-    }
+        let cycleTimeMsg: IMessage = {
+            type: MESSAGE_TYPE.POST,
+            path: ["cycleTime"],
+            payload: {
+                startTime: new Date().toUTCString(),
+                currentCycleTime: delta,
+                rollingAvg: rollingAvgCycleTime,
+                recentCycleTimes: cycleTimes
+            }
+        };
+        record(metadata, LogType.LOG, "new match start") // TODO add more info
+        broadcast(metadata, cycleTimeMsg);
+    } // end if match starts
+
+    
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
-    let cycleTimeMsg: IMessage = {
-        type: MESSAGE_TYPE.POST,
-        path: ["cycleTime"],
-        payload: {
-            startTime: new Date().toUTCString(),
-            currentCycleTime: delta,
-            rollingAvg: rollingAvgCycleTime,
-            recentCycleTimes: cycleTimes
-        }
-    };
-    broadcast(metadata, cycleTimeMsg);
+
 }
 
 export function getFieldHandler(metadata: IMetadata): IMessage {
