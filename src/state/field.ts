@@ -33,6 +33,7 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
             type: MESSAGE_TYPE.POST,
             path: ["cycleTime"],
             payload: {
+                match: fieldState.match,
                 startTime: new Date().toUTCString(),
                 currentCycleTime: delta,
                 rollingAvg: rollingAvgCycleTime,
@@ -43,7 +44,7 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         broadcast(metadata, cycleTimeMsg);
     } // end if match starts
 
-    
+
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
 
