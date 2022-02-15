@@ -31,14 +31,12 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         console.log(delta + " minutes since last match");
         console.log("rolling average: " + rollingAvgCycleTime);
         // TODO: write to .csv file
+        // to save to csv: match and its start time
         lastStartTime = Date.now();
         let cycleTimeMsg: IMessage = {
             type: MESSAGE_TYPE.POST,
             path: ["cycleTime"],
             payload: {
-                currentMatch: fieldState.match,
-                startTime: new Date().toUTCString(),
-                currentCycleTime: delta,
                 rollingAvg: rollingAvgCycleTime,
                 recentCycleTimes: cycleTimes,
                 recentMatches: matches
