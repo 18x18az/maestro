@@ -6,6 +6,7 @@ let fieldState: IFieldState;
 let lastStartTime: number = 0;
 let delta: number;
 let cycleTimes : number[] = [];
+let matches : string[] = [];
 let rollingAvgCycleTime: number = 0;
 
 export function postFieldHandler(metadata: IMetadata, message: IMessage) {
@@ -18,8 +19,10 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         }
         else{ // if delta is nonzero then include it in rolling avg calculation
             cycleTimes.push(delta);
+            matches.push(fieldState.match);
             rollingAvgCycleTime = 0;
             if(cycleTimes.length > 5) cycleTimes.shift(); 
+            if(matches.length > 5) matches.shift();
             for(let i = 0; i < cycleTimes.length; i++){
                 rollingAvgCycleTime += cycleTimes[i];
             }
@@ -33,11 +36,12 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
             type: MESSAGE_TYPE.POST,
             path: ["cycleTime"],
             payload: {
-                match: fieldState.match,
+                currentMatch: fieldState.match,
                 startTime: new Date().toUTCString(),
                 currentCycleTime: delta,
                 rollingAvg: rollingAvgCycleTime,
-                recentCycleTimes: cycleTimes
+                recentCycleTimes: cycleTimes,
+                recentMatches: matches
             }
         };
         record(metadata, LogType.LOG, "new match start") // TODO add more info
