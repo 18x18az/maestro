@@ -9,6 +9,8 @@ let cycleTimes : number[] = [];
 let matches : string[] = [];
 let rollingAvgCycleTime: number = 0;
 
+let numToSend: number = 8;
+
 export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     fieldState = message.payload;
     // this checks for if a new match starts
@@ -21,8 +23,8 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
             cycleTimes.push(delta);
             matches.push(fieldState.match);
             rollingAvgCycleTime = 0;
-            if(cycleTimes.length > 5) cycleTimes.shift(); 
-            if(matches.length > 5) matches.shift();
+            if(cycleTimes.length > numToSend) cycleTimes.shift(); 
+            if(matches.length > numToSend) matches.shift();
             for(let i = 0; i < cycleTimes.length; i++){
                 rollingAvgCycleTime += cycleTimes[i];
             }

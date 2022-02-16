@@ -11,10 +11,10 @@
 5. figure out a way for talos to differentiate between events so we can create new csv files for new events. could add a thing in .env
 
 ### TODO
-- [x] get delta in minutes
+- [x] get cycle time in minutes
 - [ ] save to .csv according to .env
 - [x] calculate rolling average
-- [x] broadcast stuff about cycleTime/matchstart
+- [x] broadcast stuff about cycle times
 ## Build Requirements
 - `yarn`
 
