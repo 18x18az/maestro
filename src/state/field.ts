@@ -1,6 +1,13 @@
 import { IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
+import { config } from "dotenv";
+
+config();
+
+const fs = require('fs');
+const event = process.env.EVENT as string;
+const eventFilePath = event + ".csv";
 
 let fieldState: IFieldState;
 let lastStartTime: number = 0;
@@ -30,11 +37,15 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
             }
             rollingAvgCycleTime /= cycleTimes.length;
         }
-        console.log(delta + " minutes since last match");
-        console.log("rolling average: " + rollingAvgCycleTime);
-        // TODO: write to .csv file
-        // to save to csv: match and its start time
         lastStartTime = Date.now();
+        // write data row to csv
+        let dataRow = fieldState.match + ", " + new Date().toLocaleTimeString() + "\n";
+        fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err:any) => {
+            if(err != null){
+                record(metadata, LogType.ERROR, "fs error: " + err.code);
+            }
+        })
+
         let cycleTimeMsg: IMessage = {
             type: MESSAGE_TYPE.POST,
             path: ["cycleTime"],
