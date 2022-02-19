@@ -29,7 +29,7 @@ let numToSend: number = 8;
  * If a new match has started, we broadcast the time since the last match has begun,
  * and save the match start time to a local csv file.
  */
-function cycleTimeHandler(metadata: IMetadata, fieldState: IFieldState){
+function cycleTimeHandler(metadata: IMetadata){
     if(fieldState.control == 0 && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
         delta = (Date.now() - lastStartTime)/60000;
         if(fieldState.match == 'Q1' || delta > 30){
@@ -75,7 +75,7 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
 
     // this checks for if a new match starts
     // if so, calculates cycle time
-    cycleTimeHandler(metadata, fieldState);
+    cycleTimeHandler(metadata);
 
 
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
