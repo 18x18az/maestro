@@ -16,11 +16,20 @@ let cycleTimes : number[] = [];
 let matches : string[] = [];
 let rollingAvgCycleTime: number = 0;
 
+// the number of cycle times to broadcast out
 let numToSend: number = 8;
 
-export function postFieldHandler(metadata: IMetadata, message: IMessage) {
-    fieldState = message.payload;
-    // this checks for if a new match starts
+/**
+ * Checks if a new match has started
+ * The criteria for a new match to begin:
+ * - we are in autonomous
+ * - time remaining == 15
+ * - match is not a prog. skills
+ * 
+ * If a new match has started, we broadcast the time since the last match has begun,
+ * and save the match start time to a local csv file.
+ */
+function cycleTimeHandler(metadata: IMetadata, fieldstate: IFieldState){
     if(fieldState.control == 0 && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
         delta = (Date.now() - lastStartTime)/60000;
         if(fieldState.match == 'Q1' || delta > 30){
@@ -38,6 +47,7 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
             rollingAvgCycleTime /= cycleTimes.length;
         }
         lastStartTime = Date.now();
+
         // write data row to csv
         let dataRow = fieldState.match + ", " + new Date().toLocaleTimeString() + "\n";
         fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err:any) => {
@@ -58,6 +68,14 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         record(metadata, LogType.LOG, "new match start") // TODO add more info
         broadcast(metadata, cycleTimeMsg);
     } // end if match starts
+}
+
+export function postFieldHandler(metadata: IMetadata, message: IMessage) {
+    fieldState = message.payload;
+
+    // this checks for if a new match starts
+    // if so, calculates cycle time
+    cycleTimeHandler(metadata, fieldState);
 
 
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
