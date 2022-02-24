@@ -1,6 +1,7 @@
 import { IMessage, MESSAGE_TYPE, SimpleMatchResult } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
+import { setDisplayState } from "./display";
 
 let latestScore: SimpleMatchResult | null = null;
 
