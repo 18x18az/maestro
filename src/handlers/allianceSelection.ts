@@ -1,7 +1,8 @@
-import { IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
+import { DisplayState, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { AllianceSelection } from "../state/alliance";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
+import { setDisplayState } from "./display";
 
 
 let allianceSelection: AllianceSelection | null = null;
@@ -32,6 +33,8 @@ export function postAllianceSelectionHandler(meta: IMetadata, message: IMessage)
             allianceSelection.undo(meta);
         } else if (action === "noShow") {
             allianceSelection.noShow(meta);
+        } else if (action === undefined) {
+            setDisplayState(meta, DisplayState.ALLIANCE);
         } else {
             record(meta, LogType.ERROR, `Unknown alliance selection action ${action}`);
         }
