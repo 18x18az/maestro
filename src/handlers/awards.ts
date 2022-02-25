@@ -5,6 +5,7 @@ import { setDisplayState } from "./display";
 
 let awards: IAwards;
 let selectedAward: IAward;
+let isPushed: boolean;
 
 function refreshAwards(metadata: IMetadata) {
     record(metadata, LogType.LOG, "awards refresh requested");
@@ -14,10 +15,30 @@ function refreshAwards(metadata: IMetadata) {
     });
 }
 
+function getSelectedAward(): IAward{
+    if(isPushed){
+        return selectedAward;
+    } else {
+        let modified = JSON.parse(JSON.stringify(selectedAward)) as IAward;
+        modified.winner = null;
+        return modified;
+    }
+}
+
 export function postAwardsHandler(metadata: IMetadata, message: IMessage) {
     if(message.payload === null){
-        refreshAwards(metadata);
+        if(message.path[1] === "push") {
+            isPushed = true;
+            broadcast(metadata, {
+                type: MESSAGE_TYPE.POST,
+                path: ["awards", "selected"],
+                payload: getSelectedAward()
+            });
+        } else {
+            refreshAwards(metadata);
+        }
     } else if(message.path[1] === "selected"){
+        isPushed = false;
         record(metadata, LogType.LOG, 'Award selected');
         const messageIndex = parseInt(message.payload)
         selectedAward = awards[messageIndex];
@@ -26,8 +47,8 @@ export function postAwardsHandler(metadata: IMetadata, message: IMessage) {
         broadcast(metadata, {
             type: MESSAGE_TYPE.POST,
             path: ["awards", "selected"],
-            payload: selectedAward
-        })
+            payload: getSelectedAward()
+        });
     } else {
         record(metadata, LogType.LOG, "awards updated");
         awards = message.payload;
