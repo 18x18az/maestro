@@ -59,3 +59,16 @@ export function postAwardsHandler(metadata: IMetadata, message: IMessage) {
         })
     }
 }
+
+export function getAwardsHandler(meta: IMetadata): IMessage | null{
+    record(meta, LogType.LOG, "Selected award requested");
+    if(selectedAward){
+        return {
+            type: MESSAGE_TYPE.POST,
+            path: ['awards', 'selected'],
+            payload: getSelectedAward()
+        }
+    } else {
+        return null
+    }
+}

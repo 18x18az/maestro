@@ -6,7 +6,7 @@ import { getFieldsHandler, postFieldsHandler} from "./handlers/fields";
 import { getFieldHandler, postFieldHandler } from "./state/field";
 import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
-import { postAwardsHandler } from "./handlers/awards";
+import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
@@ -48,6 +48,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             return getAllianceSelectionHandler(metadata);
         } else if (route === "display") {
             return getDisplayStateHandler(metadata);
+        } else if(route === "awards") {
+            return getAwardsHandler(metadata);
         } else {
             record(metadata, LogType.ERROR, `Unhandled GET path start ${route}`);
         }
