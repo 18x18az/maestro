@@ -9,7 +9,7 @@
         "build": "tsc",
         "start": "node ./bin/index.js",
         "dev": "ts-node ./src/index.ts",
-        "test": "jest --coverage"
+        "test": "jest ./src --coverage"
     },
     "devDependencies": {
         "@types/jest": "^27.4.1",
