@@ -1,12 +1,12 @@
 # Talos
-
+Lightweight companion for Tournament Manager
 ### Build Instructions
 ```bat
 :: clone the project
 $ git clone git@github.com:18x18az/talos.git
 $ cd talos
 
-:: do build stuff
+:: install build dependencies
 $ yarn install
 
 :: run the project
