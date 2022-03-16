@@ -17,7 +17,7 @@ let matches : string[] = [];
 let rollingAvgCycleTime: number = 0;
 
 // the number of cycle times to broadcast out
-let numToSend: number = 8;
+let numToSend: number = 6;
 
 /**
  * Checks if a new match has started
