@@ -9,9 +9,8 @@ import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./han
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
 import { SceneManager } from "./managers/scenemanager";
-import { config } from "dotenv";
+import { postInspectionHandler } from "./handlers/inspection";
 
-config();
 let sm: SceneManager = new SceneManager();
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
@@ -36,6 +35,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             postAwardsHandler(metadata, message);
         } else if (route === "display") {
             postDisplayStateHandler(metadata, message);
+        } else if (route === "inspection") {
+            postInspectionHandler(metadata, message);
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
