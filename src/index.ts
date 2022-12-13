@@ -8,6 +8,7 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
+import { postInspectionHandler } from "./handlers/inspection";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
@@ -30,6 +31,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             postAwardsHandler(metadata, message);
         } else if (route === "display") {
             postDisplayStateHandler(metadata, message);
+        } else if (route === "inspection") {
+            postInspectionHandler(metadata, message);
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
