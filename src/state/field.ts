@@ -2,7 +2,7 @@ import { FIELD_CONTROL, IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/ros
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
-
+import { OBS } from "../managers/scenemanager";
 config();
 
 const fs = require('fs');
@@ -77,6 +77,11 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
+    // go to audience five seconds after a match ends
+    if (fieldState.control === FIELD_CONTROL.DRIVER && fieldState.timeRemaining == 0) {
+        OBS.setAudience();
+        setTimeout(OBS.triggerTransition, 5000);
+    }
 
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);

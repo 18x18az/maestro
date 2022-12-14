@@ -8,10 +8,10 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
-import { SceneManager } from "./managers/scenemanager";
+import { OBS } from "./managers/scenemanager";
 import { postInspectionHandler } from "./handlers/inspection";
 
-let sm: SceneManager = new SceneManager();
+OBS.connect();
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
