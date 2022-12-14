@@ -1,7 +1,7 @@
-import { IMessage, MESSAGE_TYPE, TeamId, Teams } from "@18x18az/rosetta";
+import { IMessage, MESSAGE_TYPE, TeamId, ITeams } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
-let teams: Teams;
+let teams: ITeams;
 
 export function postTeamsHandler(metadata: IMetadata, message: IMessage) {
     teams = message.payload;

@@ -1,4 +1,4 @@
-import { IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
+import { FIELD_CONTROL, IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
@@ -30,7 +30,7 @@ let numToSend: number = 6;
  * and save the match start time to a local csv file.
  */
 function cycleTimeHandler(metadata: IMetadata){
-    if(fieldState.control == 0 && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
+    if(fieldState.control == FIELD_CONTROL.AUTONOMOUS && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
         delta = (Date.now() - lastStartTime)/60000;
         if(fieldState.match == 'Q1' || delta > 30){
             delta = 0;
