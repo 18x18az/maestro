@@ -10,6 +10,7 @@ const event = process.env.EVENT as string;
 const eventFilePath = event + ".csv";
 
 let fieldState: IFieldState;
+let prevFieldState: IFieldState;
 let lastStartTime: number = 0;
 let delta: number;
 let cycleTimes : number[] = [];
@@ -77,7 +78,10 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
-    OBS.setField(fieldState.field)
+    if (prevFieldState && fieldState.field !== prevFieldState.field) {
+        OBS.setField(fieldState.field);
+        setTimeout(OBS.triggerTransition, 500);
+    }
 
     // go to audience five seconds after a match ends
     if (fieldState.control === FIELD_CONTROL.DRIVER && fieldState.timeRemaining == 0) {
@@ -85,6 +89,7 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
         setTimeout(OBS.triggerTransition, 5000);
     }
 
+    prevFieldState = fieldState;
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
 

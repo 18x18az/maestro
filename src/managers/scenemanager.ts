@@ -50,16 +50,25 @@ export namespace OBS {
             return false;
         }
         if (field == "1") {
-            console.log(process.env.OBS_SCENE_FIELDA);
+            await obs.call('SetCurrentPreviewScene',
+                { sceneName: process.env.OBS_SCENE_FIELDA as string
+            });
+            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDA);
         }
         else if (field == "2") {
-            console.log(process.env.OBS_SCENE_FIELDB);
+            await obs.call('SetCurrentPreviewScene',
+                { sceneName: process.env.OBS_SCENE_FIELDB as string
+            });
+            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDB);
         }
         else if (field == "3") {
-            console.log(process.env.OBS_SCENE_FIELDC);
+            await obs.call('SetCurrentPreviewScene',
+                { sceneName: process.env.OBS_SCENE_FIELDC as string
+            });
+            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDC);
         }
         else {
-            console.log(`field ID ${field} not supported`);
+            console.log(`OBS: field ID ${field} not supported`);
             return false;
         }
 
@@ -70,7 +79,7 @@ export namespace OBS {
         if (isManual || !connected) {
             return false;
         }
-
+        console.log(`OBS: set scene ${process.env.OBS_SCENE_AUDIENCE_OVERLAY}`);
         await obs.call('SetCurrentPreviewScene', { sceneName: process.env.OBS_SCENE_AUDIENCE_OVERLAY as string });
 
         return true;
@@ -81,6 +90,7 @@ export namespace OBS {
             return false;
         }
 
+        console.log("OBS: triggering transition");
         await obs.call('TriggerStudioModeTransition');
         return true;
     }
