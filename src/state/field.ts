@@ -77,6 +77,8 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
+    OBS.setField(fieldState.field)
+
     // go to audience five seconds after a match ends
     if (fieldState.control === FIELD_CONTROL.DRIVER && fieldState.timeRemaining == 0) {
         OBS.setAudience();

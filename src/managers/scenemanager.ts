@@ -1,7 +1,7 @@
-import ObsWebSocket, { RequestBatchExecutionType, RequestBatchOptions } from "obs-websocket-js";
+import ObsWebSocket from "obs-websocket-js";
 import { record, IMetadata, LogType } from "../utils/log";
 import { config } from "dotenv";
-import { FieldId } from "@18x18az/rosetta";
+import { FieldId, IMessage } from "@18x18az/rosetta";
 
 config();
 /**
@@ -11,7 +11,7 @@ export namespace OBS {
 
     let obs: ObsWebSocket = new ObsWebSocket();
     let isManual: boolean = false;
-    let currentField: FieldId = "1";
+    let connected: boolean = false;
 
     export async function connect(): Promise<boolean> {
         try {
@@ -20,11 +20,21 @@ export namespace OBS {
               negotiatedRpcVersion
             } = await obs.connect(`ws://localhost:${process.env.OBS_WS_PORT as string}`);
             console.log(`Connected to OBS server ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`)
+            connected = true;
             return true;
         } catch (error: any) {
-            console.error('Failed to connect', error.code, error.message);
+            console.error('Failed to connect to OBS server', error.code, error.message);
+            connected = false;
             return false;
         }
+    }
+
+    export async function disconnect(): Promise<boolean> {
+        if (!connected) {
+            return false;
+        }
+        await obs.disconnect();
+        return true;
     }
 
     export function lock() {
@@ -36,37 +46,46 @@ export namespace OBS {
     }
 
     export async function setField(field: FieldId): Promise<boolean> {
-        if (isManual || field === currentField) {
+        if (isManual || !connected) {
+            return false;
+        }
+        if (field == "1") {
+            console.log(process.env.OBS_SCENE_FIELDA);
+        }
+        else if (field == "2") {
+            console.log(process.env.OBS_SCENE_FIELDB);
+        }
+        else if (field == "3") {
+            console.log(process.env.OBS_SCENE_FIELDC);
+        }
+        else {
+            console.log(`field ID ${field} not supported`);
             return false;
         }
 
-        return true;
-    }
-
-    export async function nextField(): Promise<boolean> {
-        if (isManual) {
-            return false;
-        }
-        
         return true;
     }
 
     export async function setAudience(): Promise<boolean> {
-        if (isManual) {
+        if (isManual || !connected) {
             return false;
         }
 
-        await obs.call('SetCurrentPreviewScene', { sceneName: 'Webcam Overlay' });
+        await obs.call('SetCurrentPreviewScene', { sceneName: process.env.OBS_SCENE_AUDIENCE_OVERLAY as string });
 
         return true;
     }
 
     export async function triggerTransition(): Promise<boolean> {
-        if (isManual) {
+        if (isManual || !connected) {
             return false;
         }
 
         await obs.call('TriggerStudioModeTransition');
         return true;
     }
+}
+
+export function postSceneHandler(metadata: IMetadata, message: IMessage) {
+
 }
