@@ -1,5 +1,5 @@
 # Talos
-Lightweight companion for Tournament Manager
+Lightweight, unofficial companion for Tournament Manager
 ### Build Instructions
 ```bat
 :: clone the project

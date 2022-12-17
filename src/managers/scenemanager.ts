@@ -53,19 +53,19 @@ export namespace OBS {
             await obs.call('SetCurrentPreviewScene',
                 { sceneName: process.env.OBS_SCENE_FIELDA as string
             });
-            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDA);
+            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDA);
         }
         else if (field == "2") {
             await obs.call('SetCurrentPreviewScene',
                 { sceneName: process.env.OBS_SCENE_FIELDB as string
             });
-            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDB);
+            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDB);
         }
         else if (field == "3") {
             await obs.call('SetCurrentPreviewScene',
                 { sceneName: process.env.OBS_SCENE_FIELDC as string
             });
-            console.log("OBS: set scene " + process.env.OBS_SCENE_FIELDC);
+            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDC);
         }
         else {
             console.log(`OBS: field ID ${field} not supported`);
@@ -96,6 +96,16 @@ export namespace OBS {
     }
 }
 
-export function postSceneHandler(metadata: IMetadata, message: IMessage) {
+// TODO: move to rosetta
+interface IOBSConfig {
+    setManual: boolean
+};
 
+export function postSceneHandler(metadata: IMetadata, message: IMessage) {
+    if ((message.payload as IOBSConfig).setManual) {
+        OBS.lock();
+    }
+    else {
+        OBS.unlock();
+    }
 }
