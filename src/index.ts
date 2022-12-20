@@ -8,10 +8,11 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
-import { getOBSHandler, OBS, postOBSHandler } from "./managers/obs";
+import { getOBSHandler, postOBSHandler } from "./handlers/obs";
 import { postInspectionHandler } from "./handlers/inspection";
+import { Studio } from "./managers/obs";
 
-OBS.connect();
+Studio.connect();
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];

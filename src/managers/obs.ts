@@ -6,7 +6,7 @@ config();
 /**
  * Connects to an obs-websocket and controls scene switching
  */
-export namespace OBS {
+export namespace Studio {
 
     let obs: ObsWebSocket = new ObsWebSocket();
     let isManual: boolean = false;

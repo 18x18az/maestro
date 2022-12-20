@@ -1,4 +1,4 @@
-import { OBS } from "../managers/obs";
+import { Studio } from "../managers/obs";
 import { IMetadata } from "../utils/log";
 import { IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 
@@ -11,15 +11,15 @@ interface IOBSConfig {
 
 export async function postOBSHandler(metadata: IMetadata, message: IMessage) {
     if ((message.payload as IOBSConfig).setManual) {
-        OBS.setManual();
+        Studio.setManual();
     }
     else {
-        OBS.setAuto();
+        Studio.setAuto();
     }
 
     if ((message.payload as IOBSConfig).attemptReconnect) {
-        await OBS.disconnect();
-        await OBS.connect();
+        await Studio.disconnect();
+        await Studio.connect();
     }
 }
 
@@ -28,8 +28,8 @@ export function getOBSHandler(metadata: IMetadata): IMessage {
         type: MESSAGE_TYPE.POST,
         path: ['obs'],
         payload: {
-            setManual: OBS.getIsManual(),
-            isConnected: OBS.isConnected(),
+            setManual: Studio.getIsManual(),
+            isConnected: Studio.isConnected(),
             attemptReconnect: false
         }
     }
