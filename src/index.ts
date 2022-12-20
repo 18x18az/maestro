@@ -8,7 +8,7 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
-import { getOBSHandler, OBS, postOBSHandler } from "./managers/scenemanager";
+import { getOBSHandler, OBS, postOBSHandler } from "./managers/obs";
 import { postInspectionHandler } from "./handlers/inspection";
 
 OBS.connect();

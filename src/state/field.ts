@@ -2,7 +2,7 @@ import { FIELD_CONTROL, IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/ros
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
-import { OBS } from "../managers/scenemanager";
+import { OBS } from "../managers/obs";
 config();
 
 const fs = require('fs');
