@@ -61,22 +61,13 @@ export namespace Studio {
             return false;
         }
         if (field == "1") {
-            await obs.call('SetCurrentPreviewScene',
-                { sceneName: process.env.OBS_SCENE_FIELDA as string
-            });
-            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDA);
+            setPreviewScene(process.env.OBS_SCENE_FIELDA as string);
         }
         else if (field == "2") {
-            await obs.call('SetCurrentPreviewScene',
-                { sceneName: process.env.OBS_SCENE_FIELDB as string
-            });
-            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDB);
+            setPreviewScene(process.env.OBS_SCENE_FIELDB as string);
         }
         else if (field == "3") {
-            await obs.call('SetCurrentPreviewScene',
-                { sceneName: process.env.OBS_SCENE_FIELDC as string
-            });
-            console.log("OBS: set scene preview " + process.env.OBS_SCENE_FIELDC);
+            setPreviewScene(process.env.OBS_SCENE_FIELDC as string);
         }
         else {
             console.log(`OBS: field ID ${field} not supported`);
@@ -92,6 +83,16 @@ export namespace Studio {
         }
         console.log(`OBS: set scene ${process.env.OBS_SCENE_AUDIENCE_OVERLAY}`);
         await obs.call('SetCurrentPreviewScene', { sceneName: process.env.OBS_SCENE_AUDIENCE_OVERLAY as string });
+
+        return true;
+    }
+
+    export async function setPreviewScene(sceneName: string): Promise<boolean> {
+        if (isManual || !connected) {
+            return false;
+        }
+        console.log(`OBS: set scene ${sceneName}`);
+        await obs.call('SetCurrentPreviewScene', { sceneName });
 
         return true;
     }
