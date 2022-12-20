@@ -8,7 +8,7 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
-import { OBS, postSceneHandler } from "./managers/scenemanager";
+import { getOBSHandler, OBS, postOBSHandler } from "./managers/scenemanager";
 import { postInspectionHandler } from "./handlers/inspection";
 
 OBS.connect();
@@ -38,7 +38,7 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
         } else if (route === "inspection") {
             postInspectionHandler(metadata, message);
         } else if (route === "obs") {
-            postSceneHandler(metadata, message);
+            postOBSHandler(metadata, message);
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
@@ -59,6 +59,8 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             return getDisplayStateHandler(metadata);
         } else if(route === "awards") {
             return getAwardsHandler(metadata);
+        } else if (route === "obs") {
+            return getOBSHandler(metadata);
         } else {
             record(metadata, LogType.ERROR, `Unhandled GET path start ${route}`);
         }

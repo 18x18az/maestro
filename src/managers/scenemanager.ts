@@ -1,7 +1,7 @@
 import ObsWebSocket from "obs-websocket-js";
 import { record, IMetadata, LogType } from "../utils/log";
 import { config } from "dotenv";
-import { FieldId, IMessage } from "@18x18az/rosetta";
+import { FieldId, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 
 config();
 /**
@@ -19,11 +19,11 @@ export namespace OBS {
               obsWebSocketVersion,
               negotiatedRpcVersion
             } = await obs.connect(`ws://localhost:${process.env.OBS_WS_PORT as string}`);
-            console.log(`Connected to OBS server ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`)
+            console.log(`OBS: Connected to OBS server ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`)
             connected = true;
             return true;
         } catch (error: any) {
-            console.error('Failed to connect to OBS server', error.code, error.message);
+            console.error('OBS: Failed to connect to OBS server', error.code, error.message);
             connected = false;
             return false;
         }
@@ -34,15 +34,27 @@ export namespace OBS {
             return false;
         }
         await obs.disconnect();
+        console.log("OBS: Disconnect from OBS server");
         return true;
     }
 
-    export function lock() {
+    export function setManual() {
+        console.log("OBS: set to manual mode")
         isManual = true;
     }
 
-    export function unlock() {
+    export function setAuto() {
+        console.log("OBS: set to automatic mode")
         isManual = false;
+    }
+
+    // returns true if in manual, false otherwise
+    export function getIsManual() {
+        return isManual;
+    }
+
+    export function isConnected() {
+        return connected;
     }
 
     export async function setField(field: FieldId): Promise<boolean> {
@@ -94,18 +106,37 @@ export namespace OBS {
         await obs.call('TriggerStudioModeTransition');
         return true;
     }
-}
+} // end namespace OBS
 
 // TODO: move to rosetta
 interface IOBSConfig {
-    setManual: boolean
-};
+    setManual: boolean,
+    isConnected: boolean,
+    attemptReconnect: boolean
+}
 
-export function postSceneHandler(metadata: IMetadata, message: IMessage) {
+export async function postOBSHandler(metadata: IMetadata, message: IMessage) {
     if ((message.payload as IOBSConfig).setManual) {
-        OBS.lock();
+        OBS.setManual();
     }
     else {
-        OBS.unlock();
+        OBS.setAuto();
+    }
+
+    if ((message.payload as IOBSConfig).attemptReconnect) {
+        await OBS.disconnect();
+        await OBS.connect();
+    }
+}
+
+export function getOBSHandler(metadata: IMetadata): IMessage {
+    return {
+        type: MESSAGE_TYPE.POST,
+        path: ['obs'],
+        payload: {
+            setManual: OBS.getIsManual(),
+            isConnected: OBS.isConnected(),
+            attemptReconnect: false
+        }
     }
 }
