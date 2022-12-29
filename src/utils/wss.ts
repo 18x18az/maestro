@@ -44,10 +44,22 @@ function send(metadata: IMetadata, ws: WebSocket, message: IMessage) {
     ws.send(JSON.stringify(message));
 }
 
-export function broadcast(metadata: IMetadata, message: IMessage) {
+export async function broadcast(metadata: IMetadata, message: IMessage) {
     record(metadata, LogType.LOG, "broadcasting");
     for (const ws of Object.values(connectionTable)) {
         send(metadata, ws, message);
+    }
+
+    // send to bifrost
+    try {
+        const response = await fetch(process.env.BIFROST_URL as string,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(message)
+            });
+    } catch (err: any) {
+        console.error(err.message);
     }
 }
 
