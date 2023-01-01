@@ -9,6 +9,7 @@ import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./han
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
 import { postInspectionHandler } from "./handlers/inspection";
+import { getSkillsHandler, postSkillsHandler } from "./handlers/skills";
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
@@ -33,6 +34,10 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             postDisplayStateHandler(metadata, message);
         } else if (route === "inspection") {
             postInspectionHandler(metadata, message);
+        } else if (route === "skills") {
+            postSkillsHandler(metadata, message);
+        } else if (route === "rankings") {
+
         } else {
             record(metadata, LogType.ERROR, `Unhandled POST path start ${route}`);
         }
@@ -51,8 +56,12 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
             return getAllianceSelectionHandler(metadata);
         } else if (route === "display") {
             return getDisplayStateHandler(metadata);
-        } else if(route === "awards") {
+        } else if (route === "awards") {
             return getAwardsHandler(metadata);
+        } else if (route === "skills") {
+            return getSkillsHandler(metadata);
+        } else if (route === "rankings") {
+            
         } else {
             record(metadata, LogType.ERROR, `Unhandled GET path start ${route}`);
         }
