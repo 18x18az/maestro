@@ -1,11 +1,6 @@
-import { IMessage, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta"
+import { IInspectionStatus, IMessage, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta"
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
-
-interface IInspectionStatus {
-    uninspected: Array<TeamId>
-    inspected: Array<TeamId>
-}
 
 let inspection: IInspectionStatus;
 
