@@ -1,7 +1,7 @@
-import { IMessage, MESSAGE_TYPE, IAward, IAwards, DISPLAY_STATE } from "@18x18az/rosetta";
+import { IMessage, MESSAGE_TYPE, IAward, IAwards, COMPETITION_STAGE } from "@18x18az/rosetta";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
-import { setDisplayState } from "./display";
+import { setCompetitionStage } from "./stage";
 
 let awards: IAwards;
 let selectedAward: IAward;
@@ -43,7 +43,7 @@ export function postAwardsHandler(metadata: IMetadata, message: IMessage) {
         const messageIndex = parseInt(message.payload)
         selectedAward = awards[messageIndex];
         record(metadata, LogType.LOG, `Selected ${selectedAward.name}`);
-        setDisplayState(metadata, DISPLAY_STATE.AWARD);
+        setCompetitionStage(metadata, COMPETITION_STAGE.AWARDS);
         broadcast(metadata, {
             type: MESSAGE_TYPE.POST,
             path: ["awards", "selected"],
