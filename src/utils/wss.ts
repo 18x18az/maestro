@@ -55,7 +55,10 @@ export async function broadcast(metadata: IMetadata, message: IMessage) {
         const response = await fetch(process.env.BIFROST_URL as string,
             {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "talos-key": process.env.BIFROST_KEY as string,
+                },
                 body: JSON.stringify(message)
             });
     } catch (err: any) {
