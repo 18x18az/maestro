@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@18x18az/rosetta@^3.3.1":
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-3.3.1.tgz#14f44f7ee33410da71dba1f6ec83fb7493d522e5"
-  integrity sha512-0AH4oKVUq7szwAAqjhTGREnWbz4+3sGe7wDs9hm14wgzGHbrccSarBBqIk+8CLIEWkwzf12mWhrZQva9PNHf7w==
+"@18x18az/rosetta@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-3.4.0.tgz#3f68a1965d018c4350f49161ad8d3c6dc7eeda61"
+  integrity sha512-QiuzbTPMFHVbDGK3ziJPKo0S3mlw6kAvmU952Z2epaBT9Qe2qETPq5NsKl3OABw6UD8ni8T52My+IBfU70cTww==
 
 "@ampproject/remapping@^2.1.0":
   version "2.1.2"
