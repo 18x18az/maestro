@@ -8,6 +8,7 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
+import { postFieldControlHandler, getFieldControlHandler } from "./handlers/fieldcontrol";
 import { getSkillsHandler, postSkillsHandler } from "./handlers/skills";
 import { getRankingsHandler, postRankingsHandler } from "./handlers/rankings";
 import { getScheduleHandler, postScheduleHandler } from "./handlers/schedule";
@@ -35,6 +36,7 @@ registerHandler("stage", postCompetitionStageHandler, getCompetitionStageHandler
 registerHandler("rankings", postRankingsHandler, getRankingsHandler);
 registerHandler("schedule", postScheduleHandler, getScheduleHandler);
 registerHandler("skills", postSkillsHandler, getSkillsHandler);
+registerHandler("fieldcontrol", postFieldControlHandler, getFieldControlHandler);
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
