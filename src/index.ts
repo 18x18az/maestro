@@ -8,6 +8,9 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
+import { getSkillsHandler, postSkillsHandler } from "./handlers/skills";
+import { getRankingsHandler, postRankingsHandler } from "./handlers/rankings";
+import { getScheduleHandler, postScheduleHandler } from "./handlers/schedule";
 import { getInspectionHandler, postInspectionHandler } from "./handlers/inspection";
 import { getCompetitionStageHandler, postCompetitionStageHandler } from "./handlers/stage";
 
@@ -29,6 +32,9 @@ registerHandler("awards", postAwardsHandler, getAwardsHandler);
 registerHandler("display", postDisplayStateHandler, getDisplayStateHandler);
 registerHandler("inspection", postInspectionHandler, getInspectionHandler);
 registerHandler("stage", postCompetitionStageHandler, getCompetitionStageHandler);
+registerHandler("rankings", postRankingsHandler, getRankingsHandler);
+registerHandler("schedule", postScheduleHandler, getScheduleHandler);
+registerHandler("skills", postSkillsHandler, getSkillsHandler);
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
@@ -54,32 +60,3 @@ export function messageHandler(metadata: IMetadata, message: IMessage): IMessage
 
     return null;
 }
-
-/* // alliance selection test
-let stdin = process.openStdin();
-
-let teams: Array<string> = [];
-for(let i = 1; i <= 38; i++){
-    teams.push(i.toString());
-}
-let als: AllianceSelection = new AllianceSelection(teams, meta);
-
-
-stdin.addListener("data", function(d) {
-console.log("you entered: [" + d.toString().trim() + "]");
-    switch(d.toString().trim()[0]){
-        case "p":
-            als.pick(d.toString().trim().substring(1), meta);
-            break;
-        case "a":
-            als.accept(meta);
-            break;
-        case "d":
-            als.decline(meta);
-            break;
-        case "u":
-            als.undo(meta);
-            break;
-    }
-});
-*/

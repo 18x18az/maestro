@@ -44,11 +44,32 @@ function send(metadata: IMetadata, ws: WebSocket, message: IMessage) {
     ws.send(JSON.stringify(message));
 }
 
-export function broadcast(metadata: IMetadata, message: IMessage) {
+export async function broadcast(metadata: IMetadata, message: IMessage) {
     record(metadata, LogType.LOG, "broadcasting");
     for (const ws of Object.values(connectionTable)) {
         send(metadata, ws, message);
     }
+
+    // send to bifrost
+    if (process.env.BIFROST_URL as string) {
+        try {
+            const response = await fetch(process.env.BIFROST_URL as string,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "talos-key": process.env.BIFROST_KEY as string,
+                    },
+                    body: JSON.stringify(message)
+                });
+        } catch (err: any) {
+            console.error(err.message);
+        }
+    }
+    else {
+        console.log("bifrost url not set!");
+    }
+
 }
 
 wss.on('connection', function connection(ws) {
