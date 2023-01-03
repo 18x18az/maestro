@@ -36,7 +36,7 @@ registerHandler("stage", postCompetitionStageHandler, getCompetitionStageHandler
 registerHandler("rankings", postRankingsHandler, getRankingsHandler);
 registerHandler("schedule", postScheduleHandler, getScheduleHandler);
 registerHandler("skills", postSkillsHandler, getSkillsHandler);
-registerHandler("fieldcontrol", postFieldControlHandler, getFieldControlHandler)
+registerHandler("fieldcontrol", postFieldControlHandler, getFieldControlHandler);
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
