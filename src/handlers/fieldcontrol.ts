@@ -21,6 +21,10 @@ export function postFieldControlHandler(metadata: IMetadata, message: IMessage) 
     });
 }
 
-export function getFieldControlHandler(metadata: IMetadata, message: IMessage) {
-
+export function getFieldControlHandler(metadata: IMetadata, message: IMessage): IMessage {
+    return {
+        type: MESSAGE_TYPE.POST,
+        path: ['fieldcontrol'],
+        payload: { "bruh": "why you getting field control?"}
+    }
 }

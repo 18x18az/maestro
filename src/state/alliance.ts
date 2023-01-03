@@ -1,5 +1,5 @@
-import { DISPLAY_STATE, IAllianceSelectionStatus, IAllianceTeams, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
-import { setDisplayState } from "../handlers/display";
+import { COMPETITION_STAGE, IAllianceSelectionStatus, IAllianceTeams, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
+import { setCompetitionStage } from "../handlers/stage";
 import { getNumber } from "../handlers/teams";
 import { record, IMetadata, LogType } from "../utils/log";
 import { broadcast } from "../utils/wss";
@@ -33,7 +33,7 @@ export class AllianceSelection {
         this.state.selected = ""
         this.getNextPicker(meta);
         this.onUpdate(meta);
-        setDisplayState(meta, DISPLAY_STATE.ALLIANCE);
+        setCompetitionStage(meta, COMPETITION_STAGE.ALLIANCE);
     }
 
     pick(team: TeamId, meta: IMetadata){
