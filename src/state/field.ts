@@ -78,9 +78,10 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
+    // if queuing a match, go to new field
     if (prevFieldState && fieldState.field !== prevFieldState.field) {
         Studio.setField(fieldState.field);
-        setTimeout(Studio.triggerTransition, 500);
+        setTimeout(Studio.triggerTransition, 1000);
     }
 
     // go to audience five seconds after a match ends
