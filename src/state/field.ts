@@ -2,7 +2,7 @@ import { FIELD_CONTROL, IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/ros
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
-
+import { Studio } from "../managers/obs";
 config();
 
 const fs = require('fs');
@@ -10,6 +10,7 @@ const event = process.env.EVENT as string;
 const eventFilePath = event + ".csv";
 
 let fieldState: IFieldState;
+let prevFieldState: IFieldState;
 let lastStartTime: number = 0;
 let delta: number;
 let cycleTimes : number[] = [];
@@ -77,7 +78,19 @@ export function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
+    // if queuing a match, go to new field
+    if (prevFieldState && fieldState.field !== prevFieldState.field) {
+        Studio.setField(fieldState.field);
+        setTimeout(Studio.triggerTransition, 1000);
+    }
 
+    // go to audience five seconds after a match ends
+    if (fieldState.control === FIELD_CONTROL.DRIVER && fieldState.timeRemaining == 0) {
+        Studio.setAudience();
+        setTimeout(Studio.triggerTransition, 5000);
+    }
+
+    prevFieldState = fieldState;
     record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
 

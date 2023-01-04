@@ -8,13 +8,16 @@ import { getMatchesHandler, postMatchesHandler } from "./handlers/matches";
 import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./handlers/allianceSelection";
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
+import { getOBSHandler, postOBSHandler } from "./handlers/obs";
 import { postFieldControlHandler, getFieldControlHandler } from "./handlers/fieldcontrol";
 import { getSkillsHandler, postSkillsHandler } from "./handlers/skills";
 import { getRankingsHandler, postRankingsHandler } from "./handlers/rankings";
 import { getScheduleHandler, postScheduleHandler } from "./handlers/schedule";
 import { getInspectionHandler, postInspectionHandler } from "./handlers/inspection";
 import { getCompetitionStageHandler, postCompetitionStageHandler } from "./handlers/stage";
+import { Studio } from "./managers/obs";
 
+Studio.connect();
 const postHandlers = new Map();
 const getHandlers = new Map();
 
@@ -37,11 +40,11 @@ registerHandler("rankings", postRankingsHandler, getRankingsHandler);
 registerHandler("schedule", postScheduleHandler, getScheduleHandler);
 registerHandler("skills", postSkillsHandler, getSkillsHandler);
 registerHandler("fieldcontrol", postFieldControlHandler, getFieldControlHandler);
+registerHandler("obs", postOBSHandler, getOBSHandler);
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];
     const method = message.type;
-
     if (method === MESSAGE_TYPE.POST) {
         const handler = postHandlers.get(route);
         if(handler == undefined){
