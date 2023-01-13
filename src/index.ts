@@ -9,13 +9,14 @@ import { getAllianceSelectionHandler, postAllianceSelectionHandler } from "./han
 import { getAwardsHandler, postAwardsHandler } from "./handlers/awards";
 import { getDisplayStateHandler, postDisplayStateHandler } from "./handlers/display";
 import { getOBSHandler, postOBSHandler } from "./handlers/obs";
-import { postFieldControlHandler, getFieldControlHandler } from "./handlers/fieldcontrol";
+import { postRefCommandHandler } from "./handlers/refCommand";
 import { getSkillsHandler, postSkillsHandler } from "./handlers/skills";
 import { getRankingsHandler, postRankingsHandler } from "./handlers/rankings";
 import { getScheduleHandler, postScheduleHandler } from "./handlers/schedule";
 import { getInspectionHandler, postInspectionHandler } from "./handlers/inspection";
 import { getCompetitionStageHandler, postCompetitionStageHandler } from "./handlers/stage";
 import { Studio } from "./managers/obs";
+import { getMatchStageHandler } from "./handlers/matchStage";
 
 Studio.connect();
 const postHandlers = new Map();
@@ -39,8 +40,9 @@ registerHandler("stage", postCompetitionStageHandler, getCompetitionStageHandler
 registerHandler("rankings", postRankingsHandler, getRankingsHandler);
 registerHandler("schedule", postScheduleHandler, getScheduleHandler);
 registerHandler("skills", postSkillsHandler, getSkillsHandler);
-registerHandler("fieldcontrol", postFieldControlHandler, getFieldControlHandler);
+registerHandler("refCommand", postRefCommandHandler, undefined);
 registerHandler("obs", postOBSHandler, getOBSHandler);
+registerHandler("matchStage", undefined, getMatchStageHandler)
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];

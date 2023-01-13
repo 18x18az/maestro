@@ -21,7 +21,9 @@ export function getNextId(): ILogId {
 }
 
 export function record(metadata: IMetadata, type: LogType, message: string) {
+    const d = new Date();
+    const iso = d.toISOString();
     if (type != LogType.DATA) {
-        console.log(`${type}: ${message} - ${JSON.stringify(metadata)}`);
+        console.log(`${type}: ${message} - ${JSON.stringify(metadata)} - ${iso}`);
     }
 }

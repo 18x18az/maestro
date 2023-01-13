@@ -3,6 +3,7 @@ import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
 import { Studio } from "../managers/obs";
+import { onAutoEnd, onAutoStart, onDriverEnd, onDriverStart } from "./matchStage";
 config();
 
 const fs = require('fs');
@@ -13,8 +14,8 @@ let fieldState: IFieldState;
 let prevFieldState: IFieldState;
 let lastStartTime: number = 0;
 let delta: number;
-let cycleTimes : number[] = [];
-let matches : string[] = [];
+let cycleTimes: number[] = [];
+let matches: string[] = [];
 let rollingAvgCycleTime: number = 0;
 
 // the number of cycle times to broadcast out
@@ -30,19 +31,19 @@ let numToSend: number = 6;
  * If a new match has started, we broadcast the time since the last match has begun,
  * and save the match start time to a local csv file.
  */
-function cycleTimeHandler(metadata: IMetadata){
-    if(fieldState.control == FIELD_CONTROL.AUTONOMOUS && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills'){
-        delta = (Date.now() - lastStartTime)/60000;
-        if(fieldState.match == 'Q1' || delta > 30){
+function cycleTimeHandler(metadata: IMetadata) {
+    if (fieldState.control == FIELD_CONTROL.AUTONOMOUS && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills') {
+        delta = (Date.now() - lastStartTime) / 60000;
+        if (fieldState.match == 'Q1' || delta > 30) {
             delta = 0;
         }
-        else{ // if delta is nonzero then include it in rolling avg calculation
+        else { // if delta is nonzero then include it in rolling avg calculation
             cycleTimes.push(delta);
             matches.push(fieldState.match);
             rollingAvgCycleTime = 0;
-            if(cycleTimes.length > numToSend) cycleTimes.shift(); 
-            if(matches.length > numToSend) matches.shift();
-            for(let i = 0; i < cycleTimes.length; i++){
+            if (cycleTimes.length > numToSend) cycleTimes.shift();
+            if (matches.length > numToSend) matches.shift();
+            for (let i = 0; i < cycleTimes.length; i++) {
                 rollingAvgCycleTime += cycleTimes[i];
             }
             rollingAvgCycleTime /= cycleTimes.length;
@@ -51,8 +52,8 @@ function cycleTimeHandler(metadata: IMetadata){
 
         // write data row to csv
         let dataRow = fieldState.match + ", " + new Date().toLocaleTimeString() + "\n";
-        fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err:any) => {
-            if(err != null){
+        fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err: any) => {
+            if (err != null) {
                 record(metadata, LogType.ERROR, "fs error: " + err.code);
             }
         })
@@ -66,39 +67,46 @@ function cycleTimeHandler(metadata: IMetadata){
                 recentMatches: matches
             }
         };
-        record(metadata, LogType.LOG, "new match start") // TODO add more info
+        record(metadata, LogType.DATA, "new match start") // TODO add more info
         broadcast(metadata, cycleTimeMsg);
     } // end if match starts
 }
 
-export function postFieldHandler(metadata: IMetadata, message: IMessage) {
+async function onMatchQueued(fieldState: IFieldState, meta: IMetadata) {
+    record(meta, LogType.LOG, `Match ${fieldState.match} queued on field ${fieldState.field}`);
+    await Studio.setField(fieldState.field);
+}
+
+export async function postFieldHandler(metadata: IMetadata, message: IMessage) {
     fieldState = message.payload;
 
     // this checks for if a new match starts
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
-    // if queuing a match, go to new field
-    if (prevFieldState && fieldState.field !== prevFieldState.field) {
-        Studio.setField(fieldState.field);
-        setTimeout(Studio.triggerTransition, 1000);
+    if (prevFieldState && fieldState.match !== prevFieldState.match) {
+        await onMatchQueued(fieldState, metadata);
     }
 
-    // go to audience five seconds after a match ends
-    if (fieldState.control === FIELD_CONTROL.DRIVER && fieldState.timeRemaining == 0) {
-        Studio.setAudience();
-        setTimeout(Studio.triggerTransition, 5000);
+    if (fieldState.control === FIELD_CONTROL.AUTONOMOUS && prevFieldState?.control === FIELD_CONTROL.DISABLED) {
+        await onAutoStart(metadata);
+    } else if (fieldState.control === FIELD_CONTROL.PAUSED && prevFieldState?.control === FIELD_CONTROL.AUTONOMOUS) {
+        await onAutoEnd(metadata);
+    } else if (fieldState.control === FIELD_CONTROL.DRIVER && prevFieldState?.control === FIELD_CONTROL.PAUSED) {
+        await onDriverStart(metadata);
+    } else if (fieldState.control === FIELD_CONTROL.DISABLED && prevFieldState?.control === FIELD_CONTROL.DRIVER) {
+        await onDriverEnd(metadata);
     }
 
     prevFieldState = fieldState;
-    record(metadata, LogType.LOG, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
+    record(metadata, LogType.DATA, `${fieldState.match} on ${fieldState.field} - ${fieldState.timeRemaining}`)
     broadcast(metadata, message);
 
 }
 
 export function getFieldHandler(metadata: IMetadata): IMessage {
     record(metadata, LogType.LOG, "field state requested");
-    return{
+    return {
         type: MESSAGE_TYPE.POST,
         path: ["field"],
         payload: fieldState

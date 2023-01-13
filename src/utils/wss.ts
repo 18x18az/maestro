@@ -19,11 +19,11 @@ function connectionTableStatus(metadata: IMetadata) {
 }
 
 export function addConnection(metadata: IMetadata, ws: WebSocket): IConnectionId {
-    record(metadata, LogType.LOG, "new connection");
+    record(metadata, LogType.DATA, "new connection");
     const connection = (connectionPool++).toString();
     connectionTable[connection] = ws;
     metadata.connection = connection;
-    record(metadata, LogType.LOG, "assigned a connection ID");
+    record(metadata, LogType.DATA, "assigned a connection ID");
     connectionTableStatus(metadata);
 
     return connection;
@@ -45,7 +45,7 @@ function send(metadata: IMetadata, ws: WebSocket, message: IMessage) {
 }
 
 export async function broadcast(metadata: IMetadata, message: IMessage) {
-    record(metadata, LogType.LOG, "broadcasting");
+    record(metadata, LogType.DATA, "broadcasting");
     for (const ws of Object.values(connectionTable)) {
         send(metadata, ws, message);
     }
@@ -81,7 +81,7 @@ wss.on('connection', function connection(ws) {
         const message = JSON.parse(data.toString()) as IMessage;
         const id = getNextId();
         const metadata: IMetadata = { id, connection };
-        record(metadata, LogType.LOG, `RX`);
+        record(metadata, LogType.DATA, `RX`);
         record(metadata, LogType.DATA, JSON.stringify(message));
         const reply = messageHandler(metadata, message);
         if (reply) {
