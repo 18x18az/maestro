@@ -3,7 +3,8 @@ import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
 import { Studio } from "../managers/obs";
-import { onAutoEnd, onAutoStart, onDriverEnd, onDriverStart } from "./matchStage";
+import { onAutoEnd as onAutoEndStage, onAutoStart as onAutoStartStage, onDriverEnd as onDriverEndStage, onDriverStart as onDriverStartStage } from "./matchStage";
+import { queueMatch } from "../utils/fieldControl";
 config();
 
 const fs = require('fs');
@@ -32,44 +33,43 @@ let numToSend: number = 6;
  * and save the match start time to a local csv file.
  */
 function cycleTimeHandler(metadata: IMetadata) {
-    if (fieldState.control == FIELD_CONTROL.AUTONOMOUS && fieldState.timeRemaining == 15 && fieldState.match != 'P Skills') {
-        delta = (Date.now() - lastStartTime) / 60000;
-        if (fieldState.match == 'Q1' || delta > 30) {
-            delta = 0;
+    delta = (Date.now() - lastStartTime) / 60000;
+    if (fieldState.match == 'Q1' || delta > 30) {
+        delta = 0;
+    }
+    else { // if delta is nonzero then include it in rolling avg calculation
+        cycleTimes.push(delta);
+        matches.push(fieldState.match);
+        rollingAvgCycleTime = 0;
+        if (cycleTimes.length > numToSend) cycleTimes.shift();
+        if (matches.length > numToSend) matches.shift();
+        for (let i = 0; i < cycleTimes.length; i++) {
+            rollingAvgCycleTime += cycleTimes[i];
         }
-        else { // if delta is nonzero then include it in rolling avg calculation
-            cycleTimes.push(delta);
-            matches.push(fieldState.match);
-            rollingAvgCycleTime = 0;
-            if (cycleTimes.length > numToSend) cycleTimes.shift();
-            if (matches.length > numToSend) matches.shift();
-            for (let i = 0; i < cycleTimes.length; i++) {
-                rollingAvgCycleTime += cycleTimes[i];
-            }
-            rollingAvgCycleTime /= cycleTimes.length;
+        rollingAvgCycleTime /= cycleTimes.length;
+    }
+    lastStartTime = Date.now();
+
+    // write data row to csv
+    let dataRow = fieldState.match + ", " + new Date().toLocaleTimeString() + "\n";
+    fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err: any) => {
+        if (err != null) {
+            record(metadata, LogType.ERROR, "fs error: " + err.code);
         }
-        lastStartTime = Date.now();
+    })
 
-        // write data row to csv
-        let dataRow = fieldState.match + ", " + new Date().toLocaleTimeString() + "\n";
-        fs.writeFile(eventFilePath, dataRow, { flag: 'a+' }, (err: any) => {
-            if (err != null) {
-                record(metadata, LogType.ERROR, "fs error: " + err.code);
-            }
-        })
+    record(metadata, LogType.LOG, `Rolling cycle time of ${rollingAvgCycleTime}`);
 
-        let cycleTimeMsg: IMessage = {
-            type: MESSAGE_TYPE.POST,
-            path: ["cycleTime"],
-            payload: {
-                rollingAvg: rollingAvgCycleTime,
-                recentCycleTimes: cycleTimes,
-                recentMatches: matches
-            }
-        };
-        record(metadata, LogType.DATA, "new match start") // TODO add more info
-        broadcast(metadata, cycleTimeMsg);
-    } // end if match starts
+    let cycleTimeMsg: IMessage = {
+        type: MESSAGE_TYPE.POST,
+        path: ["cycleTime"],
+        payload: {
+            rollingAvg: rollingAvgCycleTime,
+            recentCycleTimes: cycleTimes,
+            recentMatches: matches
+        }
+    };
+    broadcast(metadata, cycleTimeMsg);
 }
 
 async function onFieldChanged(fieldState: IFieldState, meta: IMetadata) {
@@ -77,25 +77,81 @@ async function onFieldChanged(fieldState: IFieldState, meta: IMetadata) {
     await Studio.setField(fieldState.field);
 }
 
+async function onAutoStart(metadata: IMetadata) {
+    await onAutoStartStage(metadata);
+    cycleTimeHandler(metadata);
+}
+
+async function onAutoEnd(metadata: IMetadata) {
+    await onAutoEndStage(metadata);
+}
+
+async function onDriverStart(metadata: IMetadata) {
+    await onDriverStartStage(metadata);
+}
+
+async function onDriverEnd(metadata: IMetadata) {
+    await onDriverEndStage(metadata);
+}
+
+async function onTimeoutStart(metadata: IMetadata) {
+    record(metadata, LogType.LOG, 'Timeout started');
+}
+
+async function onTimeoutEnd(metadata: IMetadata) {
+    record(metadata, LogType.LOG, 'Timeout over');
+    await queueMatch(metadata);
+}
+
+async function onTimeoutChange(metadata: IMetadata, previous: IFieldState, current: IFieldState) {
+    if (previous.control === FIELD_CONTROL.DISABLED && current.control === FIELD_CONTROL.TIMEOUT) {
+        await onTimeoutStart(metadata);
+    } else if (previous.control === FIELD_CONTROL.TIMEOUT && current.control === FIELD_CONTROL.DISABLED) {
+        await onTimeoutEnd(metadata);
+    } else {
+        record(metadata, LogType.ERROR, `Unhandled timeout change from ${previous.control} to ${current.control}`);
+    }
+}
+
+async function onSkillsStateChange(metadata: IMetadata, previous: IFieldState, current: IFieldState) {
+    record(metadata, LogType.LOG, `Skills change from ${previous.control} to ${current.control}`);
+}
+
+async function onMatchStateChange(metadata: IMetadata, previous: IFieldState, current: IFieldState) {
+    if (previous.control === FIELD_CONTROL.DISABLED && current.control === FIELD_CONTROL.AUTONOMOUS) {
+        await onAutoStart(metadata);
+    } else if (previous.control === FIELD_CONTROL.AUTONOMOUS && current.control === FIELD_CONTROL.PAUSED) {
+        await onAutoEnd(metadata);
+    } else if (previous.control === FIELD_CONTROL.PAUSED && current.control === FIELD_CONTROL.DRIVER) {
+        await onDriverStart(metadata);
+    } else if (previous.control === FIELD_CONTROL.DRIVER && current.control === FIELD_CONTROL.DISABLED) {
+        await onDriverEnd(metadata);
+    } else {
+        record(metadata, LogType.ERROR, `Unhandled match change from ${previous.control} to ${current.control}`);
+    }
+}
+
+async function onFieldStateChange(metadata: IMetadata, previous: IFieldState, current: IFieldState) {
+    const match = current.match;
+
+    if (match === 'P Skills' || match === 'D Skills') {
+        await onSkillsStateChange(metadata, previous, current);
+    } else if (match === 'TO') {
+        await onTimeoutChange(metadata, previous, current);
+    } else {
+        await onMatchStateChange(metadata, previous, current);
+    }
+}
+
 export async function postFieldHandler(metadata: IMetadata, message: IMessage) {
     fieldState = message.payload;
-
-    // this checks for if a new match starts
-    // if so, calculates cycle time
-    cycleTimeHandler(metadata);
 
     if (prevFieldState && fieldState.field !== prevFieldState.field) {
         await onFieldChanged(fieldState, metadata);
     }
 
-    if (fieldState.control === FIELD_CONTROL.AUTONOMOUS && prevFieldState?.control === FIELD_CONTROL.DISABLED) {
-        await onAutoStart(metadata);
-    } else if (fieldState.control === FIELD_CONTROL.PAUSED && prevFieldState?.control === FIELD_CONTROL.AUTONOMOUS) {
-        await onAutoEnd(metadata);
-    } else if (fieldState.control === FIELD_CONTROL.DRIVER && prevFieldState?.control === FIELD_CONTROL.PAUSED) {
-        await onDriverStart(metadata);
-    } else if (fieldState.control === FIELD_CONTROL.DISABLED && prevFieldState?.control === FIELD_CONTROL.DRIVER) {
-        await onDriverEnd(metadata);
+    if (prevFieldState && prevFieldState.control !== fieldState.control) {
+        await onFieldStateChange(metadata, prevFieldState, fieldState);
     }
 
     prevFieldState = fieldState;
