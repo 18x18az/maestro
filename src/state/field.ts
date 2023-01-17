@@ -72,7 +72,7 @@ function cycleTimeHandler(metadata: IMetadata) {
     } // end if match starts
 }
 
-async function onMatchQueued(fieldState: IFieldState, meta: IMetadata) {
+async function onFieldChanged(fieldState: IFieldState, meta: IMetadata) {
     record(meta, LogType.LOG, `Match ${fieldState.match} queued on field ${fieldState.field}`);
     await Studio.setField(fieldState.field);
 }
@@ -84,8 +84,8 @@ export async function postFieldHandler(metadata: IMetadata, message: IMessage) {
     // if so, calculates cycle time
     cycleTimeHandler(metadata);
 
-    if (prevFieldState && fieldState.match !== prevFieldState.match) {
-        await onMatchQueued(fieldState, metadata);
+    if (prevFieldState && fieldState.field !== prevFieldState.field) {
+        await onFieldChanged(fieldState, metadata);
     }
 
     if (fieldState.control === FIELD_CONTROL.AUTONOMOUS && prevFieldState?.control === FIELD_CONTROL.DISABLED) {
