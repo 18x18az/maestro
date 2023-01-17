@@ -66,9 +66,6 @@ export async function broadcast(metadata: IMetadata, message: IMessage) {
             console.error(err.message);
         }
     }
-    else {
-        console.log("bifrost url not set!");
-    }
 
 }
 
