@@ -1,4 +1,4 @@
-import { COMPETITION_STAGE, IAllianceSelectionStatus, IAllianceTeams, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
+import { COMPETITION_STAGE, IAllianceSelectionStatus, IAlliance, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
 import { setCompetitionStage } from "../handlers/stage";
 import { getNumber } from "../handlers/teams";
 import { record, IMetadata, LogType } from "../utils/log";
@@ -82,7 +82,7 @@ export class AllianceSelection {
         }
 
         // make an alliance object and add it to this.state.alliances
-        let alliance: IAllianceTeams = {
+        let alliance: IAlliance = {
             team1: this.state.picking as string,
             team2: this.state.selected as string
         };
