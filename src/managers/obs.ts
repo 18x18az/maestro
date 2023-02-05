@@ -1,5 +1,6 @@
 import ObsWebSocket from "obs-websocket-js";
 import { config } from "dotenv";
+import { callPreset } from "../utils/camera";
 
 interface StandardScene {
     timerId: number | undefined

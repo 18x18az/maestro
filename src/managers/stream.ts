@@ -1,3 +1,4 @@
+import { callPreset } from "../utils/camera";
 import { Studio } from "./obs";
 
 export namespace Director {
@@ -9,7 +10,8 @@ export namespace Director {
             nextAudienceScene = 3;
         }
 
-        await Studio.setAudience(nextAudienceScene)
+        Studio.setAudience(nextAudienceScene);
+        callPreset(nextAudienceScene, 1);
     }
 
     export async function setField(fieldString: string){
@@ -20,6 +22,7 @@ export namespace Director {
         }
 
         currentField = field;
-        await Studio.setField(field);
+        Studio.setField(field);
+        callPreset(field, 0);
     }
 }
