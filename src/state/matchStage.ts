@@ -1,5 +1,6 @@
 import { IMessage, MATCH_STAGE, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { Studio } from "../managers/obs";
+import { Director } from "../managers/stream";
 import { queueMatch } from "../utils/fieldControl";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
@@ -32,7 +33,7 @@ async function changeStage(stage: MATCH_STAGE, meta: IMetadata) {
         case MATCH_STAGE.STING_IN: {
             await Studio.triggerTransition();
             setTimeout(() => {intro(meta)}, INTRO_DELAY_SECONDS * 1000);
-            setTimeout(Studio.setAudience, STINGER_DELAY_SECONDS * 1000);
+            setTimeout(Director.setAudience, STINGER_DELAY_SECONDS * 1000);
             break;
         }
         case MATCH_STAGE.INTRO: {

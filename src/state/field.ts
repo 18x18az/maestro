@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import { Studio } from "../managers/obs";
 import { onAutoEnd as onAutoEndStage, onAutoStart as onAutoStartStage, onDriverEnd as onDriverEndStage, onDriverStart as onDriverStartStage } from "./matchStage";
 import { queueMatch } from "../utils/fieldControl";
+import { Director } from "../managers/stream";
 config();
 
 const fs = require('fs');
@@ -74,7 +75,7 @@ function cycleTimeHandler(metadata: IMetadata) {
 
 async function onFieldChanged(fieldState: IFieldState, meta: IMetadata) {
     record(meta, LogType.LOG, `Match ${fieldState.match} queued on field ${fieldState.field}`);
-    await Studio.setField(fieldState.field);
+    await Director.setField(fieldState.field);
 }
 
 async function onAutoStart(metadata: IMetadata) {
