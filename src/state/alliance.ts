@@ -1,9 +1,8 @@
 import { COMPETITION_STAGE, IAllianceSelectionStatus, IAlliance, MESSAGE_TYPE, TeamId } from "@18x18az/rosetta";
-import { setCompetitionStage } from "../handlers/stage";
 import { getNumber } from "../handlers/teams";
 import { record, IMetadata, LogType } from "../utils/log";
 import { broadcast } from "../utils/wss";
-
+import { setCompetitionStage } from "./competitionStage";
 
 let MAX_NUM_ALLIANCES = 16;
 

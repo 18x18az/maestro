@@ -1,8 +1,8 @@
 import { COMPETITION_STAGE, IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
 import { AllianceSelection } from "../state/alliance";
+import { setCompetitionStage } from "../state/competitionStage";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
-import { setCompetitionStage } from "./stage";
 
 
 let allianceSelection: AllianceSelection | null = null;

@@ -7,10 +7,15 @@ interface StandardScene {
     audienceId: number | undefined
 }
 
-enum OVERLAY {
+export enum OVERLAY {
     AUDIENCE = "AUDIENCE",
     TIMER = "TIMER",
     NONE = "NONE"
+}
+
+export enum TRANSITION_TYPE {
+    STINGER,
+    CUT
 }
 
 config();
@@ -33,6 +38,7 @@ export namespace Studio {
             } = await obs.connect(`ws://localhost:${process.env.OBS_WS_PORT as string}`);
             console.log(`OBS: Connected to OBS server ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`)
             connected = true;
+            console.log(await obs.call("GetTransitionKindList"));
             populateScenes();
             return true;
         } catch (error: any) {
@@ -124,12 +130,27 @@ export namespace Studio {
         return true;
     }
 
-    export async function triggerTransition(): Promise<boolean> {
+    export async function triggerTransition(type: TRANSITION_TYPE): Promise<boolean> {
         if (isManual || !connected) {
             return false;
         }
 
         console.log("OBS: triggering transition");
+        let transitionName = 'cut_transition';
+        if (type === TRANSITION_TYPE.STINGER) {
+            transitionName = 'obs_stinger_transition'
+        }
+        await obs.callBatch([
+            {
+                requestType: "SetCurrentSceneTransition",
+                requestData: {
+                    transitionName
+                }
+            },
+            {
+                requestType: "TriggerStudioModeTransition"
+            }
+        ])
         await obs.call('TriggerStudioModeTransition');
         return true;
     }
