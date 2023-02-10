@@ -1,17 +1,13 @@
 import { IMessage, MESSAGE_TYPE } from "@18x18az/rosetta";
+import { ScheduleBlock, setScheduleBlocks } from "../state/schedule";
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
-
-interface ScheduleBlock {
-    start: Date,
-    stop: Date,
-    matches: number[]
-}
 
 let schedule: ScheduleBlock[];
 
 export function postScheduleHandler(metadata: IMetadata, message: IMessage){
     schedule = message.payload;
+    setScheduleBlocks(metadata, schedule);
     record(metadata, LogType.LOG, 'schedule updated')
     record(metadata, LogType.DATA, JSON.stringify(message.payload));
     broadcast(metadata, {

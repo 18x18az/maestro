@@ -17,6 +17,7 @@ import { getInspectionHandler, postInspectionHandler } from "./handlers/inspecti
 import { getCompetitionStageHandler, postCompetitionStageHandler } from "./handlers/stage";
 import { Studio } from "./managers/obs";
 import { getMatchStageHandler } from "./handlers/matchStage";
+import { postAnnounceHandler } from "./handlers/announce";
 
 Studio.connect();
 const postHandlers = new Map();
@@ -42,7 +43,8 @@ registerHandler("schedule", postScheduleHandler, getScheduleHandler);
 registerHandler("skills", postSkillsHandler, getSkillsHandler);
 registerHandler("refCommand", postRefCommandHandler, undefined);
 registerHandler("obs", postOBSHandler, getOBSHandler);
-registerHandler("matchStage", undefined, getMatchStageHandler)
+registerHandler("matchStage", undefined, getMatchStageHandler);
+registerHandler("announce", postAnnounceHandler, undefined);
 
 export function messageHandler(metadata: IMetadata, message: IMessage): IMessage | null {
     const route = message.path[0];

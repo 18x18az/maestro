@@ -2,10 +2,10 @@ import { FIELD_CONTROL, IFieldState, IMessage, MESSAGE_TYPE } from "@18x18az/ros
 import { IMetadata, LogType, record } from "../utils/log";
 import { broadcast } from "../utils/wss";
 import { config } from "dotenv";
-import { Studio } from "../managers/obs";
 import { onAutoEnd as onAutoEndStage, onAutoStart as onAutoStartStage, onDriverEnd as onDriverEndStage, onDriverStart as onDriverStartStage } from "./matchStage";
 import { queueMatch } from "../utils/fieldControl";
 import { Director } from "../managers/stream";
+import { announceQueue, matchChanged } from "./schedule";
 config();
 
 const fs = require('fs');
@@ -74,11 +74,13 @@ function cycleTimeHandler(metadata: IMetadata) {
 }
 
 async function onFieldChanged(fieldState: IFieldState, meta: IMetadata) {
+    matchChanged(meta, fieldState.match);
     record(meta, LogType.LOG, `Match ${fieldState.match} queued on field ${fieldState.field}`);
     await Director.setField(fieldState.field);
 }
 
 async function onAutoStart(metadata: IMetadata) {
+    announceQueue(metadata);
     await onAutoStartStage(metadata);
     cycleTimeHandler(metadata);
 }
