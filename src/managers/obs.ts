@@ -116,17 +116,22 @@ export namespace Studio {
         await obs.call('SetSceneItemEnabled', { sceneName, sceneItemId, sceneItemEnabled });
     }
 
+    export async function setPreviewOverlay(overlay: OVERLAY) {
+        const sceneName = (await obs.call('GetCurrentPreviewScene')).currentPreviewSceneName;
+        const sceneNumber = parseInt(sceneName);
+        const targetIds = scenes[sceneNumber - 1];
+        await setSceneItemEnabled(sceneName, targetIds.audienceId, overlay === OVERLAY.AUDIENCE);
+        await setSceneItemEnabled(sceneName, targetIds.timerId, overlay === OVERLAY.TIMER);
+    }
+
     export async function setPreviewScene(sceneNumber: number, overlay: OVERLAY): Promise<boolean> {
         if (isManual || !connected) {
             return false;
         }
         const sceneName = `${sceneNumber}`
-        const targetIds = scenes[sceneNumber - 1];
         console.log(`OBS: set scene ${sceneName} with overlay ${overlay}`);
         await obs.call('SetCurrentPreviewScene', { sceneName });
-        await setSceneItemEnabled(sceneName, targetIds.audienceId, overlay === OVERLAY.AUDIENCE);
-        await setSceneItemEnabled(sceneName, targetIds.timerId, overlay === OVERLAY.TIMER);
-
+        await setPreviewOverlay(overlay);
         return true;
     }
 
@@ -136,23 +141,14 @@ export namespace Studio {
         }
 
         console.log("OBS: triggering transition");
-        let transitionName = 'cut_transition';
+        let transitionName = 'Cut';
         if (type === TRANSITION_TYPE.STINGER) {
-            transitionName = 'obs_stinger_transition'
+            transitionName = 'Stinger'
+        } else if(type === TRANSITION_TYPE.CUT) {
+            transitionName = 'Cut'
         }
-        await obs.callBatch([
-            {
-                requestType: "SetCurrentSceneTransition",
-                requestData: {
-                    transitionName
-                }
-            },
-            {
-                requestType: "TriggerStudioModeTransition"
-            }
-        ])
+        await obs.call('SetCurrentSceneTransition', { transitionName })
         await obs.call('TriggerStudioModeTransition');
         return true;
     }
 } // end namespace OBS
-
