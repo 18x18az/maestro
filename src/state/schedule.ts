@@ -40,7 +40,7 @@ export async function announceQueue(meta: IMetadata){
     if(currentMatch.startsWith("Q")){
         const currentMatchNumber = parseInt(currentMatch.slice(1));
         const targetMatch = currentMatchNumber + 3;
-        if(currentMatchNumber > highestMatch && currentScheduleBlock && targetMatch <= currentScheduleBlock.matches[currentScheduleBlock.matches.length - 1]){
+        if(currentMatchNumber >= highestMatch && currentScheduleBlock && targetMatch <= currentScheduleBlock.matches[currentScheduleBlock.matches.length - 1]){
             highestMatch = currentMatchNumber;
             announce(meta, `Queueing match ${targetMatch}, match ${targetMatch}`);
         }

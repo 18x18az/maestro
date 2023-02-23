@@ -94,6 +94,7 @@ async function onDriverStart(metadata: IMetadata) {
 }
 
 async function onDriverEnd(metadata: IMetadata) {
+    announceQueue(metadata);
     await onDriverEndStage(metadata);
 }
 
