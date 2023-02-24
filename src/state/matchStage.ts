@@ -1,5 +1,5 @@
 import { IMessage, MATCH_STAGE, MESSAGE_TYPE } from "@18x18az/rosetta";
-import { Studio, TRANSITION_TYPE } from "../managers/obs";
+import { OVERLAY, Studio, TRANSITION_TYPE } from "../managers/obs";
 import { Director } from "../managers/stream";
 import { STINGER_DELAY_SECONDS } from "../timing";
 import { queueMatch } from "../utils/fieldControl";
@@ -12,8 +12,20 @@ const SCORE_DELAY_SECONDS = 2;
 
 let currentStage: MATCH_STAGE = MATCH_STAGE.IDLE;
 
-export function getMatchStage(){
+export let holdForScore = false;
+
+export function getMatchStage() {
     return currentStage;
+}
+
+export function setHoldForScore(metadata: IMetadata, val: boolean){
+    console.log(`Hold for score set to ${val}`);
+    holdForScore = val;
+    broadcast(metadata, {
+        type: MESSAGE_TYPE.POST,
+        path: ["hold"],
+        payload: holdForScore
+    });
 }
 
 async function changeStage(stage: MATCH_STAGE, meta: IMetadata) {
@@ -32,7 +44,7 @@ async function changeStage(stage: MATCH_STAGE, meta: IMetadata) {
         }
         case MATCH_STAGE.STING_IN: {
             await Studio.triggerTransition(TRANSITION_TYPE.STINGER);
-            setTimeout(() => {intro(meta)}, INTRO_DELAY_SECONDS * 1000);
+            setTimeout(() => { intro(meta) }, INTRO_DELAY_SECONDS * 1000);
             setTimeout(Director.setAudience, STINGER_DELAY_SECONDS * 1000);
             break;
         }
@@ -49,20 +61,27 @@ async function changeStage(stage: MATCH_STAGE, meta: IMetadata) {
             break;
         }
         case MATCH_STAGE.OUTRO: {
-            setTimeout(() => {stingOut(meta)}, FIELD_LINGER_SECONDS * 1000);
+            setTimeout(() => { stingOut(meta) }, FIELD_LINGER_SECONDS * 1000);
             break;
         }
         case MATCH_STAGE.STING_OUT: {
             await Studio.triggerTransition(TRANSITION_TYPE.STINGER);
-            setTimeout(() => {idle(meta)}, SCORE_DELAY_SECONDS * 1000);
-            setTimeout(() => {queueMatch(meta)}, STINGER_DELAY_SECONDS * 1000);
+            setTimeout(() => { idle(meta) }, SCORE_DELAY_SECONDS * 1000);
+            setTimeout(() => { queueMatch(meta) }, STINGER_DELAY_SECONDS * 1000);
+            break;
+        }
+        case MATCH_STAGE.HOLD_FOR_SCORE: {
             break;
         }
     }
 }
 
-export async function displayMatch(meta: IMetadata) {
-    await changeStage(MATCH_STAGE.STING_IN, meta);
+export async function display(meta: IMetadata) {
+    if(currentStage === MATCH_STAGE.HOLD_FOR_SCORE){
+        await changeStage(MATCH_STAGE.STING_OUT, meta);
+    } else {
+        await changeStage(MATCH_STAGE.STING_IN, meta);
+    }
 }
 
 export async function onAutoStart(meta: IMetadata) {
@@ -78,7 +97,12 @@ export async function onDriverStart(meta: IMetadata) {
 }
 
 export async function onDriverEnd(meta: IMetadata) {
-    await changeStage(MATCH_STAGE.OUTRO, meta);
+    if (holdForScore) {
+        await changeStage(MATCH_STAGE.HOLD_FOR_SCORE, meta);
+    } else {
+        await changeStage(MATCH_STAGE.OUTRO, meta);
+    }
+
 }
 
 async function intro(meta: IMetadata) {
