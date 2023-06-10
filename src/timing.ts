@@ -1,1 +1,1 @@
-export const STINGER_DELAY_SECONDS = 1;
+export const STINGER_DELAY_SECONDS = 1
