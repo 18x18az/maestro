@@ -17,6 +17,8 @@ export async function broadcast (topic: string, payload: any): Promise<void> {
     dup: false,
     retain: true
   }, (error) => {
-    console.log(error)
+    if (error != null) {
+      console.log(error)
+    }
   })
 }
