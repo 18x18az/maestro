@@ -1,7 +1,7 @@
 import express from 'express'
-import { controller } from '../routes/eventName'
+import { controller } from '../routes/state'
 
 export const router = express.Router()
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-router.post('/', controller)
+router.post('/:service/:component', controller)

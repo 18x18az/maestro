@@ -7,8 +7,14 @@ let webState = ConnectionState.CONNECTING
 let mobileState = ConnectionState.CONNECTING
 
 export async function evaluateMiddlemanState (): Promise<void> {
-  if (await getEventStage() === EventStage.LOADING && databaseState === ConnectionState.CONNECTED && webState === ConnectionState.CONNECTED && mobileState === ConnectionState.CONNECTED) {
+  const stage = await getEventStage()
+
+  if (stage === EventStage.LOADING && databaseState === ConnectionState.CONNECTED && webState === ConnectionState.CONNECTED && mobileState === ConnectionState.CONNECTED) {
     await setEventStage(EventStage.EVENT)
+  }
+
+  if (stage === EventStage.TEARDOWN && webState === ConnectionState.AUTH) {
+    await setEventStage(EventStage.SETUP)
   }
 }
 
