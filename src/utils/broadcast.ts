@@ -12,13 +12,18 @@ wss.on('connection', function (conn, req) {
   broker.handle(stream)
 })
 
+broker.on('clientError', (client, error) => {
+  console.log(error)
+})
+
 server.listen(port)
 console.log(`MQTT broker listening on port ${port}`)
 
 export async function broadcast (topic: string, payload: any): Promise<void> {
+  console.log(`Publishing ${String(payload)} to ${topic}`)
   broker.publish({
     topic,
-    payload,
+    payload: JSON.stringify(payload),
     cmd: 'publish',
     qos: 2,
     dup: false,

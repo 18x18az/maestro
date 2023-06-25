@@ -1,4 +1,4 @@
-import { ConnectionState, EventStage } from '@18x18az/rosetta'
+import { ConnectionInfo, ConnectionState, EventStage } from '@18x18az/rosetta'
 import { broadcast } from '../utils/broadcast'
 import { getEventStage, setEventStage } from './eventStage'
 
@@ -18,23 +18,30 @@ export async function evaluateMiddlemanState (): Promise<void> {
   }
 }
 
-export async function setDatabaseState (state: ConnectionState): Promise<void> {
+export async function setState (component: string, info: ConnectionInfo): Promise<void> {
+  void broadcast(`state/middleman/${component}`, info)
+}
+
+export async function setDatabaseState (info: ConnectionInfo): Promise<void> {
+  const state = info.state
   console.log(`Middleman database is ${state}`)
   databaseState = state
-  void broadcast('state/middleman/database', state)
+  await setState('database', info)
   await evaluateMiddlemanState()
 }
 
-export async function setWebState (state: ConnectionState): Promise<void> {
+export async function setWebState (info: ConnectionInfo): Promise<void> {
+  const state = info.state
   console.log(`Middleman web connection is ${state}`)
   webState = state
-  void broadcast('state/middleman/web', state)
+  await setState('web', info)
   await evaluateMiddlemanState()
 }
 
-export async function setMobileState (state: ConnectionState): Promise<void> {
+export async function setMobileState (info: ConnectionInfo): Promise<void> {
+  const state = info.state
   console.log(`Middleman mobile connection is ${state}`)
   mobileState = state
-  void broadcast('state/middleman/mobile', state)
+  await setState('mobile', info)
   await evaluateMiddlemanState()
 }
