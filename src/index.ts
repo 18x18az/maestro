@@ -8,5 +8,5 @@ app.use(express.json())
 app.use('/eventName', eventNameRouter)
 
 app.listen(port, () => {
-  console.log(`App started on port ${port}`)
+  console.log(`REST API started on port ${port}`)
 })
