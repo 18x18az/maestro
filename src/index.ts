@@ -1,4 +1,4 @@
-import { load } from './services/load'
+import { EventStageModule } from './modules/EventStage'
 import { SetupModule } from './modules/Setup'
 import { Module } from './utils/module'
 
@@ -8,8 +8,7 @@ function register<Implementation extends Module<any>> (C: new () => Implementati
   modules.push(new C())
 }
 
-void load()
-
 register(SetupModule)
+register(EventStageModule)
 
 modules.map(async module => await module.load())

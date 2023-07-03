@@ -1,9 +1,9 @@
 import { AedesPublishPacket } from 'aedes'
 import { ModuleInstance, SingletonModule } from '../../utils/module'
 import { getMessageString } from '../../utils/parser'
-import { EventStage, SetupStage } from '@18x18az/rosetta'
+import { EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
 import { Request, Response } from 'express'
-import { validate } from './validations'
+import { validate } from './validation'
 import { publish } from './utils/publish'
 
 class InstanceImplementation extends ModuleInstance {
@@ -52,8 +52,8 @@ class InstanceImplementation extends ModuleInstance {
 
   constructor () {
     super()
-    this.subscribe('stage', this.handleEventStage.bind(this))
-    this.handlePost('eventCode', this.handleInput.bind(this))
+    this.subscribe(PathComponent.EVENT_STATE, this.handleEventStage.bind(this))
+    this.handlePost(PathComponent.EVENT_CODE, this.handleInput.bind(this))
   }
 }
 
