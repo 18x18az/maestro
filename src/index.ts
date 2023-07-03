@@ -1,14 +1,15 @@
-import express from 'express'
-import { router as eventNameRouter } from './routers/eventName'
-import { router as stateRouter } from './routers/state'
+import { load } from './services/load'
+import { SetupModule } from './modules/Setup'
+import { Module } from './utils/module'
 
-export const app = express()
-const port = 1818
+const modules: Array<Module<any>> = []
 
-app.use(express.json())
-app.use('/eventName', eventNameRouter)
-app.use('/state', stateRouter)
+function register<Implementation extends Module<any>> (C: new () => Implementation): void {
+  modules.push(new C())
+}
 
-app.listen(port, () => {
-  console.log(`REST API started on port ${port}`)
-})
+void load()
+
+register(SetupModule)
+
+modules.map(async module => await module.load())
