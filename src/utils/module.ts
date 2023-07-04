@@ -7,6 +7,7 @@ const emptyCb = (): void => {}
 
 export abstract class ModuleInstance<DataShape> {
   data?: DataShape
+  key: string
 
   async saveData (data: DataShape): Promise<void> {
 
@@ -25,7 +26,8 @@ export abstract class ModuleInstance<DataShape> {
     await this.setData(data)
   }
 
-  constructor (fallback?: DataShape) {
+  constructor (key: string, fallback?: DataShape) {
+    this.key = key
     if (fallback !== undefined) {
       void this.setup(fallback)
     }
@@ -47,7 +49,7 @@ export abstract class Module<ModuleInstanceImplementation> {
 
   }
 
-  protected abstract createInstance (): ModuleInstanceImplementation
+  protected abstract createInstance (key: string): ModuleInstanceImplementation
 
   handlePost (path: string, cb: (req: Request, res: Response) => Promise<void>): void {
     apiRouter.post(`/${path}`, (req, res) => { void cb(req, res) })
@@ -68,7 +70,7 @@ export abstract class SingletonModule<ModuleInstanceImplementation extends Modul
 
   constructor () {
     super()
-    this.instance = this.createInstance()
+    this.instance = this.createInstance('1')
   }
 }
 
@@ -92,13 +94,14 @@ export abstract class MultiModule<ModuleInstanceImplementation extends ModuleIns
     await Promise.all(removalPromises)
   }
 
-  private getInstance (key: string): ModuleInstanceImplementation | undefined {
+  getInstance (key: string): ModuleInstanceImplementation | undefined {
     return this.instances.get(key)
   }
 
-  private register (key: string): void {
-    const newInstance = this.createInstance()
+  register (key: string): ModuleInstanceImplementation {
+    const newInstance = this.createInstance(key)
     this.instances.set(key, newInstance)
+    return newInstance
   }
 
   private async unregister (key: string): Promise<void> {

@@ -40,8 +40,8 @@ class InstanceImplementation extends ModuleInstance<SetupStage> {
 }
 
 export class SetupModule extends SingletonModule<InstanceImplementation> {
-  protected createInstance (): InstanceImplementation {
-    return new InstanceImplementation()
+  protected createInstance (key: string): InstanceImplementation {
+    return new InstanceImplementation(key)
   }
 
   private async handleEventStage (packet: AedesPublishPacket): Promise<void> {

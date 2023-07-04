@@ -1,9 +1,5 @@
+import { AUTH_TYPE } from '@18x18az/rosetta'
 import { Request } from 'express'
-
-export enum AUTH_TYPE {
-  LOCAL = 'LOCAL',
-  ADMIN = 'ADMIN'
-}
 
 export async function isAuthorized (req: Request, level: AUTH_TYPE): Promise<boolean> {
   const source = req.ip
