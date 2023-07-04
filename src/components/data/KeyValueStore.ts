@@ -5,13 +5,25 @@ export async function loadValueForKey (id: string): Promise<string | undefined> 
   if (existing === null) {
     return
   }
-  return existing.value
+  let value = existing.value
+  try {
+    value = JSON.parse(value)
+  } catch (err) {
+
+  }
+  return value
 }
 
-export async function saveValueForKey (id: string, value: string): Promise<void> {
+export async function saveValueForKey (id: string, value: any): Promise<void> {
+  let saved: string
+  if (typeof (value) === 'object') {
+    saved = JSON.stringify(value)
+  } else {
+    saved = value
+  }
   await prisma.configStore.upsert({
     where: { id },
-    update: { value },
-    create: { id, value }
+    update: { value: saved },
+    create: { id, value: saved }
   })
 }
