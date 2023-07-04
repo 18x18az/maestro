@@ -17,12 +17,11 @@ register(SetupModule)
 register(EventStageModule)
 register(TeamInfoModule)
 
-broker.subscribe(PathComponent.EVENT_STATE, async (packet: AedesPublishPacket, cb) => {
+broker.subscribe(PathComponent.EVENT_STATE, (packet: AedesPublishPacket, cb) => {
   cb()
   const stage = getMessageString(packet) as EventStage
   if (stage === EventStage.SETUP) {
     console.log('Cleaning up previous event data')
-    const promises = Array.from(modules.values()).map((module) => { module.cleanup() })
-    await Promise.all(promises)
+    Array.from(modules.values()).forEach((module) => { void module.cleanup() })
   }
 }, () => {})
