@@ -6,10 +6,12 @@ const processor: InputProcessor<SetupStage> = (input, current) => {
   const code = input.get(PathComponent.EVENT_CODE) as EventCode | undefined
 
   if (eventStage !== undefined && eventStage !== EventStage.SETUP) {
+    console.log('Detected that setup is complete')
     return SetupStage.NONE
   }
 
   if ((current === undefined || current === SetupStage.NONE) && eventStage === EventStage.SETUP) {
+    console.log('Awaiting TM code')
     return SetupStage.EVENT_CODE
   }
 
@@ -39,4 +41,5 @@ export function setupEventSetup (): void {
   addSimpleSinglePostHandler(module, PathComponent.EVENT_CODE, AUTH_TYPE.LOCAL, codeValidator)
 
   addSimpleSingleBroadcast(module, PathComponent.SETUP_STAGE)
+  console.log('Event Setup module loaded')
 }

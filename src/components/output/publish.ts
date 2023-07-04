@@ -7,7 +7,6 @@ export type BroadcastBuilder<DataShape> = (identifier: string, value: DataShape)
 
 async function broadcast (topic: MessagePath, payload: any): Promise<void> {
   const topicString = makeMqttPath(topic)
-  console.log(`Publishing ${String(payload)} to ${topicString}`)
   broker.publish({
     topic: topicString,
     payload: JSON.stringify(payload),
