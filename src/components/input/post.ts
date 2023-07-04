@@ -27,7 +27,8 @@ export function postHandlerFactory<DataShape> (handler: CommonPostHandler, autho
       }
     }
 
-    return await handler(req, res)
+    const result = await handler(req, res)
+    return result
   }
 
   return wrappedHandler
@@ -57,6 +58,8 @@ export function addPostHandler (module: BaseModule<any>, topic: MessagePath, han
     const result = await module.updateAll(update)
     if (result) {
       res.status(200).send()
+    } else {
+      res.status(409).send()
     }
   }
   baseHandlePost(topic, wrapperFunction)

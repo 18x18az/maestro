@@ -1,4 +1,5 @@
 import { FallbackLoadFunction } from '../data/database'
+import { isEqual } from 'lodash'
 
 export type InputProcessor<OutputShape> = (input: Map<string, any>, current: OutputShape | undefined) => OutputShape | undefined
 type DataInput = Map<string, any>
@@ -43,15 +44,20 @@ async function broadcastUpdate<OutputShape> (identifier: string, value: OutputSh
 async function applyUpdate<OutputShape> (
   identifier: string,
   processor: InputProcessor<OutputShape>,
-  input: DataInput,
-  output: OutputShape | undefined,
+  instance: DataHolder<OutputShape>,
   outputs: OutputFunctions<OutputShape>
 ): Promise<OutputShape | undefined> {
-  const result = processor(input, output)
+  const result = processor(instance.inputs, instance.output)
 
   if (result === undefined) {
     return
   }
+
+  if (isEqual(instance.output, result)) {
+    return
+  }
+
+  instance.output = result
 
   await broadcastUpdate(identifier, result, outputs)
   return result
@@ -94,11 +100,10 @@ export class SingleModule<OutputShape> extends BaseModule<OutputShape> {
 
   async updateAll (update: Update): Promise<boolean> {
     this.instance.applyUpdate(update)
-    const result = await applyUpdate(this.instance.identifier, this.processor, this.instance.inputs, this.instance.output, this.outputFunctions)
+    const result = await applyUpdate(this.instance.identifier, this.processor, this.instance, this.outputFunctions)
     if (result === undefined) {
       return false
     } else {
-      this.instance.output = result
       return true
     }
   }
@@ -135,7 +140,7 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
     const promises = Array.from(this.instances.entries()).map(async ([identifier, instance]) => {
       instance.applyUpdate(update)
 
-      const result = await applyUpdate(identifier, this.processor, instance.inputs, instance.output, this.outputFunctions)
+      const result = await applyUpdate(identifier, this.processor, instance, this.outputFunctions)
       if (result !== undefined) {
         anyUpdates = true
         instance.output = result
@@ -184,12 +189,11 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
     }
     instance.applyUpdate(update)
 
-    const result = await applyUpdate(identifier, this.processor, instance.inputs, instance.output, this.outputFunctions)
+    const result = await applyUpdate(identifier, this.processor, instance, this.outputFunctions)
     if (result === undefined) {
       return false
     } else {
       await this.sendBulkPromises()
-      instance.output = result
       return true
     }
   }
