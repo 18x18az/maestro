@@ -1,61 +1,43 @@
-import { EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
-import { ModuleInstance, SingletonModule } from '../../utils/module'
-import { AedesPublishPacket } from 'aedes'
-import { getMessageString } from '../../utils/parser'
-import { publish } from './utils/publish'
-import { loadEventStage, saveEventStage } from './storage/eventStage'
-import { Request, Response } from 'express'
-import { validate } from './validation'
+import { EventStage, MessagePath, PathComponent, SetupStage } from '@18x18az/rosetta'
+import { loadValueForKey, saveValueForKey } from '../../components/data/KeyValueStore'
+import { BroadcastBuilder, InputProcessor, LoadFunction, SaveFunction, SingleModule, SubscribeHandler, addBroadcastOutput, addDatabaseLinkage, addSubscriber, getMessageString } from '../../components'
 
-class InstanceImplementation extends ModuleInstance<EventStage> {
-  async saveData (data: EventStage): Promise<void> {
-    await saveEventStage(data)
+const processor: InputProcessor<EventStage> = (input, current) => {
+  const setupStage = input.get(PathComponent.SETUP_STAGE) as SetupStage | undefined
+
+  if (setupStage === SetupStage.DONE) {
+    return EventStage.CHECK_IN
   }
 
-  async broadcastData (data: EventStage): Promise<void> {
-    await publish(data)
-  }
-
-  async loadData (fallback: EventStage): Promise<EventStage> {
-    const data = await loadEventStage(fallback)
-    return data
-  }
-
-  async handleSetupStage (stage: SetupStage): Promise<void> {
-    if (stage === SetupStage.DONE && this.data === EventStage.SETUP) {
-      await this.setData(EventStage.CHECK_IN)
-    }
-  }
-
-  constructor (key: string) {
-    super(key, EventStage.SETUP)
+  if (current === EventStage.TEARDOWN && setupStage === SetupStage.EVENT_CODE) {
+    return EventStage.SETUP
   }
 }
 
-export class EventStageModule extends SingletonModule<InstanceImplementation> {
-  protected createInstance (key: string): InstanceImplementation {
-    return new InstanceImplementation(key)
-  }
+const setupStageHandler: SubscribeHandler = (packet) => {
+  const stage = getMessageString(packet) as SetupStage
+  return [[PathComponent.SETUP_STAGE, stage]]
+}
 
-  async handleSetupStage (packet: AedesPublishPacket): Promise<void> {
-    const stage = getMessageString(packet) as SetupStage
-    await this.instance.handleSetupStage(stage)
-  }
+const broadcastBuilder: BroadcastBuilder<EventStage> = (identifier, value) => {
+  const topic: MessagePath = [[], PathComponent.EVENT_STATE]
 
-  async handleReset (req: Request, res: Response): Promise<void> {
-    const permitted = await validate(req, res)
+  return [topic, value]
+}
 
-    if (permitted === false) {
-      return
-    }
+const saveFunction: SaveFunction<EventStage> = async (identifier, value) => {
+  await saveValueForKey(identifier, value)
+}
 
-    await this.instance.setData(EventStage.SETUP)
-    res.status(200).send()
-  }
+const loadFunction: LoadFunction<EventStage> = async (identifier) => {
+  return await loadValueForKey(identifier) as EventStage
+}
 
-  constructor () {
-    super()
-    this.subscribe(PathComponent.SETUP_STAGE, this.handleSetupStage.bind(this))
-    this.handlePost(PathComponent.RESET, this.handleReset.bind(this))
-  }
+export async function setupEventStage (): Promise<void> {
+  const module = new SingleModule(PathComponent.EVENT_STATE, processor)
+
+  addSubscriber(module, [[], PathComponent.SETUP_STAGE], setupStageHandler)
+  addBroadcastOutput(module, broadcastBuilder)
+
+  await addDatabaseLinkage(module, saveFunction, loadFunction, EventStage.SETUP)
 }

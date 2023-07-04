@@ -1,67 +1,47 @@
-import { AedesPublishPacket } from 'aedes'
-import { ModuleInstance, SingletonModule } from '../../utils/module'
-import { getMessageString } from '../../utils/parser'
-import { EventCode, EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
-import { Request, Response } from 'express'
-import { validate } from './validation'
-import { publish } from './utils/publish'
+import { AUTH_TYPE, EventCode, EventStage, MessagePath, PathComponent, SetupStage } from '@18x18az/rosetta'
+import { BroadcastBuilder, InputProcessor, PostHandler, SingleModule, SubscribeHandler, addBroadcastOutput, addPostHandler, addSubscriber, getMessageString, postHandlerFactory } from '../../components'
 
-class InstanceImplementation extends ModuleInstance<SetupStage> {
-  async handleEventStage (stage: EventStage): Promise<void> {
-    if (stage === EventStage.SETUP) {
-      await this.setData(SetupStage.EVENT_CODE)
-    } else {
-      await this.setData(SetupStage.NONE)
-    }
+const processor: InputProcessor<SetupStage> = (input, current) => {
+  const eventStage = input.get(PathComponent.EVENT_STATE) as EventStage | undefined
+  const code = input.get(PathComponent.EVENT_CODE) as EventCode | undefined
+
+  if (eventStage !== undefined && eventStage !== EventStage.SETUP) {
+    return SetupStage.NONE
   }
 
-  async handleInput (input: EventCode, res: Response): Promise<void> {
-    if (this.data !== SetupStage.EVENT_CODE) {
-      res.status(409).send('not in setup mode')
-      return
-    }
-
-    if (input.eventCode === 'test') {
-      console.log('Fake test event requested')
-      await this.setData(SetupStage.DONE)
-    } else if (input.eventCode === 'fake') {
-      const numberToCreate = parseInt(input.tmCode)
-      console.log(`Requested fake event with ${numberToCreate} teams`)
-    } else {
-      console.log('Actual event requested')
-    }
-
-    res.status(200).send()
+  if (current === undefined && eventStage === EventStage.SETUP) {
+    return SetupStage.EVENT_CODE
   }
 
-  async broadcastData (stage: SetupStage): Promise<void> {
-    await publish(stage)
+  if (current === SetupStage.EVENT_CODE && code !== undefined) {
+    if (code.eventCode === 'test') {
+      console.log('Faking teams without TM')
+      return SetupStage.DONE
+    }
   }
 }
 
-export class SetupModule extends SingletonModule<InstanceImplementation> {
-  protected createInstance (key: string): InstanceImplementation {
-    return new InstanceImplementation(key)
-  }
+const setupStageHandler: SubscribeHandler = (packet) => {
+  const stage = getMessageString(packet) as EventStage
+  return [[PathComponent.EVENT_STATE, stage]]
+}
 
-  private async handleEventStage (packet: AedesPublishPacket): Promise<void> {
-    const stage = getMessageString(packet) as EventStage
-    await this.instance.handleEventStage(stage)
-  }
+const codeHandler: PostHandler = async (req, res) => {
+  const code = req.body as EventCode
+  return [[PathComponent.EVENT_CODE, code]]
+}
 
-  private async handleInput (req: Request, res: Response): Promise<void> {
-    const input = await validate(req, res)
+const broadcastBuilder: BroadcastBuilder<SetupStage> = (identifier, value) => {
+  const topic: MessagePath = [[], PathComponent.SETUP_STAGE]
 
-    if (input === undefined) {
-      return
-    }
+  return [topic, value]
+}
 
-    await this.instance.handleInput(input, res)
-  }
+export function setupEventSetup (): void {
+  const module = new SingleModule(PathComponent.SETUP_STAGE, processor)
 
-  constructor () {
-    super()
-    this.subscribe(PathComponent.EVENT_STATE, this.handleEventStage.bind(this))
-    this.handlePost(PathComponent.EVENT_CODE, this.handleInput.bind(this))
-  }
+  addSubscriber(module, [[], PathComponent.EVENT_STATE], setupStageHandler)
+  addPostHandler(module, [[], PathComponent.EVENT_CODE], postHandlerFactory(codeHandler, AUTH_TYPE.LOCAL))
+
+  addBroadcastOutput(module, broadcastBuilder)
 }
