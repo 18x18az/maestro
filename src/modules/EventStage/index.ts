@@ -1,6 +1,5 @@
-import { EventStage, MessagePath, PathComponent, SetupStage } from '@18x18az/rosetta'
-import { loadValueForKey, saveValueForKey } from '../../components/data/KeyValueStore'
-import { BroadcastBuilder, InputProcessor, LoadFunction, SaveFunction, SingleModule, SubscribeHandler, addBroadcastOutput, addDatabaseLinkage, addSubscriber, getMessageString } from '../../components'
+import { EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
+import { InputProcessor, SingleModule, addSimpleSingleBroadcast, addSimpleSingleDatabase, addSimpleSingleSubscriber } from '../../components'
 
 const processor: InputProcessor<EventStage> = (input, current) => {
   const setupStage = input.get(PathComponent.SETUP_STAGE) as SetupStage | undefined
@@ -14,30 +13,11 @@ const processor: InputProcessor<EventStage> = (input, current) => {
   }
 }
 
-const setupStageHandler: SubscribeHandler = (packet) => {
-  const stage = getMessageString(packet) as SetupStage
-  return [[PathComponent.SETUP_STAGE, stage]]
-}
-
-const broadcastBuilder: BroadcastBuilder<EventStage> = (identifier, value) => {
-  const topic: MessagePath = [[], PathComponent.EVENT_STATE]
-
-  return [topic, value]
-}
-
-const saveFunction: SaveFunction<EventStage> = async (identifier, value) => {
-  await saveValueForKey(identifier, value)
-}
-
-const loadFunction: LoadFunction<EventStage> = async (identifier) => {
-  return await loadValueForKey(identifier) as EventStage
-}
-
 export async function setupEventStage (): Promise<void> {
   const module = new SingleModule(PathComponent.EVENT_STATE, processor)
 
-  addSubscriber(module, [[], PathComponent.SETUP_STAGE], setupStageHandler)
-  addBroadcastOutput(module, broadcastBuilder)
+  addSimpleSingleSubscriber(module, PathComponent.SETUP_STAGE)
+  addSimpleSingleBroadcast(module, PathComponent.EVENT_STATE)
 
-  await addDatabaseLinkage(module, saveFunction, loadFunction, EventStage.SETUP)
+  await addSimpleSingleDatabase(module, EventStage.SETUP)
 }

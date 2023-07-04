@@ -9,8 +9,9 @@ type BaseCb = (req: Request, res: Response) => Promise<void>
 export type CommonPostHandler = PostHandler | DiscerningPostHandler
 export type PostHandler = (req: Request, res: Response) => Promise<Update | undefined>
 export type DiscerningPostHandler = (req: Request, res: Response) => Promise<Array<[identifier: string, update: Update]> | undefined>
+export type Validator<DataShape> = (data: DataShape) => boolean
 
-export function postHandlerFactory<DataShape> (handler: CommonPostHandler, authorization: AUTH_TYPE, validator?: (data: DataShape) => boolean): CommonPostHandler {
+export function postHandlerFactory<DataShape> (handler: CommonPostHandler, authorization: AUTH_TYPE, validator?: Validator<DataShape>): CommonPostHandler {
   const wrappedHandler: PostHandler = async (req, res) => {
     const auth = await isAuthorized(req, authorization)
     if (!auth) {
