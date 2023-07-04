@@ -5,7 +5,7 @@ import { getMessageString } from '../../utils/parser'
 import { publish } from './utils/publish'
 import { loadEventStage, saveEventStage } from './storage/eventStage'
 import { Request, Response } from 'express'
-import { validate } from './validation'
+import { validate } from "./validation"
 
 class InstanceImplementation extends ModuleInstance<EventStage> {
   async saveData (data: EventStage): Promise<void> {

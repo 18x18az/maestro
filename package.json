@@ -36,7 +36,7 @@
     },
     "husky": {
         "hooks": {
-            "pre-commit": "ts-standard fix"
+            "pre-commit": "ts-standard --fix"
         }
     }
 }
