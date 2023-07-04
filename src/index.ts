@@ -1,5 +1,6 @@
 import { EventStageModule } from './modules/EventStage'
 import { SetupModule } from './modules/Setup'
+import { TeamInfoModule } from './modules/TeamInfo'
 import { Module } from './utils/module'
 
 const modules: Array<Module<any>> = []
@@ -10,5 +11,4 @@ function register<Implementation extends Module<any>> (C: new () => Implementati
 
 register(SetupModule)
 register(EventStageModule)
-
-modules.map(async module => await module.load())
+register(TeamInfoModule)
