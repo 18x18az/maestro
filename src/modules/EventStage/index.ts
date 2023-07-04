@@ -45,7 +45,7 @@ export class EventStageModule extends SingletonModule<InstanceImplementation> {
   async handleReset (req: Request, res: Response): Promise<void> {
     const permitted = await validate(req, res)
 
-    if(!permitted) {
+    if (!permitted) {
       return
     }
 
