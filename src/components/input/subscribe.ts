@@ -8,7 +8,9 @@ export type SubscribeHandler<InputShape extends R> = (packet: AedesPublishPacket
 export type DiscerningSubscribeHandler<InputShape extends R> = (packet: AedesPublishPacket) => Array<[identifier: string, update: Partial<InputShape>]>
 type AedesCb = (packet: AedesPublishPacket) => Promise<void>
 
-const emptyCb = (): void => {}
+const emptyCb = (): void => {
+  // Intentional null CB
+}
 
 export function addDiscerningSubscriber<InputShape extends R, OutputShape> (
   module: MultiModule<InputShape, OutputShape>, topic: MessagePath, handler: DiscerningSubscribeHandler<InputShape>): void {

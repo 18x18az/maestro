@@ -12,7 +12,7 @@ app.use('/api', apiRouter)
 
 const listener = app.listen(port, () => {
   const address = listener.address()
-  if (address !== null && !(typeof address === 'string')) {
+  if (address !== null && typeof address !== 'string') {
     console.log(`HTTP on port ${address.port.toString()}`)
   }
 })
