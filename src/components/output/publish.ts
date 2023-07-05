@@ -21,8 +21,8 @@ async function broadcast (topic: MessagePath, payload: any): Promise<void> {
   })
 }
 
-export function addBroadcastOutput<DataShape> (module: BaseModule<DataShape>, builder: BroadcastBuilder<DataShape>): void {
-  const broadcastFunction: OutputFunction<DataShape> = async (identifier, value) => {
+export function addBroadcastOutput<OutputShape> (module: BaseModule<any, OutputShape>, builder: BroadcastBuilder<OutputShape>): void {
+  const broadcastFunction: OutputFunction<OutputShape> = async (identifier, value) => {
     const [topic, payload] = builder(identifier, value)
     await broadcast(topic, payload)
   }

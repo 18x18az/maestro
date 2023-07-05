@@ -13,7 +13,7 @@ export function makeMqttPath (components: MessagePath): string {
 export function makeApiPath (components: MessagePath): string {
   const leading = components[0].map((block) => { return block.join('/') }).join('/')
   const end = components[1]
-  let output
+  let output: string
   if (leading !== '') {
     output = [leading, end].join('/')
   } else {

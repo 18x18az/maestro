@@ -1,8 +1,12 @@
-import { AUTH_TYPE, CheckInState, DATA_KEY, PathComponent } from '@18x18az/rosetta'
+import { AUTH_TYPE, CheckInState, PathComponent } from '@18x18az/rosetta'
 import { InputProcessor, MultiModule, addInstancer, addSimpleDiscerningPostHandler } from '../../components'
 
-const processor: InputProcessor<CheckInState> = (input, current) => {
-  const update = input.get(PathComponent.CHECK_IN)[DATA_KEY] as CheckInState
+interface Input {
+  [PathComponent.CHECK_IN]: CheckInState
+}
+
+const processor: InputProcessor<Input, CheckInState> = (input, current) => {
+  const update = input[PathComponent.CHECK_IN]
 
   if (update === undefined) {
     return

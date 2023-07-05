@@ -12,7 +12,7 @@ function singleBroadcastBuilderFactory (topic: PathComponent): BroadcastBuilder<
   return broadcastBuilder
 }
 
-export const addSimpleSingleBroadcast = (module: BaseModule<any>, topic: PathComponent): void => {
+export const addSimpleSingleBroadcast = <OutputShape>(module: BaseModule<any, OutputShape>, topic: PathComponent): void => {
   const handler = singleBroadcastBuilderFactory(topic)
   addBroadcastOutput(module, handler)
 }

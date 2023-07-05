@@ -1,18 +1,20 @@
 import { Request, Response } from 'express'
-import { BaseModule, MultiModule, Update } from '../base/module'
+import { BaseModule, MultiModule, R } from '../base/module'
 import { AUTH_TYPE, MessagePath } from '@18x18az/rosetta'
 import { isAuthorized } from '../auth/auth'
 import { makeApiPath } from '../utils/pathBuilder'
 import { apiRouter } from '../../services/api'
 
 type BaseCb = (req: Request, res: Response) => Promise<void>
-export type CommonPostHandler = PostHandler | DiscerningPostHandler
-export type PostHandler = (req: Request, res: Response) => Promise<Update | undefined>
-export type DiscerningPostHandler = (req: Request, res: Response) => Promise<Array<[identifier: string, update: Update]> | undefined>
+type PostResult<InputShape extends R> = Partial<InputShape> | undefined
+type DiscerningPostResult<InputShape extends R> = Array<[string, Partial<InputShape>]> | undefined
+export type CommonPostHandler<InputShape extends R> = PostHandler<InputShape> | DiscerningPostHandler<InputShape>
+export type PostHandler<InputShape extends R> = (req: Request, res: Response) => Promise<PostResult<InputShape>>
+export type DiscerningPostHandler<InputShape extends R> = (req: Request, res: Response) => Promise<DiscerningPostResult<InputShape>>
 export type Validator<DataShape> = (data: DataShape) => boolean
 
-export function postHandlerFactory<DataShape> (handler: CommonPostHandler, authorization: AUTH_TYPE, validator?: Validator<DataShape>): CommonPostHandler {
-  const wrappedHandler: PostHandler = async (req, res) => {
+export function postHandlerFactory<InputShape extends R, BodyShape > (handler: (req: Request, res: Response) => any, authorization: AUTH_TYPE, validator?: Validator<BodyShape>): (req: Request, res: Response) => any {
+  const wrappedHandler: CommonPostHandler<InputShape> = async (req, res) => {
     const auth = await isAuthorized(req, authorization)
     if (!auth) {
       res.status(401).send()
@@ -34,7 +36,7 @@ export function postHandlerFactory<DataShape> (handler: CommonPostHandler, autho
   return wrappedHandler
 }
 
-export function addDiscerningPostHandler (module: MultiModule<any>, topic: MessagePath, handler: DiscerningPostHandler): void {
+export function addDiscerningPostHandler<InputShape extends R> (module: MultiModule<InputShape, any>, topic: MessagePath, handler: DiscerningPostHandler<InputShape>): void {
   const wrapperFunction: BaseCb = async (req, res) => {
     const updates = await handler(req, res)
     if (updates === undefined) {
@@ -56,7 +58,7 @@ export function addDiscerningPostHandler (module: MultiModule<any>, topic: Messa
   baseHandlePost(topic, wrapperFunction)
 }
 
-export function addPostHandler (module: BaseModule<any>, topic: MessagePath, handler: PostHandler): void {
+export function addPostHandler<InputShape extends R, OutputShape> (module: BaseModule<InputShape, OutputShape>, topic: MessagePath, handler: PostHandler<InputShape>): void {
   const wrapperFunction: BaseCb = async (req, res) => {
     const update = await handler(req, res)
     if (update === undefined) {

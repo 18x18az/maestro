@@ -1,14 +1,14 @@
 import { AUTH_TYPE, EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
 import { InputProcessor, SingleModule, addSimpleSingleBroadcast, addSimpleSingleDatabase, addSimpleSinglePostHandler, addSimpleSingleSubscriber } from '../../components'
 
-const processor: InputProcessor<EventStage> = (input, current) => {
-  const setupStage = input.get(PathComponent.SETUP_STAGE) as SetupStage | undefined
-  const command = input.get(PathComponent.RESET)?.cmd as EventStage | undefined
+interface Input {
+  [PathComponent.SETUP_STAGE]: SetupStage
+  [PathComponent.RESET]: { cmd: EventStage }
+}
 
-  if (command === EventStage.SETUP && current !== EventStage.SETUP) {
-    console.log('Received command to manually reset')
-    return EventStage.SETUP
-  }
+const processor: InputProcessor<Input, EventStage> = (input, current) => {
+  const setupStage = input[PathComponent.SETUP_STAGE]
+  const command = input[PathComponent.RESET]?.cmd
 
   if (setupStage === SetupStage.DONE) {
     console.log('Initial setup completed')
@@ -17,6 +17,11 @@ const processor: InputProcessor<EventStage> = (input, current) => {
 
   if (current === EventStage.TEARDOWN && setupStage === SetupStage.EVENT_CODE) {
     console.log('Detected start of new event, resetting')
+    return EventStage.SETUP
+  }
+
+  if (command === EventStage.SETUP && current !== EventStage.SETUP) {
+    console.log('Received command to manually reset')
     return EventStage.SETUP
   }
 }

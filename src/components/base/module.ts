@@ -1,19 +1,18 @@
 import { FallbackLoadFunction } from '../data/database'
 import { isEqual } from 'lodash'
 
-export type InputProcessor<OutputShape> = (input: Map<string, any>, current: OutputShape | undefined) => OutputShape | undefined
-type DataInput = Map<string, any>
+export type R = Record<string, any>
+
+export type InputProcessor<InputShape, OutputShape> = (input: Partial<InputShape>, current: OutputShape | undefined) => OutputShape | undefined
 
 export type OutputFunction<OutputShape> = (identifier: string, output: OutputShape) => Promise<void>
 type OutputFunctions<OutputShape> = Array<OutputFunction<OutputShape>>
 
-type BulkOutputFunction<OutputShape> = (data: Array<DataHolder<OutputShape>>) => Promise<void>
-type BulkOutputFunctions<OutputShape> = Array<BulkOutputFunction<OutputShape>>
+type BulkOutputFunction<InputShape extends R, OutputShape> = (data: Array<DataHolder<InputShape, OutputShape>>) => Promise<void>
+type BulkOutputFunctions<InputShape extends R, OutputShape> = Array<BulkOutputFunction<InputShape, OutputShape>>
 
-export type Update = Array<[input: string, value: any]>
-
-class DataHolder<OutputShape> {
-  inputs: DataInput
+export class DataHolder<InputShape extends R, OutputShape> {
+  inputs: Partial<InputShape>
   output: OutputShape | undefined
   identifier: string
 
@@ -21,15 +20,16 @@ class DataHolder<OutputShape> {
     this.output = output
   }
 
-  applyUpdate (update: Update): void {
-    update.forEach(([input, value]) => {
-      this.inputs.set(input, value)
-    })
+  applyUpdate (update: Partial<InputShape>): void {
+    this.inputs = {
+      ...this.inputs,
+      ...update
+    }
   }
 
   constructor (identifier: string) {
     this.identifier = identifier
-    this.inputs = new Map()
+    this.inputs = {}
   }
 }
 
@@ -41,10 +41,10 @@ async function broadcastUpdate<OutputShape> (identifier: string, value: OutputSh
   await Promise.all(promises)
 }
 
-async function applyUpdate<OutputShape> (
+async function applyUpdate<InputShape extends R, OutputShape> (
   identifier: string,
-  processor: InputProcessor<OutputShape>,
-  instance: DataHolder<OutputShape>,
+  processor: InputProcessor<InputShape, OutputShape>,
+  instance: DataHolder<InputShape, OutputShape>,
   outputs: OutputFunctions<OutputShape>
 ): Promise<OutputShape | undefined> {
   const result = processor(instance.inputs, instance.output)
@@ -63,30 +63,30 @@ async function applyUpdate<OutputShape> (
   return result
 }
 
-export abstract class BaseModule<OutputShape> {
+export abstract class BaseModule<InputShape extends R, OutputShape> {
   protected outputFunctions: OutputFunctions<OutputShape>
-  protected processor: InputProcessor<OutputShape>
+  protected processor: InputProcessor<InputShape, OutputShape>
 
   abstract registerLoadFunction (func: FallbackLoadFunction<OutputShape>): Promise<void>
 
-  constructor (processor: InputProcessor<OutputShape>) {
+  constructor (processor: InputProcessor<InputShape, OutputShape>) {
     this.outputFunctions = []
     this.processor = processor
   }
 
-  abstract updateAll (update: Update): Promise<boolean>
+  abstract updateAll (update: Partial<InputShape>): Promise<boolean>
 
   addOutput (output: OutputFunction<OutputShape>): void {
     this.outputFunctions.push(output)
   }
 }
 
-export class SingleModule<OutputShape> extends BaseModule<OutputShape> {
-  protected instance: DataHolder<OutputShape>
+export class SingleModule<InputShape extends R, OutputShape> extends BaseModule<InputShape, OutputShape> {
+  protected instance: DataHolder<InputShape, OutputShape>
 
   constructor (
     identifier: string,
-    processor: InputProcessor<OutputShape>
+    processor: InputProcessor<InputShape, OutputShape>
   ) {
     super(processor)
     this.instance = new DataHolder(identifier)
@@ -98,7 +98,7 @@ export class SingleModule<OutputShape> extends BaseModule<OutputShape> {
     await broadcastUpdate(this.instance.identifier, loaded, this.outputFunctions)
   }
 
-  async updateAll (update: Update): Promise<boolean> {
+  async updateAll (update: Partial<InputShape>): Promise<boolean> {
     this.instance.applyUpdate(update)
     const result = await applyUpdate(this.instance.identifier, this.processor, this.instance, this.outputFunctions)
     if (result === undefined) {
@@ -109,12 +109,12 @@ export class SingleModule<OutputShape> extends BaseModule<OutputShape> {
   }
 }
 
-export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
-  instances: Map<string, DataHolder<OutputShape>>
-  bulkOutputs: BulkOutputFunctions<OutputShape>
+export class MultiModule<InputShape extends R, OutputShape> extends BaseModule<InputShape, OutputShape> {
+  instances: Map<string, DataHolder<InputShape, OutputShape>>
+  bulkOutputs: BulkOutputFunctions<InputShape, OutputShape>
   loadFunction?: FallbackLoadFunction<OutputShape>
 
-  constructor (processor: InputProcessor<OutputShape>) {
+  constructor (processor: InputProcessor<InputShape, OutputShape>) {
     super(processor)
     this.bulkOutputs = []
     this.instances = new Map()
@@ -131,11 +131,11 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
     await Promise.all(backlog)
   }
 
-  addBulkOutput (output: BulkOutputFunction<OutputShape>): void {
+  addBulkOutput (output: BulkOutputFunction<InputShape, OutputShape>): void {
     this.bulkOutputs.push(output)
   }
 
-  async updateAll (update: Update): Promise<boolean> {
+  async updateAll (update: Partial<InputShape>): Promise<boolean> {
     let anyUpdates = false
     const promises = Array.from(this.instances.entries()).map(async ([identifier, instance]) => {
       instance.applyUpdate(update)
@@ -164,11 +164,11 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
     await Promise.all(bulkPromises)
   }
 
-  async createInstance (identifier: string): Promise<DataHolder<OutputShape> | undefined> {
+  async createInstance (identifier: string): Promise<DataHolder<InputShape, OutputShape> | undefined> {
     if (this.instances.get(identifier) !== undefined) {
       return
     }
-    const newInstance = new DataHolder<OutputShape>(identifier)
+    const newInstance = new DataHolder<InputShape, OutputShape>(identifier)
     this.instances.set(identifier, newInstance)
     if (this.loadFunction != null) {
       const cached = await this.loadFunction(identifier)
@@ -178,7 +178,7 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
     return newInstance
   }
 
-  async updateInstance (identifier: string, update: Update): Promise<boolean> {
+  async updateInstance (identifier: string, update: Partial<InputShape>): Promise<boolean> {
     const instance = this.instances.get(identifier)
     if (instance === undefined) {
       return false

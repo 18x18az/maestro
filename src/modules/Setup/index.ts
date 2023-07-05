@@ -1,9 +1,14 @@
 import { AUTH_TYPE, EventCode, EventStage, PathComponent, SetupStage } from '@18x18az/rosetta'
 import { InputProcessor, SingleModule, Validator, addSimpleSingleBroadcast, addSimpleSinglePostHandler, addSimpleSingleSubscriber } from '../../components'
 
-const processor: InputProcessor<SetupStage> = (input, current) => {
-  const eventStage = input.get(PathComponent.EVENT_STATE) as EventStage | undefined
-  const code = input.get(PathComponent.EVENT_CODE) as EventCode | undefined
+interface Input {
+  [PathComponent.EVENT_STATE]: EventStage
+  [PathComponent.EVENT_CODE]: EventCode
+}
+
+const processor: InputProcessor<Input, SetupStage> = (input, current) => {
+  const eventStage = input[PathComponent.EVENT_STATE]
+  const code = input[PathComponent.EVENT_CODE]
 
   if (eventStage !== undefined && eventStage !== EventStage.SETUP) {
     console.log('Detected that setup is complete')
