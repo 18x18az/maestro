@@ -114,7 +114,7 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
   bulkOutputs: BulkOutputFunctions<OutputShape>
   loadFunction?: FallbackLoadFunction<OutputShape>
 
-  constructor (processor: (input: Record<string, any>) => OutputShape | undefined) {
+  constructor (processor: InputProcessor<OutputShape>) {
     super(processor)
     this.bulkOutputs = []
     this.instances = new Map()
@@ -179,13 +179,9 @@ export class MultiModule<OutputShape> extends BaseModule<OutputShape> {
   }
 
   async updateInstance (identifier: string, update: Update): Promise<boolean> {
-    let instance = this.instances.get(identifier)
+    const instance = this.instances.get(identifier)
     if (instance === undefined) {
-      instance = await this.createInstance(identifier)
-      if (instance === undefined) {
-        console.log("this shouldn't happen")
-        return false
-      }
+      return false
     }
     instance.applyUpdate(update)
 

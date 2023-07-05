@@ -1,6 +1,6 @@
 import { AedesPublishPacket } from 'aedes'
 import { BaseModule, MultiModule, Update } from '../base/module'
-import { MessagePath } from '@18x18az/rosetta'
+import { MessagePath, PathComponent } from '@18x18az/rosetta'
 import { makeMqttPath } from '../utils/pathBuilder'
 import { broker } from '../../services/mqtt'
 
@@ -42,4 +42,16 @@ function baseSubscribe (topic: MessagePath, handler: AedesCb): void {
   }
 
   broker.subscribe(topicString, deliverFunc, emptyCb)
+}
+
+export function addInstancer (module: MultiModule<any>, topic: PathComponent): void {
+  const fullTopic: MessagePath = [[], topic]
+  const creatorFunction: AedesCb = async (packet) => {
+    const instances = JSON.parse(packet.payload.toString()) as string[]
+    const promises = instances.map(async (instance) => {
+      await module.createInstance(instance)
+    })
+    await Promise.all(promises)
+  }
+  baseSubscribe(fullTopic, creatorFunction)
 }

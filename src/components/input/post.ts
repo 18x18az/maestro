@@ -41,9 +41,16 @@ export function addDiscerningPostHandler (module: MultiModule<any>, topic: Messa
       return
     }
     const promises = updates.map(async update => {
-      await module.updateInstance(update[0], update[1])
+      const result = await module.updateInstance(update[0], update[1])
+      return result
     })
-    await Promise.all(promises)
+    const result = await Promise.all(promises)
+
+    if (result.includes(false)) {
+      res.status(400).send()
+      return
+    }
+
     res.status(200).send()
   }
   baseHandlePost(topic, wrapperFunction)
