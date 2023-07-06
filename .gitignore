@@ -4,3 +4,6 @@ node_modules
 .env
 *.csv
 /coverage
+*.db
+*.db-journal
+test-report.xml
