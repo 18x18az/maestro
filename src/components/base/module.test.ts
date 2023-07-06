@@ -1,4 +1,4 @@
-import { DataHolder, SingleModule } from './module'
+import { DataHolder, MultiModule, SingleModule } from './module'
 
 interface MockInput {
   firstValue: string
@@ -13,6 +13,9 @@ const MOCK_VALUE_2 = 'BAR'
 const MOCK_SINGLE_UPDATE: Partial<MockInput> = { firstValue: MOCK_VALUE_1 }
 const MOCK_DOUBLE_UPDATE: Partial<MockInput> = { firstValue: MOCK_VALUE_1, secondValue: MOCK_VALUE_2 }
 const MOCK_SECOND_UPDATE: Partial<MockInput> = { secondValue: MOCK_VALUE_2 }
+
+const MOCK_RETURN_VALUE = 'FIZZ'
+const MOCK_SECOND_RETURN_VALUE = 'BUZZ'
 
 describe('DataHolder', () => {
   let dataHolder: DataHolder<MockInput, any>
@@ -85,7 +88,7 @@ describe('SingleModule', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    jest.resetAllMocks()
   })
 
   describe('updateAll', () => {
@@ -112,8 +115,6 @@ describe('SingleModule', () => {
   describe('outputs', () => {
     const mockOutput1 = jest.fn()
     const mockOutput2 = jest.fn()
-    const MOCK_RETURN_VALUE = 'FIZZ'
-    const MOCK_SECOND_RETURN_VALUE = 'BUZZ'
 
     beforeEach(() => {
       module.addOutput(mockOutput1)
@@ -159,6 +160,239 @@ describe('SingleModule', () => {
       mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
       await module.updateAll(MOCK_SINGLE_UPDATE)
       expect(mockOutput1).toHaveBeenLastCalledWith(IDENTIFIER, MOCK_RETURN_VALUE)
+    })
+  })
+
+  describe('load function', () => {
+    const mockOutput = jest.fn()
+    const mockLoadFunction = jest.fn()
+
+    beforeEach(async () => {
+      mockLoadFunction.mockReturnValue(MOCK_RETURN_VALUE)
+      module.addOutput(mockOutput)
+      await module.registerLoadFunction(mockLoadFunction)
+    })
+
+    test('should call it immediately after being registered', () => {
+      expect(mockLoadFunction).toBeCalledTimes(1)
+    })
+
+    test('should be provided with the instance identifier', () => {
+      expect(mockLoadFunction.mock.lastCall[0]).toEqual(IDENTIFIER)
+    })
+
+    test('should cause the output function to be called', () => {
+      expect(mockOutput).toBeCalledTimes(1)
+    })
+
+    test('should set the output to the returned value', () => {
+      expect(mockOutput.mock.lastCall[1]).toEqual(MOCK_RETURN_VALUE)
+    })
+  })
+})
+
+describe('MultiModule', () => {
+  let module: MultiModule<MockInput, any>
+  const mockProcessor = jest.fn()
+  const mockOutput = jest.fn()
+
+  const FIRST_IDENTIFIER = 'ONE'
+  const SECOND_IDENTIFIER = 'TWO'
+
+  beforeEach(() => {
+    module = new MultiModule(mockProcessor)
+    module.addOutput(mockOutput)
+  })
+
+  afterEach(() => {
+    jest.resetAllMocks()
+  })
+
+  describe('on initializing', () => {
+    test('should have no instances', () => {
+      expect(module.instances.size).toEqual(0)
+    })
+  })
+
+  describe('on creating a new instance', () => {
+    beforeEach(async () => {
+      await module.createInstance(FIRST_IDENTIFIER)
+    })
+    test('should create a new data holder', () => {
+      expect(module.instances.get(FIRST_IDENTIFIER)).toBeInstanceOf(DataHolder)
+    })
+
+    test('should use the passed identifier', () => {
+      expect(module.instances.get(FIRST_IDENTIFIER)?.identifier).toEqual(FIRST_IDENTIFIER)
+    })
+
+    test('should be able to create multiple instances', async () => {
+      await module.createInstance(SECOND_IDENTIFIER)
+      expect(module.instances.size).toEqual(2)
+    })
+
+    test('should return the created instance', async () => {
+      const result = await module.createInstance(SECOND_IDENTIFIER)
+      expect(result?.identifier).toEqual(SECOND_IDENTIFIER)
+    })
+
+    test('should return undefined if an instance with that identifier already exists', async () => {
+      const result = await module.createInstance(FIRST_IDENTIFIER)
+      expect(result).toBe(undefined)
+    })
+  })
+
+  describe('with a single instance', () => {
+    beforeEach(async () => {
+      await module.createInstance(FIRST_IDENTIFIER)
+    })
+
+    test('should call the processor once on update all', async () => {
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockProcessor).toBeCalledTimes(1)
+    })
+
+    test('should call the processor once on update single', async () => {
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockProcessor).toBeCalledTimes(1)
+    })
+
+    test('should call the output function once on an update all', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockOutput).toBeCalledTimes(1)
+    })
+
+    test('should call the output function once on an update single', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockOutput).toBeCalledTimes(1)
+    })
+  })
+
+  describe('with two instances', () => {
+    beforeEach(async () => {
+      await module.createInstance(FIRST_IDENTIFIER)
+      await module.createInstance(SECOND_IDENTIFIER)
+    })
+
+    test('should call the processor twice on update all', async () => {
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockProcessor).toBeCalledTimes(2)
+    })
+
+    test('should call the processor once on update single', async () => {
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockProcessor).toBeCalledTimes(1)
+    })
+
+    test('should call the output function twice on an update all', async () => {
+      mockProcessor.mockReturnValue(MOCK_RETURN_VALUE)
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockOutput).toBeCalledTimes(2)
+    })
+
+    test('should call the output function once on an update single', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockOutput).toBeCalledTimes(1)
+    })
+  })
+
+  describe('on update', () => {
+    beforeEach(async () => {
+      await module.createInstance(FIRST_IDENTIFIER)
+    })
+
+    test('should return true if the instance exists and the processor returns a value', async () => {
+      mockProcessor.mockReturnValue(MOCK_RETURN_VALUE)
+      const result = await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(result).toBeTruthy()
+    })
+
+    test('should return false if the instance exists and the processor returns undefined', async () => {
+      mockProcessor.mockReturnValue(undefined)
+      const result = await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(result).toBeFalsy()
+    })
+
+    test('should return false if the instance does not exist even if the processor would return a value', async () => {
+      mockProcessor.mockReturnValue(MOCK_RETURN_VALUE)
+      const result = await module.updateInstance(SECOND_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(result).toBeFalsy()
+    })
+
+    test('should provide the output function with the identifier and the output value', async () => {
+      mockProcessor.mockReturnValue(MOCK_RETURN_VALUE)
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      const outputArguments = mockOutput.mock.lastCall
+      expect(outputArguments[0]).toEqual(FIRST_IDENTIFIER)
+      expect(outputArguments[1]).toEqual(MOCK_RETURN_VALUE)
+    })
+  })
+
+  describe('load function', () => {
+    const mockLoadFunction = jest.fn()
+
+    beforeEach(async () => {
+      mockLoadFunction.mockReturnValue(MOCK_RETURN_VALUE)
+      await module.createInstance(FIRST_IDENTIFIER)
+      await module.registerLoadFunction(mockLoadFunction)
+    })
+
+    test('should immediately load values for any existing instances', () => {
+      expect(mockOutput).toBeCalledTimes(1)
+    })
+
+    test('should be called for any subsequent new instances', async () => {
+      expect(mockOutput).toBeCalledTimes(1)
+      await module.createInstance(SECOND_IDENTIFIER)
+      expect(mockOutput).toBeCalledTimes(2)
+    })
+  })
+
+  describe('bulk outputs', () => {
+    const mockBulkOutput = jest.fn()
+
+    beforeEach(async () => {
+      await module.createInstance(FIRST_IDENTIFIER)
+      await module.createInstance(SECOND_IDENTIFIER)
+      module.addBulkOutput(mockBulkOutput)
+    })
+
+    test('should be called once on an update all', async () => {
+      mockProcessor.mockReturnValue(MOCK_RETURN_VALUE)
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockBulkOutput).toBeCalledTimes(1)
+    })
+
+    test('should be called once on an update individual', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockBulkOutput).toBeCalledTimes(1)
+    })
+
+    test('should be provided with information on all instances', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      const results = mockBulkOutput.mock.lastCall[0]
+      expect(results.length).toEqual(2)
+    })
+
+    test('should not be called if the processor returns false on update all', async () => {
+      await module.updateInstance(FIRST_IDENTIFIER, MOCK_SINGLE_UPDATE)
+      expect(mockBulkOutput).not.toBeCalled()
+    })
+
+    test('should not be called if the processor returns false on update single', async () => {
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockBulkOutput).not.toBeCalled()
+    })
+
+    test('should be called even if only one processor updates on update all', async () => {
+      mockProcessor.mockReturnValueOnce(MOCK_RETURN_VALUE)
+      await module.updateAll(MOCK_SINGLE_UPDATE)
+      expect(mockBulkOutput).toBeCalledTimes(1)
     })
   })
 })
