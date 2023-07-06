@@ -8,8 +8,5 @@ module.exports = {
     '!**/node_modules/**',
     '!**/vendor/**'
   ],
-  reporters: ['default', ['jest-sonar', {
-    outputDirectory: '.',
-    outputName: 'test-report.xml'
-  }]]
+  reporters: ['default', 'jest-sonar']
 }
