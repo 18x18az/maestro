@@ -1,0 +1,9 @@
+node_modules
+/bin
+/.vscode
+.env
+*.csv
+/coverage
+*.db
+*.db-journal
+test-report.xml
