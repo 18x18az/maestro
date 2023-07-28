@@ -1,0 +1,76 @@
+import { CustomTransportStrategy, MessageHandler, Server } from "@nestjs/microservices";
+import * as mqtt from 'mqtt';
+import { makeValue } from "./string2json";
+
+type Callback = (value: any, params: any) => void;
+
+interface HandlerMap {
+    [pattern: string]: Array<Callback>;
+}
+
+export default class MyCustomStrategy extends Server implements CustomTransportStrategy {
+    private readonly mqttClients: mqtt.MqttClient[] = [];
+    private handlers: HandlerMap = {};
+    constructor() {
+        super();
+    }
+
+    public async addHandler(pattern: any, callback: MessageHandler<any, any, any>, isEventHandler?: boolean, extras?: Record<string, any>): Promise<void> {
+        if(this.handlers[pattern]) {
+            this.handlers[pattern].push(callback);
+        } else {
+            this.handlers[pattern] = [callback];
+        }
+    }
+
+    public async listen(callback: () => void) {
+        let connectedClients = 0;
+
+        Array.from(Object.entries(this.handlers)).forEach((value) => {
+            const baseTopic = value[0];
+            const paramNameRegex = /:([^/]+)/g;
+            const paramMatches = baseTopic.match(paramNameRegex);
+            const paramKeys = paramMatches ? paramMatches.map((match) => match.slice(1)) : [];
+            const subscribedTopic = baseTopic.replaceAll(/:[^/]+/g, '+');
+            const paramRegex  = subscribedTopic.replaceAll('/', '\\/').replaceAll('+', '(.*)');
+            const reCompiled = new RegExp(paramRegex);
+
+            const mqttClient = mqtt.connect('ws://localhost:1883')
+            this.mqttClients.push(mqttClient);
+
+            mqttClient.on('connect', () => {
+                mqttClient.subscribe(subscribedTopic);
+                connectedClients++;
+                if (connectedClients === this.mqttClients.length) {
+                    callback();
+                }
+            });
+
+            mqttClient.on('error', (err) => {
+                this.logger.error(err);
+            });
+
+            mqttClient.on('message', (topic, message) => {
+                const matches = reCompiled.exec(topic).slice(1);
+                const params = {}
+                paramKeys.forEach((key, index) => {
+                    params[key] = matches[index];
+                });
+
+                const msgString = message.toString();
+                const value = makeValue(msgString);
+
+                this.handlers[baseTopic].forEach((handler) => {
+                    handler(value, params);
+                });
+            });
+
+        });
+    }
+    public async close() {
+        this.mqttClients.forEach((mqttClient) => {
+            mqttClient.end();
+        });
+
+    }
+}
