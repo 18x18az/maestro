@@ -7,7 +7,7 @@ import { InspectionChecklist } from './inspection.dto'
 @Injectable()
 export class InspectionService {
   private readonly logger = new Logger(InspectionService.name)
-  private canConclude: boolean
+  private canConclude: boolean = false
   private eventStage: EVENT_STAGE
 
   constructor (private readonly publisher: PublishService, private readonly inspectionRepo: InspectionDatabase) { }
@@ -17,7 +17,7 @@ export class InspectionService {
       const stage = await this.inspectionRepo.initialLoad(team)
       await this.publishTeam(team, stage)
     }))
-    const allStages = Object.keys(INSPECTION_STAGE) as Array<keyof typeof INSPECTION_STAGE>
+    const allStages = Object.values(INSPECTION_STAGE)
 
     await Promise.all(allStages.map(async (stage) => {
       await this.publishStage(stage as INSPECTION_STAGE)
@@ -52,13 +52,13 @@ export class InspectionService {
       throw new HttpException('Team not checked in', HttpStatus.BAD_REQUEST)
     }
 
-    const newStage = isMet ? (await this.inspectionRepo.markMet(team, criteria)) : (await this.inspectionRepo.markNotMet(team, criteria))
+    const newStage = await this.inspectionRepo.markMetOrNot(team, criteria, isMet)
 
     await this.handleChange(team, previous, newStage)
   }
 
   private async evaluateCanConclude (): Promise<void> {
-    const canConclude = this.inspectionRepo.getTeamsByStage(INSPECTION_STAGE.NOT_HERE).length === 0
+    const canConclude = (await this.inspectionRepo.getTeamsByStage(INSPECTION_STAGE.NOT_HERE)).length === 0
     if (canConclude !== this.canConclude) {
       if (this.eventStage === EVENT_STAGE.CHECKIN) {
         this.logger.log(`Check in can conclude: ${canConclude.toString()}`)

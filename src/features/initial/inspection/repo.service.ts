@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../utils/prisma/prisma.service'
 import { InspectionChecklist } from './inspection.dto'
 
-interface InspectionRollup extends InMemoryDBEntity {
+export interface InspectionRollup extends InMemoryDBEntity {
   team: string
   status: INSPECTION_STAGE
 }
@@ -58,16 +58,12 @@ export class InspectionDatabase {
     return this.cache.getAll().filter(rollup => rollup.status === stage).map(rollup => rollup.team)
   }
 
-  async markMet (team: string, criteria: number): Promise<INSPECTION_STAGE> {
-    await this.prisma.checkedInspection.create({ data: { teamNumber: team, criteriaId: criteria } })
-    const existing = this.getRollup(team)
-    existing.status = await this.evaluateInspectionProgress(team)
-    this.cache.update(existing)
-    return existing.status
-  }
-
-  async markNotMet (team: string, criteria: number): Promise<INSPECTION_STAGE> {
-    await this.prisma.checkedInspection.delete({ where: { teamNumber_criteriaId: { teamNumber: team, criteriaId: criteria } } })
+  async markMetOrNot(team: string, criteria: number, met: boolean): Promise<INSPECTION_STAGE> {
+    if(met === true) {
+      await this.prisma.checkedInspection.create({ data: { teamNumber: team, criteriaId: criteria } })
+    } else {
+      await this.prisma.checkedInspection.delete({ where: { teamNumber_criteriaId: { teamNumber: team, criteriaId: criteria } } })
+    }
     const existing = this.getRollup(team)
     existing.status = await this.evaluateInspectionProgress(team)
     this.cache.update(existing)
@@ -102,6 +98,6 @@ export class InspectionDatabase {
   }
 
   getStage (team: string): INSPECTION_STAGE {
-    return this.getRollup(team).status
+    return this.getRollup(team).status;
   }
 }
