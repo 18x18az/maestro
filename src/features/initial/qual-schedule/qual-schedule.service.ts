@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { PublishService } from 'src/utils/publish/publish.service'
-import { StorageService } from 'src/utils/storage/storage.service'
+import { StorageService } from '../../../utils/storage/storage.service'
+import { PublishService } from '../../../utils/publish/publish.service'
 
 @Injectable()
 export class QualScheduleService {

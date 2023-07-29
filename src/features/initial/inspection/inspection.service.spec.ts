@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { InspectionService } from './inspection.service'
-import { PublishService } from 'src/utils/publish/publish.service'
 import { InspectionDatabase } from './repo.service'
 import { EVENT_STAGE, INSPECTION_STAGE, InspectionSummary } from '@18x18az/rosetta'
 import { InspectionChecklist } from './inspection.dto'
+import { PublishService } from '../../../utils/publish/publish.service'
 
 describe('InspectionService', () => {
   let service: InspectionService

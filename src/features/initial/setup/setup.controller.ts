@@ -1,7 +1,7 @@
 import { Body, Controller, HttpException, HttpStatus, Logger, Post } from '@nestjs/common'
 import { EventCodeDto } from './eventCode.dto'
-import { TeamService } from 'src/features/initial/team/team.service'
 import { testTeamList } from './testTeamList'
+import { TeamService } from '../team/team.service'
 
 enum STAGE {
   NONE = 'none',
