@@ -23,6 +23,9 @@ export class InspectionDatabase {
 
   async getCriteriaMet (team: string): Promise<number[]> {
     const points = await this.prisma.team.findUnique({ where: { number: team } }).checkedPoints({ select: { criteriaId: true } })
+
+    if (points === null) return []
+
     return points.map(point => point.criteriaId)
   }
 

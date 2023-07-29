@@ -1,4 +1,4 @@
-import { CustomTransportStrategy, MessageHandler, Server } from '@nestjs/microservices'
+import { CustomTransportStrategy, Server } from '@nestjs/microservices'
 import * as mqtt from 'mqtt'
 import { makeValue } from './string2json'
 
@@ -12,7 +12,7 @@ export default class MyCustomStrategy extends Server implements CustomTransportS
   private readonly mqttClients: mqtt.MqttClient[] = []
   private handlers: HandlerMap = {}
 
-  public async addHandler (pattern: any, callback: MessageHandler<any, any, any>, isEventHandler?: boolean, extras?: Record<string, any>): Promise<void> {
+  public async addHandler (pattern: any, callback: Callback, isEventHandler?: boolean, extras?: Record<string, any>): Promise<void> {
     if (this.handlers[pattern] !== undefined) {
       this.handlers[pattern].push(callback)
     } else {
@@ -48,7 +48,10 @@ export default class MyCustomStrategy extends Server implements CustomTransportS
       })
 
       mqttClient.on('message', (topic, message) => {
-        const matches = reCompiled.exec(topic).slice(1)
+        const matches = reCompiled.exec(topic)?.slice(1)
+        if (matches === undefined) {
+          return
+        }
         const params = {}
         paramKeys.forEach((key, index) => {
           params[key] = matches[index]

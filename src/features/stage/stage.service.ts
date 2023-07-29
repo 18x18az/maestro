@@ -30,7 +30,7 @@ export class StageService {
   }
 
   private async getStage (): Promise<EVENT_STAGE> {
-    return await this.storage.getPersistent(EVENT_STAGE_KEY, EVENT_STAGE.SETUP)
+    return await this.storage.getPersistent(EVENT_STAGE_KEY, EVENT_STAGE.SETUP) as EVENT_STAGE
   }
 
   async setStage (stage: EVENT_STAGE): Promise<void> {
