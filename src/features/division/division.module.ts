@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { DivisionService } from './division.service';
-import { DivisionController } from './division.controller';
+import { Module } from '@nestjs/common'
+import { DivisionService } from './division.service'
+import { DivisionController } from './division.controller'
 
 @Module({
   providers: [DivisionService],

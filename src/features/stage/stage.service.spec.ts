@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { StageService } from './stage.service';
-import { StorageService } from 'src/utils/storage/storage.service';
-import { PublishService } from 'src/utils/publish/publish.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { StageService } from './stage.service'
+import { StorageService } from 'src/utils/storage/storage.service'
+import { PublishService } from 'src/utils/publish/publish.service'
 
 describe('StageService', () => {
-  let service: StageService;
+  let service: StageService
 
   const mockStorageService = {
 
@@ -17,15 +17,15 @@ describe('StageService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        StageService, {provide: StorageService, useValue: mockStorageService},
-        StageService, {provide: PublishService, useValue: mockPublishService},
-      ],
-    }).compile();
+        StageService, { provide: StorageService, useValue: mockStorageService },
+        StageService, { provide: PublishService, useValue: mockPublishService }
+      ]
+    }).compile()
 
-    service = module.get<StageService>(StageService);
-  });
+    service = module.get<StageService>(StageService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

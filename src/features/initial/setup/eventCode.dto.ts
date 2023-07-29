@@ -1,9 +1,9 @@
-import { IsString } from "class-validator";
+import { IsString } from 'class-validator'
 
 export class EventCodeDto {
-    @IsString()
-    public eventCode: string;
+  @IsString()
+  public eventCode: string
 
-    @IsString()
-    public tmCode: string;
+  @IsString()
+  public tmCode: string
 }
