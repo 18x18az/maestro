@@ -58,8 +58,8 @@ export class InspectionDatabase {
     return this.cache.getAll().filter(rollup => rollup.status === stage).map(rollup => rollup.team)
   }
 
-  async markMetOrNot(team: string, criteria: number, met: boolean): Promise<INSPECTION_STAGE> {
-    if(met === true) {
+  async markMetOrNot (team: string, criteria: number, met: boolean): Promise<INSPECTION_STAGE> {
+    if (met) {
       await this.prisma.checkedInspection.create({ data: { teamNumber: team, criteriaId: criteria } })
     } else {
       await this.prisma.checkedInspection.delete({ where: { teamNumber_criteriaId: { teamNumber: team, criteriaId: criteria } } })
@@ -98,6 +98,6 @@ export class InspectionDatabase {
   }
 
   getStage (team: string): INSPECTION_STAGE {
-    return this.getRollup(team).status;
+    return this.getRollup(team).status
   }
 }

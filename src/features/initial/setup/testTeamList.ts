@@ -1,4 +1,5 @@
-import { Team } from 'src/features/initial/team/team.dto'
+import { Team } from "../team/team.dto";
+
 
 export const testTeamList: Team[] = [
   new Team({ number: '127C', name: 'Lemon Bots', city: 'Gilbert', state: 'Arizona', country: 'United States', ageGroup: 'High School' }),

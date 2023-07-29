@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@18x18az/rosetta": "^3.9.0",
+    "@18x18az/rosetta": "^4.0.0",
     "@nestjs-addons/in-memory-db": "^3.0.3",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
@@ -52,6 +52,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "29.5.0",
+    "jest-sonar": "^0.2.16",
     "prettier": "^2.3.2",
     "prisma": "^4.16.2",
     "source-map-support": "^0.5.20",
@@ -62,25 +63,5 @@
     "ts-standard": "^12.0.2",
     "tsconfig-paths": "4.2.0",
     "typescript": "^5.0.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "./",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "modulePaths": [
-      "<rootDir>"
-    ]
   }
 }
