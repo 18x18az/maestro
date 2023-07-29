@@ -7,10 +7,55 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./talos.db"
+  url      = env("DATABASE_URL")
 }
 
-model ConfigStore {
-  id    String @id
+model GenericEphemeral {
+  key   String @unique
   value String
+}
+
+model GenericPersistent {
+  key   String @unique
+  value String
+}
+
+model Team {
+  number        String              @unique
+  name          String
+  city          String
+  state         String
+  country       String
+  ageGroup      String
+  checkIn       CheckIn?
+  checkedPoints CheckedInspection[]
+}
+
+model CheckIn {
+  team       Team   @relation(fields: [teamNumber], references: [number])
+  teamNumber String @unique
+  status     String
+}
+
+model InspectionGroup {
+  name     String               @unique
+  criteria InspectionCriteria[]
+}
+
+model InspectionCriteria {
+  id        Int                 @id @default(autoincrement())
+  group     InspectionGroup     @relation(fields: [groupName], references: [name])
+  groupName String
+  text      String              @unique
+  met       CheckedInspection[]
+  program   String?
+}
+
+model CheckedInspection {
+  team       Team               @relation(fields: [teamNumber], references: [number])
+  teamNumber String
+  criteria   InspectionCriteria @relation(fields: [criteriaId], references: [id])
+  criteriaId Int
+
+  @@unique([teamNumber, criteriaId])
 }
