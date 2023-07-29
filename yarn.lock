@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@18x18az/rosetta@^3.9.0":
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-3.9.0.tgz#d0e6839af56dfed25d5f593471373d737cb7a5e1"
-  integrity sha512-1Pzy1AZR/N6H9hPnlIG07e2B0/8LMJvYFqcvfXNwFCicKxE7FKvYUvONfVwRbRbhRcFU3KaqIZ6Ea97CA1eM0Q==
+"@18x18az/rosetta@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@18x18az/rosetta/-/rosetta-4.0.1.tgz#9f7947619dbf67b577a73f7dda1ed1ffb166f3f0"
+  integrity sha512-dGCuXlEBTro0heCViS/y6cLDyjD8JIv2KgSsLxPywj4Az0R8NFletZDWEA1RqcAn4x1Q7Saf82x+sxZFEwoX8w==
 
 "@aashutoshrathi/word-wrap@^1.2.3":
   version "1.2.6"

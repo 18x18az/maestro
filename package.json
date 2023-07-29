@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@18x18az/rosetta": "^3.9.0",
+    "@18x18az/rosetta": "^4.0.0",
     "@nestjs-addons/in-memory-db": "^3.0.3",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
