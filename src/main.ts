@@ -3,7 +3,7 @@ import { AppModule } from './app.module'
 import helmet from 'helmet'
 import { ValidationPipe } from '@nestjs/common'
 import { MicroserviceOptions } from '@nestjs/microservices'
-import MqttTransport from './utils/CustomMqttTransportLayer'
+import MqttTransport from './utils/transport/mqttServer'
 
 async function bootstrap (): Promise<void> {
   const app = await NestFactory.create(AppModule)
