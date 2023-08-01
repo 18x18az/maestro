@@ -4,9 +4,10 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   collectCoverageFrom: [
-    '**/*.{ts,tsx}',
+    'src/**/*.{ts,tsx}',
     '!**/node_modules/**',
-    '!**/vendor/**'
+    '!**/vendor/**',
+    '!**/__test__/**'
   ],
   reporters: ['default', 'jest-sonar']
 }
