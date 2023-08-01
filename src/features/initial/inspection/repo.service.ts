@@ -13,11 +13,11 @@ export interface InspectionRollup extends InMemoryDBEntity {
 export class InspectionDatabase {
   constructor (private readonly prisma: PrismaService, private readonly cache: InMemoryDBService<InspectionRollup>) {}
 
-  private async getRequiredNumberOfCriteria (): Promise<number> {
+  async getTotalNumberOfCriteria (): Promise<number> {
     return await this.prisma.inspectionCriteria.count()
   }
 
-  private async getNumberOfCriteriaMet (team: string): Promise<number> {
+  async getNumberOfCriteriaMet (team: string): Promise<number> {
     return await this.prisma.checkedInspection.count({ where: { teamNumber: team } })
   }
 
@@ -29,19 +29,32 @@ export class InspectionDatabase {
     return points.map(point => point.criteriaId)
   }
 
+  upsertStatus (team: string, status: INSPECTION_STAGE): void {
+    const cached = this.cache.get(team)
+
+    if (cached === undefined) {
+      this.cache.create({ id: team, team, status })
+      return
+    }
+
+    cached.status = status
+    this.cache.update(cached)
+  }
+
   private getRollup (team: string): InspectionRollup {
     return this.cache.get(team)
   }
 
-  async markCheckinStage (team: string, status: INSPECTION_STAGE): Promise<INSPECTION_STAGE> {
+  async getCheckinStage (team: string): Promise<INSPECTION_STAGE | undefined> {
+    const checkin = await this.prisma.checkIn.findUnique({ where: { teamNumber: team } })
+
+    if (checkin === null) return undefined
+
+    return checkin.status as INSPECTION_STAGE
+  }
+
+  async setCheckinStage (team: string, status: INSPECTION_STAGE): Promise<void> {
     await this.prisma.checkIn.upsert({ where: { teamNumber: team }, update: { status }, create: { teamNumber: team, status } })
-    const existing = this.getRollup(team)
-    if (status === INSPECTION_STAGE.CHECKED_IN) {
-      status = await this.evaluateInspectionProgress(team)
-    }
-    existing.status = status
-    this.cache.update(existing)
-    return status
   }
 
   async getInspectionChecklist (): Promise<InspectionChecklist> {
@@ -58,43 +71,12 @@ export class InspectionDatabase {
     return this.cache.getAll().filter(rollup => rollup.status === stage).map(rollup => rollup.team)
   }
 
-  async markMetOrNot (team: string, criteria: number, met: boolean): Promise<INSPECTION_STAGE> {
-    if (met) {
-      await this.prisma.checkedInspection.create({ data: { teamNumber: team, criteriaId: criteria } })
-    } else {
-      await this.prisma.checkedInspection.delete({ where: { teamNumber_criteriaId: { teamNumber: team, criteriaId: criteria } } })
-    }
-    const existing = this.getRollup(team)
-    existing.status = await this.evaluateInspectionProgress(team)
-    this.cache.update(existing)
-    return existing.status
+  async markCriteriaMet (team: string, criteria: number): Promise<void> {
+    await this.prisma.checkedInspection.create({ data: { teamNumber: team, criteriaId: criteria } })
   }
 
-  async evaluateInspectionProgress (team: string): Promise<INSPECTION_STAGE> {
-    const current = await this.getNumberOfCriteriaMet(team)
-    if (current === await this.getRequiredNumberOfCriteria()) {
-      return INSPECTION_STAGE.COMPLETE
-    } else if (current > 0) {
-      return INSPECTION_STAGE.PARTIAL
-    } else {
-      return INSPECTION_STAGE.CHECKED_IN
-    }
-  }
-
-  async initialLoad (team: string): Promise<INSPECTION_STAGE> {
-    let stage = (await this.prisma.checkIn.findUnique({ where: { teamNumber: team } }))?.status as INSPECTION_STAGE
-
-    if (stage === undefined) {
-      stage = INSPECTION_STAGE.NOT_HERE
-    }
-
-    if (stage === INSPECTION_STAGE.CHECKED_IN) {
-      stage = await this.evaluateInspectionProgress(team)
-    }
-
-    const teamRollup: InspectionRollup = { id: team, team, status: stage }
-    this.cache.create(teamRollup)
-    return stage
+  async markCriteriaNotMet (team: string, criteria: number): Promise<void> {
+    await this.prisma.checkedInspection.delete({ where: { teamNumber_criteriaId: { teamNumber: team, criteriaId: criteria } } })
   }
 
   getStage (team: string): INSPECTION_STAGE {

@@ -1,6 +1,6 @@
 import { CustomTransportStrategy, Server } from '@nestjs/microservices'
 import * as mqtt from 'mqtt'
-import { makeValue } from './string2json'
+import { makeValue } from '../string2json'
 
 type Callback = (value: any, params: any) => Promise<void>
 
@@ -8,7 +8,7 @@ interface HandlerMap {
   [pattern: string]: Callback[]
 }
 
-export default class MyCustomStrategy extends Server implements CustomTransportStrategy {
+export default class MqttServer extends Server implements CustomTransportStrategy {
   private readonly mqttClients: mqtt.MqttClient[] = []
   private handlers: HandlerMap = {}
 
