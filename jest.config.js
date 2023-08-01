@@ -7,7 +7,8 @@ module.exports = {
     'src/**/*.{ts,tsx}',
     '!**/node_modules/**',
     '!**/vendor/**',
-    '!**/__test__/**'
+    '!**/__test__/**',
+    '!**/*.spec.{ts,tsx}'
   ],
   reporters: ['default', 'jest-sonar']
 }
