@@ -7,7 +7,7 @@ class MockMqttServer extends Server implements CustomTransportStrategy {
   }
 
   async close (): Promise<void> {
-
+    // Nothing to close
   }
 }
 
@@ -29,12 +29,10 @@ export class MockTransport {
     }
 
     const context = {}
-    const response = await new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       this.mockServer.send(from(handler(data, context)), (response) => {
         resolve(response)
       })
     })
-
-    await response
   }
 }
