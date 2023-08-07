@@ -2,15 +2,17 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import helmet from 'helmet'
 import { ValidationPipe } from '@nestjs/common'
-import { MicroserviceOptions } from '@nestjs/microservices'
-import MqttTransport from './utils/transport/mqttServer'
+import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 
 async function bootstrap (): Promise<void> {
   const app = await NestFactory.create(AppModule)
   app.enableCors()
   app.setGlobalPrefix('api')
   app.connectMicroservice<MicroserviceOptions>({
-    strategy: new MqttTransport()
+    transport: Transport.MQTT,
+    options: {
+      url: 'ws://localhost:1883'
+    }
   })
   await app.startAllMicroservices()
   app.useGlobalPipes(new ValidationPipe())
