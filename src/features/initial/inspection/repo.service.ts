@@ -2,7 +2,7 @@ import { INSPECTION_STAGE } from '@18x18az/rosetta'
 import { InMemoryDBEntity, InMemoryDBService } from '@nestjs-addons/in-memory-db'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../utils/prisma/prisma.service'
-import { InspectionChecklist } from './inspection.dto'
+import { InspectionChecklist } from '../../../interfaces/inspection'
 
 export interface InspectionRollup extends InMemoryDBEntity {
   team: string

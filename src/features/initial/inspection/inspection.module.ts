@@ -7,9 +7,10 @@ import { PrismaService } from '../../../utils/prisma/prisma.service'
 import { PublishService } from '../../../utils/publish/publish.service'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
+import { InspectionPublisher } from './inspection.publisher'
 
 @Module({
-  providers: [InspectionService, PrismaService, InspectionDatabase, InMemoryDBService, PublishService, TeamModel, OverallModel],
+  providers: [InspectionService, PrismaService, InspectionDatabase, InMemoryDBService, PublishService, TeamModel, OverallModel, InspectionPublisher],
   controllers: [InspectionController]
 })
 export class InspectionModule {}

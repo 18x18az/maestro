@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
-  "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "setup": "npx prisma migrate dev --name init",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate": "generate-library ./dist/fake.module @alecmmiller/interface-generator"
   },
   "dependencies": {
     "@18x18az/rosetta": "^4.0.0",
@@ -27,6 +28,7 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/microservices": "^10.0.5",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/swagger": "^7.1.8",
     "@prisma/client": "^4.16.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
@@ -39,6 +41,8 @@
     "rxjs": "^7.2.0"
   },
   "devDependencies": {
+    "@alecmmiller/interface-generator": "^0.0.1",
+    "@alecmmiller/nestjs-client-generator": "^1.2.0",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",

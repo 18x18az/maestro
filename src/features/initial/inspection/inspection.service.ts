@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { PublishService } from '../../../utils/publish/publish.service'
 import { EVENT_STAGE, INSPECTION_STAGE, InspectionSummary } from '@18x18az/rosetta'
-import { InspectionChecklist } from './inspection.dto'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
+import { InspectionPublisher } from './inspection.publisher'
+import { InspectionChecklist } from '../../../interfaces/inspection'
 
 @Injectable()
 export class InspectionService {
@@ -12,7 +12,7 @@ export class InspectionService {
   private eventStage: EVENT_STAGE
 
   constructor (
-    private readonly publisher: PublishService,
+    private readonly publisher: InspectionPublisher,
     private readonly teamModel: TeamModel,
     private readonly overallModel: OverallModel
   ) { }
@@ -20,7 +20,7 @@ export class InspectionService {
   async loadTeams (teams: string[]): Promise<void> {
     await Promise.all(teams.map(async (team) => {
       const stage = await this.teamModel.initialLoad(team)
-      await this.publishTeam(team, stage)
+      await this.publisher.publishTeam(team, stage)
     }))
     const allStages = Object.values(INSPECTION_STAGE)
 
@@ -33,11 +33,7 @@ export class InspectionService {
 
   private async publishStage (stage: INSPECTION_STAGE): Promise<void> {
     const list = this.overallModel.getTeamsByStage(stage)
-    await this.publisher.broadcast(`inspection/stage/${stage as string}`, { teams: list })
-  }
-
-  private async publishTeam (teamNumber: string, stage: INSPECTION_STAGE): Promise<void> {
-    await this.publisher.broadcast(`inspection/team/${teamNumber}`, stage)
+    await this.publisher.publishStage(stage, list)
   }
 
   async markCheckinStage (team: string, stage: INSPECTION_STAGE): Promise<void> {
@@ -69,7 +65,7 @@ export class InspectionService {
         this.logger.log(`Check in can conclude: ${canConclude.toString()}`)
       }
       this.canConclude = canConclude
-      await this.publisher.broadcast('inspection/canConclude', canConclude)
+      await this.publisher.publishCanConclude(canConclude)
     }
   }
 
@@ -85,7 +81,7 @@ export class InspectionService {
     if (prev !== now) {
       this.logger.log(`Team ${team} changed from ${prev as string} to ${now as string}`)
       await Promise.all([
-        await this.publishTeam(team, now),
+        await this.publisher.publishTeam(team, now),
         await this.publishStage(prev),
         await this.publishStage(now)
       ])

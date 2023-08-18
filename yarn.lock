@@ -12,6 +12,23 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
+"@alecmmiller/interface-generator@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-0.0.1.tgz#734d5913626e01e00887da3d548c2e1ed68e086d"
+  integrity sha512-Xwm0GmTf8BS0EqBo99SLj88Obydf3ZBRhvEJ2qqrhcSqAdB9hoUzJPgCx0xk146iZfqNFSlj4TBlel1DWG7sHA==
+
+"@alecmmiller/nestjs-client-generator@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/nestjs-client-generator/-/nestjs-client-generator-1.2.0.tgz#542692e20ad3055b4fa4c595ea0f43187a44099e"
+  integrity sha512-ZnW1QeQQNTvFU6PEisGULzJiOhUZNgZ8TXjnFbujQa1QjqR6L2bQ6Bpu13XbK24AxvfWG41PjlkkyW9/jtdHjw==
+  dependencies:
+    "@types/node" "^20.4.6"
+    commander "^11.0.0"
+    lodash "^4.17.21"
+    reflect-metadata "^0.1.13"
+    ts-standard "^12.0.2"
+    typescript "^5.1.6"
+
 "@ampproject/remapping@^2.2.0":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.2.1.tgz#99e8e11851128b8702cd57c33684f1d0f260b630"
@@ -748,6 +765,11 @@
     path-to-regexp "3.2.0"
     tslib "2.5.3"
 
+"@nestjs/mapped-types@2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@nestjs/mapped-types/-/mapped-types-2.0.2.tgz#c8a090a8d22145b85ed977414c158534210f2e4f"
+  integrity sha512-V0izw6tWs6fTp9+KiiPUbGHWALy563Frn8X6Bm87ANLRuE46iuBMD5acKBDP5lKL/75QFvrzSJT7HkCbB0jTpg==
+
 "@nestjs/microservices@^10.0.5":
   version "10.0.5"
   resolved "https://registry.yarnpkg.com/@nestjs/microservices/-/microservices-10.0.5.tgz#fe9a4ce7014f0d09c89943d0b83b4e74ddd193c0"
@@ -776,6 +798,17 @@
     "@angular-devkit/schematics" "16.0.1"
     jsonc-parser "3.2.0"
     pluralize "8.0.0"
+
+"@nestjs/swagger@^7.1.8":
+  version "7.1.8"
+  resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-7.1.8.tgz#ca7a4b5ac22149ce92e61435ca4c3c1e5a3ab3d1"
+  integrity sha512-Jpl3laGAqvyWccc3auLU0mMjl5hJ2kqzzDb63ynJi5NMbFlgBwrR8FCGBVstSsqL9YSJWLR4L1BZzVmVExcY+g==
+  dependencies:
+    "@nestjs/mapped-types" "2.0.2"
+    js-yaml "4.1.0"
+    lodash "4.17.21"
+    path-to-regexp "3.2.0"
+    swagger-ui-dist "5.3.1"
 
 "@nestjs/testing@^9.0.0":
   version "9.4.3"
@@ -1037,6 +1070,11 @@
   version "18.16.12"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.16.12.tgz#f11e19055c5b3daeb79dc6eb7ccdd3d036313034"
   integrity sha512-tIRrjbY9C277MOfP8M3zjMIhtMlUJ6YVqkGgLjz+74jVsdf4/UjC6Hku4+1N0BS0qyC0JAS6tJLUk9H6JUKviQ==
+
+"@types/node@^20.4.6":
+  version "20.5.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.5.0.tgz#7fc8636d5f1aaa3b21e6245e97d56b7f56702313"
+  integrity sha512-Mgq7eCtoTjT89FqNoTzzXg2XvCi5VMhRV6+I2aYanc6kQCBImeNaAYRs/DyoVqk1YEUJK5gN9VO7HRIdz4Wo3Q==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -2019,6 +2057,11 @@ commander@4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz#9fd602bd936294e9e9ef46a3f4d6964044b18068"
   integrity sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==
+
+commander@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-11.0.0.tgz#43e19c25dbedc8256203538e8d7e9346877a6f67"
+  integrity sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==
 
 commander@^2.20.0:
   version "2.20.3"
@@ -4035,6 +4078,13 @@ js-sdsl@4.3.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
+js-yaml@4.1.0, js-yaml@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
+  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
+  dependencies:
+    argparse "^2.0.1"
+
 js-yaml@^3.13.1:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
@@ -4042,13 +4092,6 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
-
-js-yaml@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
-  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
-  dependencies:
-    argparse "^2.0.1"
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -5612,6 +5655,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
+swagger-ui-dist@5.3.1:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-5.3.1.tgz#ae76a74136152d790b06a8b71ca389cac35ab78f"
+  integrity sha512-El78OvXp9zMasfPrshtkW1CRx8AugAKoZuGGOTW+8llJzOV1RtDJYqQRz/6+2OakjeWWnZuRlN2Qj1Y0ilux3w==
+
 symbol-observable@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-4.0.0.tgz#5b425f192279e87f2f9b937ac8540d1984b39205"
@@ -5904,7 +5952,7 @@ typescript@4.9.5:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
-typescript@^5.0.0:
+typescript@^5.0.0, typescript@^5.1.6:
   version "5.1.6"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.6.tgz#02f8ac202b6dad2c0dd5e0913745b47a37998274"
   integrity sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==

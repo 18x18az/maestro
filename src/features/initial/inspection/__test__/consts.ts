@@ -1,5 +1,5 @@
 import { InspectionSummary } from '@18x18az/rosetta'
-import { InspectionChecklist } from '../inspection.dto'
+import { InspectionChecklist } from '../../../../interfaces/inspection'
 
 export const mockInspectionChecklist: InspectionChecklist = {
   group1: [
