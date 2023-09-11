@@ -1,7 +1,7 @@
 import { INSPECTION_STAGE } from '@18x18az/rosetta'
 import { Publisher, Payload } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
-import { PublishService } from 'src/utils/publish/publish.service'
+import { PublishService } from '../../../utils/publish/publish.service'
 
 @Injectable()
 export class InspectionPublisher {
