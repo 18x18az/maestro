@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { EVENT_STAGE, INSPECTION_STAGE, InspectionSummary } from '@18x18az/rosetta'
+import { EVENT_STAGE, INSPECTION_STAGE } from '@18x18az/rosetta'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
 import { InspectionPublisher } from './inspection.publisher'
-import { InspectionChecklist } from '../../../interfaces/inspection'
+import { InspectionChecklist, InspectionSummary } from '../../../interfaces/inspection'
 
 @Injectable()
 export class InspectionService {
@@ -102,7 +102,7 @@ export class InspectionService {
     const met = await this.teamModel.getCriteriaMet(team)
     return Object.entries(criteria).map(([group, criteria]) => {
       return {
-        text: group,
+        title: group,
         criteria: criteria.map(criterion => {
           return {
             text: criterion.text,
