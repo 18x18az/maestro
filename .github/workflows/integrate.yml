@@ -35,6 +35,9 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: yarn install
+
+      - name: Build project
+        run: yarn build
         
       - name: Generate interface project
         run: yarn generate
