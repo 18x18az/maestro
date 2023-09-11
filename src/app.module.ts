@@ -12,10 +12,6 @@ import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedu
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    PigeonModule.forRoot({
-      transport: Transport.WS,
-      port: 1883
-    }),
     SetupModule,
     DivisionModule,
     InspectionModule,
@@ -23,6 +19,17 @@ import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedu
     StageModule,
     StorageModule,
     QualScheduleModule
+  ]
+})
+export class WithoutPigeonModule {}
+
+@Module({
+  imports: [
+    WithoutPigeonModule,
+    PigeonModule.forRoot({
+      transport: Transport.WS,
+      port: 1883
+    })
   ]
 })
 export class AppModule {}

@@ -1,5 +1,4 @@
-import { InspectionSummary } from '@18x18az/rosetta'
-import { InspectionChecklist } from '../inspection.dto'
+import { InspectionChecklist, InspectionSummary } from '../../../../interfaces/inspection'
 
 export const mockInspectionChecklist: InspectionChecklist = {
   group1: [
@@ -11,7 +10,7 @@ export const mockInspectionChecklist: InspectionChecklist = {
 export function makeExpectedSummary (checklist: InspectionChecklist, points: number[]): InspectionSummary {
   return Object.keys(checklist).map(group => {
     return {
-      text: group,
+      title: group,
       criteria: checklist[group].map(criteria => {
         return {
           text: criteria.text,

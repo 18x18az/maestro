@@ -11,7 +11,7 @@ export class QualScheduleController {
     this.qualScheduleService.updateCanConclude(message)
   }
 
-  @Post('/generate')
+  @Post('generate')
   async getQualSchedule (): Promise<void> {
     await this.qualScheduleService.generateQualSchedule()
   }

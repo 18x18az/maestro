@@ -1,13 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { InspectionService } from './inspection.service'
 import { EVENT_STAGE, INSPECTION_STAGE } from '@18x18az/rosetta'
-import { InspectionChecklist } from './inspection.dto'
-import { PublishService } from '../../../utils/publish/publish.service'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
 import { makeExpectedSummary, mockInspectionChecklist, partialMet } from './__test__/consts'
-import { expectGroupBroadcast, expectTeamBroadcast } from './__test__/expects'
-import { mockPublishService } from '../../../utils/publish/__test__/publish.service.mock'
+import { InspectionChecklist } from '../../../interfaces/inspection'
+import { InspectionPublisher } from './inspection.publisher'
+import { mockInspectionPublisher } from './__test__/mockPublish'
 
 const mockTeamModel = {
   getCriteriaMet: jest.fn(),
@@ -66,8 +65,8 @@ describe('InspectionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InspectionService, {
-          provide: PublishService,
-          useValue: mockPublishService
+          provide: InspectionPublisher,
+          useValue: mockInspectionPublisher
         },
         InspectionService, {
           provide: TeamModel,
@@ -98,8 +97,8 @@ describe('InspectionService', () => {
 
       await service.loadTeams(['1', '2'])
 
-      expectTeamBroadcast('1', INSPECTION_STAGE.NO_SHOW)
-      expectTeamBroadcast('2', INSPECTION_STAGE.NOT_HERE)
+      expect(mockInspectionPublisher.publishTeam).toHaveBeenCalledWith('1', INSPECTION_STAGE.NO_SHOW)
+      expect(mockInspectionPublisher.publishTeam).toHaveBeenCalledWith('2', INSPECTION_STAGE.NOT_HERE)
     })
 
     it('should broadcast the inspection status of each stage', async () => {
@@ -108,8 +107,8 @@ describe('InspectionService', () => {
 
       await service.loadTeams(['1', '2'])
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith(`inspection/stage/${INSPECTION_STAGE.NO_SHOW as string}`, { teams: ['1', '2'] })
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith(`inspection/stage/${INSPECTION_STAGE.NOT_HERE as string}`, { teams: [] })
+      expect(mockInspectionPublisher.publishStage).toHaveBeenCalledWith(INSPECTION_STAGE.NO_SHOW, ['1', '2'])
+      expect(mockInspectionPublisher.publishStage).toHaveBeenCalledWith(INSPECTION_STAGE.NOT_HERE, [])
     })
 
     it('should broadcast the individual inspection status of each team', async () => {
@@ -118,8 +117,8 @@ describe('InspectionService', () => {
 
       await service.loadTeams(['1', '2'])
 
-      expectTeamBroadcast('1', INSPECTION_STAGE.NO_SHOW)
-      expectTeamBroadcast('2', INSPECTION_STAGE.NOT_HERE)
+      expect(mockInspectionPublisher.publishTeam).toHaveBeenCalledWith('1', INSPECTION_STAGE.NO_SHOW)
+      expect(mockInspectionPublisher.publishTeam).toHaveBeenCalledWith('2', INSPECTION_STAGE.NOT_HERE)
     })
   })
 
@@ -152,7 +151,7 @@ describe('InspectionService', () => {
 
       await service.markMetOrNot('1', 1, false)
 
-      expectTeamBroadcast('1', INSPECTION_STAGE.PARTIAL)
+      expect(mockInspectionPublisher.publishTeam).toHaveBeenCalledWith('1', INSPECTION_STAGE.PARTIAL)
     })
 
     it('should throw an error if the team is not checked in', async () => {
@@ -169,8 +168,7 @@ describe('InspectionService', () => {
       mockTeamStage(INSPECTION_STAGE.NOT_HERE)
 
       await service.markCheckinStage('1', INSPECTION_STAGE.CHECKED_IN)
-
-      expectGroupBroadcast(['2'], INSPECTION_STAGE.NOT_HERE)
+      expect(mockInspectionPublisher.publishStage).toHaveBeenCalledWith(INSPECTION_STAGE.NOT_HERE, ['2'])
     })
 
     it('should broadcast the updated list of teams in its new stage', async () => {
@@ -181,7 +179,7 @@ describe('InspectionService', () => {
 
       await service.markCheckinStage('1', INSPECTION_STAGE.CHECKED_IN)
 
-      expectGroupBroadcast(['1', '2'], INSPECTION_STAGE.CHECKED_IN)
+      expect(mockInspectionPublisher.publishStage).toHaveBeenCalledWith(INSPECTION_STAGE.CHECKED_IN, ['1', '2'])
     })
 
     it('should do nothing if the new stage is the same as the old stage', async () => {
@@ -191,7 +189,9 @@ describe('InspectionService', () => {
 
       await service.markCheckinStage('1', INSPECTION_STAGE.CHECKED_IN)
 
-      expect(mockPublishService.broadcast).not.toHaveBeenCalled()
+      expect(mockInspectionPublisher.publishCanConclude).not.toHaveBeenCalled()
+      expect(mockInspectionPublisher.publishStage).not.toHaveBeenCalled()
+      expect(mockInspectionPublisher.publishTeam).not.toHaveBeenCalled()
     })
 
     it('should broadcast that checkin can conclude if the last team leaves the NOT_HERE stage', async () => {
@@ -202,7 +202,7 @@ describe('InspectionService', () => {
 
       await service.markCheckinStage('1', INSPECTION_STAGE.CHECKED_IN)
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('inspection/canConclude', true)
+      expect(mockInspectionPublisher.publishCanConclude).toHaveBeenCalledWith(true)
     })
 
     it('should broadcast that checkin cannot conclude if a team reenters the NOT_HERE stage', async () => {
@@ -218,7 +218,7 @@ describe('InspectionService', () => {
 
       await service.markCheckinStage('1', INSPECTION_STAGE.NOT_HERE)
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('inspection/canConclude', false)
+      expect(mockInspectionPublisher.publishCanConclude).toHaveBeenCalledWith(false)
     })
   })
 
