@@ -50,8 +50,8 @@ jobs:
       - name: Publish generated project
         working-directory: ./generated
         run: |
-          echo "//registry.npmjs.org/:_authToken=\${NPM_AUTH_TOKEN}" > .npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           yarn build
           yarn publish --non-interactive
         env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
