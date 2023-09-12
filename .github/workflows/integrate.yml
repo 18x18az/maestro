@@ -42,9 +42,6 @@ jobs:
       - name: Generate interface project
         run: yarn generate
         
-      - name: Set up Semantic Release
-        run: npx semantic-release setup
-        
       - name: Run Semantic Release
         run: npx semantic-release
         
