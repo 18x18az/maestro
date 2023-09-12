@@ -76,10 +76,13 @@
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
-      "@semantic-release/changelog",
-      ["@semantic-release/exec", { "publishCmd": "echo 'Publishing is disabled in this step'" }],
-      "@semantic-release/git"
-    ],
-    "npmPublish": false
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false
+        }
+      ],
+      "@semantic-release/github"
+    ]
   }
 }
