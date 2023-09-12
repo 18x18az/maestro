@@ -12,10 +12,10 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@alecmmiller/interface-generator@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-1.0.0.tgz#027a9c3171a10b1565335a21730cbab7576b2721"
-  integrity sha512-pMUU6LXpWW2M6dIrPz+rGEd1PqZc5ZOJYddxLIMfcdn4sPUrxBxyUtWVKzl3vEcd3JygZUxcZsZq2VJVr7otZg==
+"@alecmmiller/interface-generator@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-1.0.1.tgz#81b502db241767b14324f5fb33f9b65204a045a9"
+  integrity sha512-4DHrDA58tN9HXvQdpwI93V/ync3fahNJARvoQVRXQwKZYr8Z8E12iOrgAB3ICyKH28kqpOtmeHDcGhn8bDF+nw==
 
 "@alecmmiller/nestjs-client-generator@^1.3.1":
   version "1.3.1"
