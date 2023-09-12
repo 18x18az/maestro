@@ -39,15 +39,15 @@ jobs:
       - name: Build project
         run: yarn build
         
-      - name: Generate interface project
-        run: yarn generate
-        
       - name: Run Semantic Release
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate API interface
+        run: yarn generate
         
-      - name: Publish generated project
+      - name: Publish API interface
         working-directory: ./generated
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
