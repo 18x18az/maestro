@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { TeamService } from './team.service'
 import { PrismaService } from '../../../utils/prisma/prisma.service'
-import { PublishService } from '../../../utils/publish/publish.service'
 import { makeMockPrismaList, mockTeams } from './__test__/mockTeams'
-import { TeamInfo } from '@18x18az/rosetta'
+import { TeamInfo } from './team.interface'
+import { TeamPublisher } from './team.broadcast'
 
 describe('TeamService', () => {
   let service: TeamService
@@ -15,8 +15,9 @@ describe('TeamService', () => {
     }
   }
 
-  const mockPublishService = {
-    broadcast: jest.fn()
+  const mockTeamPublisher = {
+    broadcastTeams: jest.fn(),
+    broadcastTeamList: jest.fn()
   }
 
   beforeEach(async () => {
@@ -27,8 +28,8 @@ describe('TeamService', () => {
           useValue: mockPrismaService
         },
         TeamService, {
-          provide: PublishService,
-          useValue: mockPublishService
+          provide: TeamPublisher,
+          useValue: mockTeamPublisher
         }
       ]
 
@@ -61,7 +62,7 @@ describe('TeamService', () => {
 
       await service.onApplicationBootstrap()
 
-      expect(mockPublishService.broadcast).toHaveBeenCalled()
+      expect(mockTeamPublisher.broadcastTeams).toHaveBeenCalled()
     })
 
     it('should not broadcast the team list if it does not exist', async () => {
@@ -69,7 +70,8 @@ describe('TeamService', () => {
 
       await service.onApplicationBootstrap()
 
-      expect(mockPublishService.broadcast).not.toHaveBeenCalled()
+      expect(mockTeamPublisher.broadcastTeams).not.toHaveBeenCalled()
+      expect(mockTeamPublisher.broadcastTeamList).not.toHaveBeenCalled()
     })
   })
 
@@ -91,9 +93,8 @@ describe('TeamService', () => {
 
       await service.createTeams(mockTeams)
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledTimes(2)
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('teamList', expectedTeamList)
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('teams', expectedTeamInfo)
+      expect(mockTeamPublisher.broadcastTeams).toHaveBeenCalledWith(expectedTeamInfo)
+      expect(mockTeamPublisher.broadcastTeamList).toHaveBeenCalledWith(expectedTeamList)
     })
 
     it('should not save the team list if it already exists', async () => {

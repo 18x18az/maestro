@@ -1,9 +1,10 @@
 import { Controller, Get, Param, Post, Query } from '@nestjs/common'
 import { InspectionService } from './inspection.service'
 import { EventPattern } from '@nestjs/microservices'
-import { EVENT_STAGE, INSPECTION_STAGE } from '@18x18az/rosetta'
 import { ApiResponse } from '@nestjs/swagger'
 import { InspectionChecklist, InspectionSectionSummary, InspectionSummary } from '../../../interfaces/inspection'
+import { EVENT_STAGE } from '../../stage/stage.interface'
+import { INSPECTION_STAGE } from './inspection.interface'
 
 @Controller('inspection')
 export class InspectionController {

@@ -1,7 +1,7 @@
-import { INSPECTION_STAGE } from '@18x18az/rosetta'
 import { Injectable } from '@nestjs/common'
 import { InspectionDatabase } from '../repo.service'
 import { InspectionChecklist } from '../../../../interfaces/inspection'
+import { INSPECTION_STAGE } from '../inspection.interface'
 
 @Injectable()
 export class OverallModel {

@@ -6,10 +6,11 @@ import { INestApplication } from '@nestjs/common'
 import { MockTransport } from '../../../utils/transport/__test__/mockMqttServer'
 import { mockPublishService } from '../../../utils/publish/__test__/publish.service.mock'
 import { expectGroupBroadcast, expectTeamBroadcast } from './__test__/expects'
-import { EVENT_STAGE, INSPECTION_STAGE } from '@18x18az/rosetta'
 import * as request from 'supertest'
 import { makeExpectedSummary, mockInspectionChecklist } from './__test__/consts'
 import { InspectionChecklist } from '../../../interfaces/inspection'
+import { EVENT_STAGE } from '../../stage/stage.interface'
+import { INSPECTION_STAGE } from './inspection.interface'
 
 let transport: MockTransport
 const mockPrismaService = {

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { StageService } from './stage.service'
-import { EVENT_STAGE } from '@18x18az/rosetta'
 import { StorageService } from '../../utils/storage/storage.service'
 import { PublishService } from '../../utils/publish/publish.service'
+import { EVENT_STAGE } from './stage.interface'
 
 describe('StageService', () => {
   let service: StageService
