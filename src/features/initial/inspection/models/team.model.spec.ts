@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { TeamModel } from './team.model'
 import { InspectionDatabase } from '../repo.service'
-import { INSPECTION_STAGE } from '@18x18az/rosetta'
+import { INSPECTION_STAGE } from '../inspection.interface'
 
 const mockInspectionDatabase = {
   setCheckinStage: jest.fn(),

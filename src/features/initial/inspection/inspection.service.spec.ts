@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { InspectionService } from './inspection.service'
-import { EVENT_STAGE, INSPECTION_STAGE } from '@18x18az/rosetta'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
 import { makeExpectedSummary, mockInspectionChecklist, partialMet } from './__test__/consts'
 import { InspectionChecklist } from '../../../interfaces/inspection'
 import { InspectionPublisher } from './inspection.publisher'
 import { mockInspectionPublisher } from './__test__/mockPublish'
+import { INSPECTION_STAGE } from './inspection.interface'
+import { EVENT_STAGE } from '../../stage/stage.interface'
 
 const mockTeamModel = {
   getCriteriaMet: jest.fn(),
