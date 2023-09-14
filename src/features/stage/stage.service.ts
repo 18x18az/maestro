@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { EVENT_STAGE } from '@18x18az/rosetta'
 import { StorageService } from '../../utils/storage/storage.service'
 import { PublishService } from '../../utils/publish/publish.service'
+import { EVENT_STAGE } from './stage.interface'
 
 const EVENT_STAGE_KEY = 'eventStage'
 

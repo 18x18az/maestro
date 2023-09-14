@@ -1,5 +1,5 @@
-import { INSPECTION_STAGE } from '@18x18az/rosetta'
 import { mockPublishService } from '../../../../utils/publish/__test__/publish.service.mock'
+import { INSPECTION_STAGE } from '../inspection.interface'
 
 export function expectTeamBroadcast (team: string, stage: INSPECTION_STAGE): void {
   expect(mockPublishService.broadcast).toHaveBeenCalledWith(`inspection/team/${team}`, stage)

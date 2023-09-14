@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../../utils/prisma/prisma.service'
-import { Team } from './team.dto'
-import { TeamInfo } from '@18x18az/rosetta'
-import { PublishService } from '../../../utils/publish/publish.service'
+import { TeamPublisher } from './team.broadcast'
+import { AGE_GROUP, Team, TeamInfo } from './team.interface'
 
 @Injectable()
 export class TeamService {
   private readonly logger = new Logger(TeamService.name)
 
-  constructor (private readonly publisher: PublishService, private readonly prisma: PrismaService) {
+  constructor (private readonly publisher: TeamPublisher, private readonly prisma: PrismaService) {
   }
 
   async onApplicationBootstrap (): Promise<void> {
@@ -19,7 +18,7 @@ export class TeamService {
     }
 
     this.logger.log(`Loaded ${existing.length} teams`)
-    const existingTeamInfo = existing.map(team => { return { number: team.number, name: team.name, city: team.city, state: team.state, country: team.country, ageGroup: team.ageGroup } })
+    const existingTeamInfo = existing.map(team => { return { number: team.number, name: team.name, city: team.city, state: team.state, country: team.country, ageGroup: team.ageGroup as AGE_GROUP } })
     await this.broadcastTeamInfo(existingTeamInfo)
   }
 
@@ -28,8 +27,8 @@ export class TeamService {
     teams.forEach(team => { teamInfo[team.number] = team })
     const teamList = teams.map(team => { return team.number })
     const broadcastPromises = [
-      this.publisher.broadcast('teams', teamInfo),
-      this.publisher.broadcast('teamList', teamList)
+      this.publisher.broadcastTeamList(teamList),
+      this.publisher.broadcastTeams(teamInfo)
     ]
     await Promise.all(broadcastPromises)
   }
