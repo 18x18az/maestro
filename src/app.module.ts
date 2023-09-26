@@ -8,6 +8,7 @@ import { InMemoryDBModule } from '@nestjs-addons/in-memory-db'
 import { StageModule } from './features/stage/stage.module'
 import { StorageModule } from './utils/storage/storage.module'
 import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedule.module'
+import { BeaconService } from './utils/discovery'
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedu
     StageModule,
     StorageModule,
     QualScheduleModule
-  ]
+  ],
+  providers: [BeaconService]
 })
 export class WithoutPigeonModule {}
 
