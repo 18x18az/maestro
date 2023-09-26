@@ -20,8 +20,7 @@ import { BeaconService } from './utils/discovery'
     StageModule,
     StorageModule,
     QualScheduleModule
-  ],
-  providers: [BeaconService]
+  ]
 })
 export class WithoutPigeonModule {}
 
@@ -32,6 +31,7 @@ export class WithoutPigeonModule {}
       transport: Transport.WS,
       port: 1883
     })
-  ]
+  ],
+  providers: [BeaconService]
 })
 export class AppModule {}
