@@ -1,0 +1,36 @@
+name: ci
+on:
+  pull_request:
+    branches: ['*']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Lint
+        run: yarn ts-standard
+
+      - name: Build
+        run: yarn build
+
+      - name: Validate generator
+        run: yarn generate
+
+      - name: Test
+        run: yarn test
