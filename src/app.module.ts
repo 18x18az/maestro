@@ -9,6 +9,8 @@ import { StageModule } from './features/stage/stage.module'
 import { StorageModule } from './utils/storage/storage.module'
 import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedule.module'
 import { BeaconService } from './utils/discovery'
+import { DisplaysModule } from './features/devices/displays/displays.module'
+import { FieldsModule } from './features/devices/fields/fields.module'
 
 @Module({
   imports: [
@@ -19,7 +21,9 @@ import { BeaconService } from './utils/discovery'
     InMemoryDBModule.forRoot({}),
     StageModule,
     StorageModule,
-    QualScheduleModule
+    QualScheduleModule,
+    DisplaysModule,
+    FieldsModule
   ]
 })
 export class WithoutPigeonModule {}
