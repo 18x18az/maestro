@@ -1,0 +1,32 @@
+name: SonarCloud
+on: pull_request_target
+
+jobs:
+  authorize:
+    environment:
+      ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      'external' || 'internal' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
+
+  sonarcloud:
+    needs: authorize
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Install dependencies
+        run:  yarn install
+      - name: Run Tests
+        run:  yarn test --coverage
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
