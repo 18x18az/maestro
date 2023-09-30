@@ -36,7 +36,12 @@ jobs:
         
       - name: Publish API interface
         working-directory: ./generated
+        # first check if version is 0.0.1, if so skip publish
         run: |
+          if [ "$(cat package.json | jq -r '.version')" = "0.0.1" ]; then
+            echo "No change to API interface"
+            exit 0
+          fi
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           yarn build
           yarn publish --access public --non-interactive
