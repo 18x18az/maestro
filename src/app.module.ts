@@ -12,6 +12,7 @@ import { BeaconService } from './utils/discovery'
 import { DisplaysModule } from './features/devices/displays/displays.module'
 import { FieldsModule } from './features/devices/fields/fields.module'
 import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
+import { MatchScoreModule } from './features/competition/matchScore/matchScore.module'
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
     QualScheduleModule,
     DisplaysModule,
     FieldsModule,
-    FieldSetModule
+    FieldSetModule,
+    MatchScoreModule
   ]
 })
 export class WithoutPigeonModule {}
