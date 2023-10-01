@@ -14,14 +14,15 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "ts-standard --fix",
+    "lint": "ts-standard",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "generate": "generate-library ./dist/fake.module @alecmmiller/interface-generator",
-    "generateVersion": "semantic-release --branches feat/generators --dry-run --no-ci"
+    "generateVersion": "semantic-release --branches feat/generators --dry-run --no-ci",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@nestjs-addons/in-memory-db": "^3.0.3",
@@ -44,8 +45,8 @@
     "rxjs": "^7.2.0"
   },
   "devDependencies": {
-    "@alecmmiller/interface-generator": "^1.2.0",
-    "@alecmmiller/nestjs-client-generator": "^1.4.2",
+    "@alecmmiller/interface-generator": "^1.2.1",
+    "@alecmmiller/nestjs-client-generator": "^1.4.3",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
@@ -60,7 +61,6 @@
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "29.7.0",
     "jest-sonar": "^0.2.16",
-    "prettier": "^2.3.2",
     "prisma": "^4.16.2",
     "semantic-release": "^21.1.1",
     "source-map-support": "^0.5.20",
@@ -70,7 +70,8 @@
     "ts-node": "^10.0.0",
     "ts-standard": "^12.0.2",
     "tsconfig-paths": "4.2.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "husky": "^8.0.0"
   },
   "release": {
     "branches": [

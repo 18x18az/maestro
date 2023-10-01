@@ -25,10 +25,10 @@ class AllianceScore {
   @ApiProperty({ description: "Number of alliance's triballs in either offensive zone", example: 1 })
     allianceTriballsInZone: number
 
-  @ApiProperty({ description: 'Elevation level of the first robot on the alliance', example: ELEVATION.B, enum: ELEVATION })
+  @ApiProperty({ description: 'Elevation level of the first robot on the alliance', example: ELEVATION.B, enum: ELEVATION, enumName: 'ELEVATION' })
     robot1Tier: ELEVATION
 
-  @ApiProperty({ description: 'Elevation level of the second robot on the alliance', example: ELEVATION.B, enum: ELEVATION })
+  @ApiProperty({ description: 'Elevation level of the second robot on the alliance', example: ELEVATION.B, enum: ELEVATION, enumName: 'ELEVATION' })
     robot2Tier: ELEVATION
 }
 

@@ -7,15 +7,15 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@alecmmiller/interface-generator@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-1.2.0.tgz#279afe4f15dbdc8f68de22af0d14fd5ed868a168"
-  integrity sha512-nccVmx371cH4SUcNkbF5GkktzV5/GIWpRnuUol5/IkU/qvqCyr/bZOE3kbqC6cR25yfD5y7WrllXJB7n7V9UrQ==
+"@alecmmiller/interface-generator@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-1.2.1.tgz#2e60fde3467e65dfbf6f7818e38d4664358d1c3d"
+  integrity sha512-nsYbUb+YPDBKDqZ0gbYqOawSDIiqG+RwdZHKxn64yOQUW2gBbbT1ZVBMqTUo5lMymx6o9bH9XgAtJhvHFFdAIA==
 
-"@alecmmiller/nestjs-client-generator@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@alecmmiller/nestjs-client-generator/-/nestjs-client-generator-1.4.2.tgz#f8f5acce4c95e4c57264741a9e98c56988b17fe6"
-  integrity sha512-yC+Nz34l5swImZrqZInv1kjLPFQHtMUYiIpLJZKgyd0G38LTmSi8Ti2qw31XGOSGTd7ql3OLUFBR7oRggJTVsQ==
+"@alecmmiller/nestjs-client-generator@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/nestjs-client-generator/-/nestjs-client-generator-1.4.3.tgz#818da149b3e5da1bca3e8ab1d55eccdc012fc372"
+  integrity sha512-c6420SsYq32Eoet2r3v++ZnhWq+LsDK2ReavGu9L4mx6srdtIJ8eki7Zdcpmrmi0XeItjsSVwtOwBYcpwoqe/w==
   dependencies:
     "@nestjs/swagger" "^7.1.6"
     "@types/node" "^20.4.6"
@@ -4702,6 +4702,11 @@ humanize-ms@^1.2.1:
   dependencies:
     ms "^2.0.0"
 
+husky@^8.0.0:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
+  integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
+
 hyperid@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/hyperid/-/hyperid-3.1.1.tgz#50fe8a75ff3ada74dacaf5a3761fb031bdf541c7"
@@ -7383,11 +7388,6 @@ prettier-linter-helpers@^1.0.0:
   integrity sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
   dependencies:
     fast-diff "^1.1.2"
-
-prettier@^2.3.2:
-  version "2.8.8"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
-  integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
 pretty-format@^29.0.0, pretty-format@^29.7.0:
   version "29.7.0"
