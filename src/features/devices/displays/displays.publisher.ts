@@ -9,7 +9,7 @@ function makeDisplayTopic (uuid: string): string {
 }
 
 @Injectable()
-export class DispplaysPublisher {
+export class DisplaysPublisher {
   constructor (private readonly publisher: PublishService) {}
 
   @Publisher('displays/:uuid')
