@@ -13,7 +13,7 @@ export class DisplaysPublisher {
   constructor (private readonly publisher: PublishService) {}
 
   @Publisher('displays/:uuid')
-  async publishDisplay (uuid: string, @Payload({}) fieldId: number): Promise<void> {
+  async publishDisplay (uuid: string, @Payload({}) fieldId: string): Promise<void> {
     const topic = makeDisplayTopic(uuid)
     await this.publisher.broadcast(topic, fieldId)
   }

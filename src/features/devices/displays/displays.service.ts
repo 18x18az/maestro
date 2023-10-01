@@ -1,18 +1,42 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { DisplaysPublisher } from './displays.publisher'
+import { Injectable, Logger } from "@nestjs/common";
+import { DisplaysPublisher } from "./displays.publisher";
+import { DisplaysDatabase } from "./displays.repo";
 
 @Injectable()
 export class DisplaysService {
-  private readonly logger = new Logger(DisplaysService.name)
+  private readonly logger = new Logger(DisplaysService.name);
 
-  constructor (private readonly publisher: DisplaysPublisher) {}
+  constructor(
+    private readonly publisher: DisplaysPublisher,
+    private readonly database: DisplaysDatabase
+  ) {}
 
-  async registerDisplay (uuid: string): Promise<void> {
-    this.logger.log(`Received registration request from display with UUID ${uuid}`)
-    await this.publisher.publishDisplay(uuid, 1)
+  async registerDisplay(uuid: string): Promise<void> {
+    this.logger.log(
+      `Received registration request from display with UUID ${uuid}`
+    );
   }
 
-  async adviseHasFieldControl (uuid: string, hasFieldControl: boolean): Promise<void> {
-    this.logger.log(`Display with UUID ${uuid} has field control: ${String(hasFieldControl)}`)
+  async adviseHasFieldControl(
+    uuid: string,
+    hasFieldControl: boolean
+  ): Promise<void> {
+    this.logger.log(
+      `Display with UUID ${uuid} has field control: ${String(hasFieldControl)}`
+    );
+  }
+
+  async setDisplayName(uuid: string, displayName: string) {
+    this.logger.log(
+      `Display with UUID ${uuid}'s name has been set to: ${displayName}`
+    );
+    this.database.setDisplayName(uuid, displayName);
+  }
+  async assignField(uuid: string, fieldId: string) {
+    this.logger.log(
+      `Display with UUID ${uuid} has been assigned to field: ${fieldId}`
+    );
+    this.database.setDisplayName(uuid, fieldId);
+    await this.publisher.publishDisplay(uuid, fieldId);
   }
 }

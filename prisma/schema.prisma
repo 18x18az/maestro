@@ -59,3 +59,9 @@ model CheckedInspection {
 
   @@unique([teamNumber, criteriaId])
 }
+
+model Display {
+  uuid  String @unique
+  field String
+  name  String
+}
