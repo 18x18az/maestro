@@ -21,7 +21,7 @@ function makeFieldTopic (fieldId: string): string {
 export class FieldsPublisher {
   constructor (private readonly publisher: PublishService) {}
 
-  @Publisher('field/:fieldId')
+  @Publisher('fields/:fieldId')
   async publishField (fieldId: string, @Payload({}) info: FieldInfo): Promise<void> {
     const topic = makeFieldTopic(fieldId)
     await this.publisher.broadcast(topic, info)

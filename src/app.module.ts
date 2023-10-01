@@ -11,6 +11,7 @@ import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedu
 import { BeaconService } from './utils/discovery'
 import { DisplaysModule } from './features/devices/displays/displays.module'
 import { FieldsModule } from './features/devices/fields/fields.module'
+import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { FieldsModule } from './features/devices/fields/fields.module'
     StorageModule,
     QualScheduleModule,
     DisplaysModule,
-    FieldsModule
+    FieldsModule,
+    FieldSetModule
   ]
 })
 export class WithoutPigeonModule {}
