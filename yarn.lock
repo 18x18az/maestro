@@ -12,10 +12,10 @@
   resolved "https://registry.yarnpkg.com/@alecmmiller/interface-generator/-/interface-generator-1.2.1.tgz#2e60fde3467e65dfbf6f7818e38d4664358d1c3d"
   integrity sha512-nsYbUb+YPDBKDqZ0gbYqOawSDIiqG+RwdZHKxn64yOQUW2gBbbT1ZVBMqTUo5lMymx6o9bH9XgAtJhvHFFdAIA==
 
-"@alecmmiller/nestjs-client-generator@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@alecmmiller/nestjs-client-generator/-/nestjs-client-generator-1.4.2.tgz#f8f5acce4c95e4c57264741a9e98c56988b17fe6"
-  integrity sha512-yC+Nz34l5swImZrqZInv1kjLPFQHtMUYiIpLJZKgyd0G38LTmSi8Ti2qw31XGOSGTd7ql3OLUFBR7oRggJTVsQ==
+"@alecmmiller/nestjs-client-generator@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@alecmmiller/nestjs-client-generator/-/nestjs-client-generator-1.4.3.tgz#818da149b3e5da1bca3e8ab1d55eccdc012fc372"
+  integrity sha512-c6420SsYq32Eoet2r3v++ZnhWq+LsDK2ReavGu9L4mx6srdtIJ8eki7Zdcpmrmi0XeItjsSVwtOwBYcpwoqe/w==
   dependencies:
     "@nestjs/swagger" "^7.1.6"
     "@types/node" "^20.4.6"

@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@alecmmiller/interface-generator": "^1.2.1",
-    "@alecmmiller/nestjs-client-generator": "^1.4.2",
+    "@alecmmiller/nestjs-client-generator": "^1.4.3",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
