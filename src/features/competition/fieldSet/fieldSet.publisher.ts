@@ -1,8 +1,7 @@
-import { Publisher } from '@alecmmiller/nestjs-client-generator'
+import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'src/utils/publish/publish.service'
 import { FieldState } from './fieldSet.interfaces'
-import { Payload } from 'pigeon-mqtt-nest'
 
 function makeFieldSetTopic (uuid: string): string {
   return `fieldSet/${uuid}`
