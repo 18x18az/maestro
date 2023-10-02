@@ -1,48 +1,49 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
-import { DisplaysService } from "./displays.service";
+import { Body, Controller, Param, Post } from '@nestjs/common'
+import { DisplaysService } from './displays.service'
 
 interface DisplayParams {
-  uuid: string;
+  uuid: string
 }
 
-@Controller("displays")
+@Controller('displays')
 export class DisplaysController {
-  constructor(private readonly displaysService: DisplaysService) {}
+  constructor (private readonly displaysService: DisplaysService) {}
 
-  @Post(":uuid/register")
-  async registerDisplay(@Param() params: DisplayParams): Promise<void> {
-    await this.displaysService.registerDisplay(params.uuid);
+  @Post(':uuid/register')
+  async registerDisplay (@Param() params: DisplayParams): Promise<void> {
+    await this.displaysService.registerDisplay(params.uuid)
   }
 
-  @Post(":uuid/hasFieldControl")
-  async adviseHasFieldControl(
+  @Post(':uuid/hasFieldControl')
+  async adviseHasFieldControl (
     @Param() params: DisplayParams,
-    @Body() body: { hasFieldControl: boolean }
+      @Body() body: { hasFieldControl: boolean }
   ): Promise<void> {
     await this.displaysService.adviseHasFieldControl(
       params.uuid,
       body.hasFieldControl
-    );
+    )
   }
 
-  @Post(":uuid/name")
-  async setDisplayName(
+  @Post(':uuid/name')
+  async setDisplayName (
     @Param() params: DisplayParams,
-    @Body() body: { displayName: string }
+      @Body() body: { displayName: string }
   ): Promise<void> {
     await this.displaysService.setDisplayName(
       params.uuid,
       body.displayName
-    );
+    )
   }
-  @Post(":uuid/assign")
-  async assignField(
+
+  @Post(':uuid/assign')
+  async assignField (
     @Param() params: DisplayParams,
-    @Body() body: { field: string }
+      @Body() body: { field: string }
   ): Promise<void> {
     await this.displaysService.assignField(
       params.uuid,
       body.field
-    );
+    )
   }
 }

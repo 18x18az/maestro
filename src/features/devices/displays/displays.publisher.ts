@@ -11,7 +11,7 @@ function makeDisplayTopic (uuid: string): string {
 @Injectable()
 export class DisplaysPublisher {
   constructor (private readonly publisher: PublishService) {}
-
+  // @question would `${DISPLAYS_TOPIC}/:uuid` be better here?
   @Publisher('displays/:uuid')
   async publishDisplay (uuid: string, @Payload({}) fieldId: string): Promise<void> {
     const topic = makeDisplayTopic(uuid)

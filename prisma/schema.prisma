@@ -62,6 +62,6 @@ model CheckedInspection {
 
 model Display {
   uuid  String @unique
-  field String
+  field String?
   name  String
 }
