@@ -8,19 +8,18 @@ export class DisplaysDatabase {
     private readonly prisma: PrismaService
   ) {}
 
+  /** @throws {RecordNotFound} Will throw if display with {@link uuid} is not found */
   async setDisplayName (uuid: string, name: string): Promise<void> {
-    // @question I believe this should reject if it does not find a display with uuid, should the error be handled here or handled elsewhere?
-    // should this potential to throw an error be stated in a comment of this function? (eg. /** @throws Will throw an error if display with uuid is not found */)
     await this.prisma.display.update({
       data: { name },
       where: { uuid }
     })
   }
 
-  async setField (uuid: string, field: string): Promise<void> {
-    // @question same here
+  /** @throws {RecordNotFound} Will throw if display with {@link uuid} is not found */
+  async setFieldId (uuid: string, fieldId: string): Promise<void> {
     await this.prisma.display.update({
-      data: { field },
+      data: { fieldId },
       where: { uuid }
     })
   }
@@ -35,8 +34,8 @@ export class DisplaysDatabase {
     return await this.prisma.display.findUnique({ where: { uuid } })
   }
 
-  async getField (uuid: string): Promise<string | undefined | null> {
-    return (await this.getDisplay(uuid))?.field
+  async getFieldId (uuid: string): Promise<string | undefined | null> {
+    return (await this.getDisplay(uuid))?.fieldId
   }
 
   async getName (uuid: string): Promise<string | undefined> {

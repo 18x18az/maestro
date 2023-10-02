@@ -12,10 +12,9 @@ export class DisplayConfig {
   @ApiProperty({ description: "The display's name", example: 'placeholder' })
     name: string
 
-  // @question idk what the field name will be
   @ApiProperty({
-    description: "The display's assigned field",
-    example: 'Field 1'
+    description: "The id of the display's assigned field",
+    example: '1'
   })
-    field: string | null
+    fieldId: string | null
 }

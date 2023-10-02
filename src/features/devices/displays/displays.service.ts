@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { DisplaysPublisher } from './displays.publisher'
 import { DisplaysDatabase } from './displays.repo'
 
@@ -30,14 +30,28 @@ export class DisplaysService {
     this.logger.log(
       `Display with UUID ${uuid}'s name has been set to: ${displayName}`
     )
-    await this.database.setDisplayName(uuid, displayName)
+    try {
+      await this.database.setDisplayName(uuid, displayName)
+    } catch {
+      this.logger.warn(
+      `Display with UUID ${uuid}'s name failed to be set to: ${displayName}\nIs there a display with UUID ${uuid}?`
+      )
+      throw new BadRequestException()
+    }
   }
 
-  async assignField (uuid: string, fieldId: string): Promise<void> {
+  async assignFieldId (uuid: string, fieldId: string): Promise<void> {
     this.logger.log(
-      `Display with UUID ${uuid} has been assigned to field: ${fieldId}`
+      `Display with UUID ${uuid} has been assigned to fieldId: ${fieldId}`
     )
-    await this.database.setDisplayName(uuid, fieldId)
+    try {
+      await this.database.setFieldId(uuid, fieldId)
+    } catch {
+      this.logger.warn(
+        `Display with UUID ${uuid} failed to be assigned to fieldId: ${fieldId}\nIs there a display with UUID ${uuid}?`
+      )
+      throw new BadRequestException()
+    }
     await this.publisher.publishDisplay(uuid, fieldId)
   }
 }

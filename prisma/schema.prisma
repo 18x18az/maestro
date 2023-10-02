@@ -61,7 +61,7 @@ model CheckedInspection {
 }
 
 model Display {
-  uuid  String @unique
-  field String?
-  name  String
+  uuid    String  @unique
+  fieldId String?
+  name    String
 }
