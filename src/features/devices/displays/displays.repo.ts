@@ -24,7 +24,8 @@ export class DisplaysDatabase {
     })
   }
 
-  async registerDisplay (uuid: string): Promise<void> {
+  /** @throws Will throw if an entry with {@link uuid} already exists */
+  async createDisplay (uuid: string): Promise<void> {
     await this.prisma.display.create({
       data: { uuid, name: 'unnamed' }
     })
@@ -32,6 +33,10 @@ export class DisplaysDatabase {
 
   async getDisplay (uuid: string): Promise<DisplayConfig | null> {
     return await this.prisma.display.findUnique({ where: { uuid } })
+  }
+
+  async getAllDisplays (): Promise<DisplayConfig[]> {
+    return await this.prisma.display.findMany()
   }
 
   async getFieldId (uuid: string): Promise<string | undefined | null> {
