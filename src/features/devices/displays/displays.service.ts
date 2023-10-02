@@ -20,7 +20,7 @@ export class DisplaysService {
     const display = await this.database.getDisplay(uuid)
     if (display === null) {
       this.logger.error(
-        `Cannot broadcast DisplayConfig with UUID ${uuid} because DisplayConfig could not be found`
+        `Cannot broadcast DisplayConfig with UUID "${uuid}" because DisplayConfig could not be found`
       )
       throw new InternalServerErrorException()
     }
@@ -29,7 +29,7 @@ export class DisplaysService {
 
   async registerDisplay (uuid: string): Promise<void> {
     this.logger.log(
-      `Received registration request from display with UUID ${uuid}`
+      `Received registration request from display with UUID "${uuid}"`
     )
     if (await this.database.getDisplay(uuid) === null) { await this.database.createDisplay(uuid) }
     await this.broadcastConfig(uuid)
@@ -40,19 +40,19 @@ export class DisplaysService {
     hasFieldControl: boolean
   ): Promise<void> {
     this.logger.log(
-      `Display with UUID ${uuid} has field control: ${String(hasFieldControl)}`
+      `Display with UUID "${uuid}" has field control: ${String(hasFieldControl)}`
     )
   }
 
   async setDisplayName (uuid: string, displayName: string): Promise<void> {
     this.logger.log(
-      `Display with UUID ${uuid}'s name has been set to: ${displayName}`
+      `Display with UUID "${uuid}" 's name has been set to: "${displayName}"`
     )
     try {
       await this.database.setDisplayName(uuid, displayName)
     } catch {
       this.logger.warn(
-      `Display with UUID ${uuid}'s name failed to be set to: ${displayName}\n\tIs there a display with UUID ${uuid}?`
+      `Display with UUID "${uuid}" 's name failed to be set to: "${displayName}"\n\tIs there a display with UUID "${uuid}"?`
       )
       throw new BadRequestException()
     }
@@ -61,13 +61,13 @@ export class DisplaysService {
 
   async assignFieldId (uuid: string, fieldId: string): Promise<void> {
     this.logger.log(
-      `Display with UUID ${uuid} has been assigned to fieldId: ${fieldId}`
+      `Display with UUID "${uuid}" has been assigned to fieldId: "${fieldId}"`
     )
     try {
       await this.database.setFieldId(uuid, fieldId)
     } catch {
       this.logger.warn(
-        `Display with UUID ${uuid} failed to be assigned to fieldId: ${fieldId}\n\tIs there a display with UUID ${uuid}?`
+        `Display with UUID "${uuid}" failed to be assigned to fieldId: "${fieldId}"\n\tIs there a display with UUID "${uuid}"?`
       )
       throw new BadRequestException()
     }
