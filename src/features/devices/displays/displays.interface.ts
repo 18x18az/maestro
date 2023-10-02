@@ -7,9 +7,7 @@ export class DisplayConfig {
   })
     uuid: string
 
-  // @question should I specify it defaults to "unnamed" in description?
-  // @question idk what the display name will be
-  @ApiProperty({ description: "The display's name", example: 'placeholder' })
+  @ApiProperty({ description: "The display's name", example: 'Field Box A' })
     name: string
 
   @ApiProperty({
