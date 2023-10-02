@@ -46,13 +46,13 @@ export class DisplaysService {
 
   async setDisplayName (uuid: string, displayName: string): Promise<void> {
     this.logger.log(
-      `Display with UUID "${uuid}" 's name has been set to: "${displayName}"`
+      `Setting name of display ${uuid} to: "${displayName}"`
     )
     try {
       await this.database.setDisplayName(uuid, displayName)
     } catch {
       this.logger.warn(
-      `Display with UUID "${uuid}" 's name failed to be set to: "${displayName}"\n\tIs there a display with UUID "${uuid}"?`
+        `Display with UUID "${uuid}" was not found`
       )
       throw new BadRequestException()
     }
@@ -61,13 +61,13 @@ export class DisplaysService {
 
   async assignFieldId (uuid: string, fieldId: string): Promise<void> {
     this.logger.log(
-      `Display with UUID "${uuid}" has been assigned to fieldId: "${fieldId}"`
+      `Assigning display ${uuid} to field: "${fieldId}"`
     )
     try {
       await this.database.setFieldId(uuid, fieldId)
     } catch {
       this.logger.warn(
-        `Display with UUID "${uuid}" failed to be assigned to fieldId: "${fieldId}"\n\tIs there a display with UUID "${uuid}"?`
+        `Display with UUID "${uuid}" was not found?`
       )
       throw new BadRequestException()
     }
