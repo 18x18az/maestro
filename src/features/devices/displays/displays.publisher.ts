@@ -1,6 +1,7 @@
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'src/utils/publish/publish.service'
+import { DisplayConfig } from './displays.interface'
 
 const DISPLAYS_TOPIC = 'displays'
 
@@ -9,12 +10,11 @@ function makeDisplayTopic (uuid: string): string {
 }
 
 @Injectable()
-export class DispplaysPublisher {
+export class DisplaysPublisher {
   constructor (private readonly publisher: PublishService) {}
-
-  @Publisher('displays/:uuid')
-  async publishDisplay (uuid: string, @Payload({}) fieldId: number): Promise<void> {
+  @Publisher(`${DISPLAYS_TOPIC}/:uuid`)
+  async publishDisplay (uuid: string, @Payload({}) display: DisplayConfig): Promise<void> {
     const topic = makeDisplayTopic(uuid)
-    await this.publisher.broadcast(topic, fieldId)
+    await this.publisher.broadcast(topic, display)
   }
 }
