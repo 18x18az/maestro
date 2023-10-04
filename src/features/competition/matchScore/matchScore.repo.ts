@@ -2,14 +2,13 @@ import { InMemoryDBService } from '@nestjs-addons/in-memory-db'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
 import { RecursivePartial } from 'src/utils/recursivePartial'
-import { AUTON_WINNER, MatchScore } from './matchScore.interface'
+import {
+  AUTON_WINNER,
+  MatchScore,
+  MatchScoreInMemory,
+  MatchScoreInPrisma
+} from './matchScore.interface'
 
-type MatchScoreInMemory = { id: string } & RecursivePartial<MatchScore>
-type MatchScoreInPrisma = { scoreId, matchId: number } & {
-  [K in keyof MatchScore]: MatchScore[K] extends string
-    ? MatchScore[K]
-    : string;
-}
 @Injectable()
 export class MatchScoreDatabase {
   constructor (
@@ -20,11 +19,20 @@ export class MatchScoreDatabase {
   // copy all scores into memoryDB and lock them
   async onApplicationBootstrap (): Promise<void> {}
 
+  /** retrieves working score stored in memory */
+  getWorkingScore (matchId: number): MatchScoreInMemory {
+    return this.cache.get(matchId.toString())
+  }
+
+  getLockState (matchId: number): boolean {
+    return this.getWorkingScore(matchId).locked
+  }
+
   async updateScore (
     matchId: number,
     partialScore: RecursivePartial<MatchScore>
-  ): Promise<undefined> {
-    const memScore = this.cache.get(matchId.toString())
+  ): Promise<void> {
+    const memScore = this.getWorkingScore(matchId)
     for (const entry in partialScore) {
       const key: keyof RecursivePartial<MatchScore> =
         entry[0] as keyof RecursivePartial<MatchScore>
@@ -58,10 +66,11 @@ export class MatchScoreDatabase {
         //   return _exhaustiveCheck
       }
     }
+    this.cache.update(memScore)
   }
 
   async saveScore (matchId: number): Promise<undefined> {
-    const memScore = this.cache.get(matchId.toString())
+    const memScore = this.getWorkingScore(matchId)
     const score: Partial<MatchScoreInPrisma> = {}
     for (const entry in memScore) {
       const key: keyof MatchScoreInMemory =

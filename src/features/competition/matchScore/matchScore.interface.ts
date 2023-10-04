@@ -55,3 +55,13 @@ export class MatchScore {
 }
 
 export type MatchScoreUpdate = RecursivePartial<Omit<MatchScore, 'locked'>>
+
+export type MatchScoreInMemory = { id: string } & RecursivePartial<
+Omit<MatchScore, 'locked'>
+> &
+Pick<MatchScore, 'locked'>
+export type MatchScoreInPrisma = { scoreId: number, matchId: number } & {
+  [K in keyof Omit<MatchScore, 'locked'>]: MatchScore[K] extends string
+    ? MatchScore[K]
+    : string;
+}
