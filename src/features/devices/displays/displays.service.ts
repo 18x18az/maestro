@@ -67,7 +67,7 @@ export class DisplaysService {
       await this.database.setFieldId(uuid, fieldId)
     } catch {
       this.logger.warn(
-        `Display with UUID "${uuid}" was not found?`
+        `Display with UUID "${uuid}" was not found`
       )
       throw new BadRequestException()
     }
