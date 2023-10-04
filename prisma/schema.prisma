@@ -65,3 +65,12 @@ model Display {
   fieldId String?
   name    String
 }
+
+model MatchScore {
+  scoreId     Int      @id @unique @default(autoincrement())
+  matchId     Int      
+  redScore    String
+  blueScore   String
+  autonWinner String
+  timeSaved   DateTime @default(now())
+}

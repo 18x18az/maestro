@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
+import { RecursivePartial } from 'src/utils/recursivePartial'
 
 enum ELEVATION {
   NONE = 'none',
@@ -12,7 +13,7 @@ enum ELEVATION {
   H = 'h'
 }
 
-class AllianceScore {
+export class AllianceScore {
   @ApiProperty({ description: "Number of balls in the alliance's goal", example: 3 })
     goalTriballs: number
 
@@ -32,7 +33,7 @@ class AllianceScore {
     robot2Tier: ELEVATION
 }
 
-enum AUTON_WINNER {
+export enum AUTON_WINNER {
   RED = 'red',
   BLUE = 'blue',
   TIE = 'tie',
@@ -48,4 +49,9 @@ export class MatchScore {
 
   @ApiProperty({ description: 'Auton winner', example: AUTON_WINNER.RED, enum: AUTON_WINNER })
     autonWinner: AUTON_WINNER
+
+  @ApiProperty({ description: 'Prevents modification when locked and prevents saving to DB when unlocked', example: false })
+    locked: boolean
 }
+
+export type MatchScoreUpdate = RecursivePartial<Omit<MatchScore, 'locked'>>
