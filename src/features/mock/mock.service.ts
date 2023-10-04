@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import mockTeamList from './mockTeam'
+import mockDivision from './mockDivision'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 
@@ -12,5 +13,6 @@ export class MockService {
   async generate (): Promise<void> {
     this.logger.log('Generating mock data')
     await firstValueFrom(this.httpService.post('http://localhost/api/teams', mockTeamList))
+    await firstValueFrom(this.httpService.post('http://localhost/api/division', mockDivision))
   }
 }

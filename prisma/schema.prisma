@@ -20,6 +20,11 @@ model GenericPersistent {
   value String
 }
 
+model Division {
+  id Int @id @default(autoincrement())
+  name String
+}
+
 model Team {
   number        String              @unique
   name          String
