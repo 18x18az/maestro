@@ -1,13 +1,14 @@
 import { InMemoryDBService } from '@nestjs-addons/in-memory-db'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
-import { RecursivePartial } from 'src/utils/recursivePartial'
 import {
   AUTON_WINNER,
-  MatchScore,
   MatchScoreInMemory,
-  MatchScoreInPrisma
+  MatchScoreInPrisma,
+  RecursivePartialMatchScore
 } from './matchScore.interface'
+import { validateOrReject } from 'class-validator'
+import { plainToClass } from 'class-transformer'
 
 @Injectable()
 export class MatchScoreDatabase {
@@ -16,12 +17,25 @@ export class MatchScoreDatabase {
     private readonly cache: InMemoryDBService<MatchScoreInMemory>
   ) {}
 
+  private async createEmptyMatchScore (...matchIds: number[]): Promise<void> {
+    this.cache.createMany(
+      matchIds.map((id) => {
+        return { id: id.toString(), locked: false }
+      })
+    )
+  }
+
+  private readonly logger = new Logger(MatchScoreDatabase.name)
   // copy all scores into memoryDB and lock them
-  async onApplicationBootstrap (): Promise<void> {}
+  async onApplicationBootstrap (): Promise<void> {
+    await this.createEmptyMatchScore(...Array(100).fill(0).map((e, i) => i))
+  }
 
   /** retrieves working score stored in memory */
   getWorkingScore (matchId: number): MatchScoreInMemory {
-    return this.cache.get(matchId.toString())
+    const out = plainToClass(MatchScoreInMemory, this.cache.get(matchId.toString()))
+    this.logger.log(out)
+    return out
   }
 
   getLockState (matchId: number): boolean {
@@ -30,13 +44,17 @@ export class MatchScoreDatabase {
 
   async updateScore (
     matchId: number,
-    partialScore: RecursivePartial<MatchScore>
+    partialScore: RecursivePartialMatchScore
   ): Promise<void> {
+    console.log(partialScore)
+    await validateOrReject(partialScore, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true
+    })
     const memScore = this.getWorkingScore(matchId)
-    for (const entry in partialScore) {
-      const key: keyof RecursivePartial<MatchScore> =
-        entry[0] as keyof RecursivePartial<MatchScore>
-      const prop = entry[1]
+    for (const key in partialScore) {
+      const prop = partialScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
@@ -71,6 +89,11 @@ export class MatchScoreDatabase {
 
   async saveScore (matchId: number): Promise<undefined> {
     const memScore = this.getWorkingScore(matchId)
+    await validateOrReject(memScore, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true
+    })
     const score: Partial<MatchScoreInPrisma> = {}
     for (const entry in memScore) {
       const key: keyof MatchScoreInMemory =
@@ -79,11 +102,9 @@ export class MatchScoreDatabase {
       switch (key) {
         case 'redScore':
         case 'blueScore':
-          // @Todo check if prop is AllianceScore!!!
           score[key] = JSON.stringify(prop)
           break
         case 'autonWinner':
-          // autonWinner is checked before being put into memScore
           if (prop !== undefined) score[key] = prop as AUTON_WINNER
           break
         case 'locked':
@@ -99,16 +120,30 @@ export class MatchScoreDatabase {
         //   return _exhaustiveCheck
       }
     }
-    // @Todo validate score
-
+    const checkableScore = plainToClass(MatchScoreInPrisma, score)
+    await validateOrReject(checkableScore, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true
+    })
     await this.prisma.matchScore.create({ data: score as MatchScoreInPrisma })
   }
 
+  private async setLockState (
+    matchId: number,
+    lockState: boolean
+  ): Promise<void> {
+    await this.updateScore(
+      matchId,
+      plainToClass(RecursivePartialMatchScore, { locked: lockState })
+    )
+  }
+
   async lockScore (matchId: number): Promise<void> {
-    await this.updateScore(matchId, { locked: true })
+    await this.setLockState(matchId, true)
   }
 
   async unlockScore (matchId: number): Promise<void> {
-    await this.updateScore(matchId, { locked: false })
+    await this.setLockState(matchId, false)
   }
 }

@@ -7,7 +7,7 @@ import {
   Post
 } from '@nestjs/common'
 import { MatchScoreService } from './matchScore.service'
-import { MatchScoreUpdate } from './matchScore.interface'
+import { RecursivePartialMatchScore } from './matchScore.interface'
 
 // matches/:round/:number/:sitting/score (e.g. matches/qualification/27/1 or matches/final/1/2) -
 // takes a Partial of the raw match scores interface and
@@ -31,7 +31,7 @@ export class MatchScoreController {
   @Post(':matchId/score')
   async updateScore (
     @Param() params: MatchScoreParams,
-      @Body() partialScore: MatchScoreUpdate
+      @Body() partialScore: RecursivePartialMatchScore
   ): Promise<void> {
     await this.service.updateScore(getMatchId(params), partialScore)
   }
