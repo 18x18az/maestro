@@ -4,7 +4,9 @@ import {
   Controller,
   Logger,
   Param,
-  Post
+  Post,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common'
 import { MatchScoreService } from './matchScore.service'
 import { RecursivePartialMatchScore } from './matchScore.interface'
@@ -29,6 +31,7 @@ export class MatchScoreController {
   constructor (private readonly service: MatchScoreService) {}
 
   @Post(':matchId/score')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async updateScore (
     @Param() params: MatchScoreParams,
       @Body() partialScore: RecursivePartialMatchScore

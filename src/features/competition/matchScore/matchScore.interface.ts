@@ -5,7 +5,7 @@ import {
   PartialType,
   PickType
 } from '@nestjs/swagger'
-import { IsJSON, ValidateNested } from 'class-validator'
+import { IsEnum, IsInt, IsJSON, Max, Min, ValidateNested } from 'class-validator'
 import { RecursivePartial } from 'src/utils/recursivePartial'
 import { RecursiveRequired } from 'src/utils/recursiveRequired'
 
@@ -26,30 +26,39 @@ enum ELEVATION {
 }
 
 export class AllianceScore {
+  @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's goal",
     example: 3
   })
     goalTriballs: number
 
+  @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's offensive zone",
     example: 3
   })
     zoneTriballs: number
 
+  @Min(0)
+  @Max(2)
+  @IsInt()
   @ApiProperty({
     description: "Number of alliance's triballs in either goal",
     example: 1
   })
     allianceTriballsInGoal: number
 
+  @Min(0)
+  @Max(2)
+  @IsInt()
   @ApiProperty({
     description: "Number of alliance's triballs in either offensive zone",
     example: 1
   })
     allianceTriballsInZone: number
 
+  @IsEnum(ELEVATION)
   @ApiProperty({
     description: 'Elevation level of the first robot on the alliance',
     example: ELEVATION.B,
@@ -58,6 +67,7 @@ export class AllianceScore {
   })
     robot1Tier: ELEVATION
 
+  @IsEnum(ELEVATION)
   @ApiProperty({
     description: 'Elevation level of the second robot on the alliance',
     example: ELEVATION.B,
@@ -83,7 +93,7 @@ export class MatchScore {
   @ApiProperty({ description: 'Blue team raw score', type: AllianceScore })
     blueScore: AllianceScore
 
-  // @IsEnum(AUTON_WINNER)
+  @IsEnum(AUTON_WINNER)
   @ApiProperty({
     description: 'Auton winner',
     example: AUTON_WINNER.RED,
@@ -98,20 +108,21 @@ export class MatchScore {
   })
     locked: boolean
 }
+class PartialAllianceScore extends PartialType(AllianceScore) {};
 class PartialAllianceMatchScore {
   @ValidateNested()
   @ApiProperty({
     description: 'Red team raw score',
-    type: PartialType(AllianceScore)
+    type: PartialAllianceScore
   })
-    redScore?: Partial<AllianceScore>
+    redScore?: PartialAllianceScore
 
   @ValidateNested()
   @ApiProperty({
     description: 'Blue team raw score',
-    type: PartialType(AllianceScore)
+    type: PartialAllianceScore
   })
-    blueScore?: Partial<AllianceScore>
+    blueScore?: PartialAllianceScore
 }
 
 export class RecursivePartialMatchScore extends IntersectionType(

@@ -34,7 +34,7 @@ export class MatchScoreDatabase {
   /** retrieves working score stored in memory */
   getWorkingScore (matchId: number): MatchScoreInMemory {
     const out = plainToClass(MatchScoreInMemory, this.cache.get(matchId.toString()))
-    this.logger.log(out)
+    console.log(out)
     return out
   }
 
@@ -46,7 +46,6 @@ export class MatchScoreDatabase {
     matchId: number,
     partialScore: RecursivePartialMatchScore
   ): Promise<void> {
-    console.log(partialScore)
     await validateOrReject(partialScore, {
       whitelist: true,
       forbidNonWhitelisted: true,
