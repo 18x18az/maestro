@@ -9,7 +9,7 @@ import {
   ValidationPipe
 } from '@nestjs/common'
 import { MatchScoreService } from './matchScore.service'
-import { RecursivePartialMatchScore } from './matchScore.interface'
+import { MatchScoreUpdate } from './matchScore.interface'
 
 // matches/:round/:number/:sitting/score (e.g. matches/qualification/27/1 or matches/final/1/2) -
 // takes a Partial of the raw match scores interface and
@@ -31,10 +31,10 @@ export class MatchScoreController {
   constructor (private readonly service: MatchScoreService) {}
 
   @Post(':matchId/score')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, skipUndefinedProperties: true, forbidUnknownValues: true, transform: true }))
   async updateScore (
     @Param() params: MatchScoreParams,
-      @Body() partialScore: RecursivePartialMatchScore
+      @Body() partialScore: MatchScoreUpdate
   ): Promise<void> {
     await this.service.updateScore(getMatchId(params), partialScore)
   }

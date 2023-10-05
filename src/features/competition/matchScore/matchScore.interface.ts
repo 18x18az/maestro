@@ -5,7 +5,19 @@ import {
   PartialType,
   PickType
 } from '@nestjs/swagger'
-import { IsEnum, IsInt, IsJSON, Max, Min, ValidateNested } from 'class-validator'
+import { Type } from 'class-transformer'
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsJSON,
+  IsPositive,
+  IsString,
+  Max,
+  Min,
+  ValidateNested
+} from 'class-validator'
 import { RecursivePartial } from 'src/utils/recursivePartial'
 import { RecursiveRequired } from 'src/utils/recursiveRequired'
 
@@ -86,10 +98,12 @@ export enum AUTON_WINNER {
 
 export class MatchScore {
   @ValidateNested()
+  @Type(() => AllianceScore)
   @ApiProperty({ description: 'Red team raw score', type: AllianceScore })
     redScore: AllianceScore
 
   @ValidateNested()
+  @Type(() => AllianceScore)
   @ApiProperty({ description: 'Blue team raw score', type: AllianceScore })
     blueScore: AllianceScore
 
@@ -101,6 +115,7 @@ export class MatchScore {
   })
     autonWinner: AUTON_WINNER
 
+  @IsBoolean()
   @ApiProperty({
     description:
       'Prevents modification when locked and prevents saving to DB when unlocked',
@@ -108,9 +123,10 @@ export class MatchScore {
   })
     locked: boolean
 }
-class PartialAllianceScore extends PartialType(AllianceScore) {};
+class PartialAllianceScore extends PartialType(AllianceScore) {}
 class PartialAllianceMatchScore {
   @ValidateNested()
+  @Type(() => PartialAllianceScore)
   @ApiProperty({
     description: 'Red team raw score',
     type: PartialAllianceScore
@@ -118,6 +134,7 @@ class PartialAllianceMatchScore {
     redScore?: PartialAllianceScore
 
   @ValidateNested()
+  @Type(() => PartialAllianceScore)
   @ApiProperty({
     description: 'Blue team raw score',
     type: PartialAllianceScore
@@ -137,6 +154,7 @@ export class MatchScoreUpdate extends OmitType(RecursivePartialMatchScore, [
 
 class IdForMatchScoreInMemory {
   @ApiProperty()
+  @IsString()
     id: string
 }
 export class MatchScoreInMemory extends IntersectionType(
@@ -152,11 +170,10 @@ export class FullMatchScoreInMemory extends IntersectionType(
 // Omit<MatchScore, 'locked'>
 // > &
 // Pick<MatchScore, 'locked'>
-class IdsForMatchScoreInPrisma {
+class HasMatchId {
   @ApiProperty()
-    scoreId: number
-
-  @ApiProperty()
+  @IsPositive()
+  @IsInt()
     matchId: number
 }
 class SerializedAllianceScoreMatchScore {
@@ -172,16 +189,27 @@ class SerializedAllianceScoreMatchScore {
   })
     blueScore: string
 }
-export class MatchScoreInPrisma extends IntersectionType(
+export class MatchScoreInPrismaCreationData extends IntersectionType(
   SerializedAllianceScoreMatchScore,
   OmitType(MatchScore, ['locked', 'redScore', 'blueScore'] as const),
-  IdsForMatchScoreInPrisma
+  HasMatchId
 ) {}
-// export type MatchScoreInPrisma = { scoreId: number; matchId: number } & {
-//   [K in keyof Omit<MatchScore, "locked">]: MatchScore[K] extends string
-//     ? MatchScore[K]
-//     : string;
-// };
+class HasScoreId {
+  @ApiProperty()
+  @IsPositive()
+  @IsInt()
+    scoreId: number
+}
+class HasTimeSaved {
+  @ApiProperty()
+  @IsDateString() // might be correct decorator (im not sure)
+    timeSaved: string
+}
+export class MatchScoreInPrisma extends IntersectionType(
+  MatchScoreInPrismaCreationData,
+  HasScoreId,
+  HasTimeSaved
+) {}
 
 // ---------------------------
 //        Type Checks

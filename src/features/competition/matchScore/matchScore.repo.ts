@@ -3,8 +3,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
 import {
   AUTON_WINNER,
+  FullMatchScoreInMemory,
   MatchScoreInMemory,
-  MatchScoreInPrisma,
+  MatchScoreInPrismaCreationData,
   RecursivePartialMatchScore
 } from './matchScore.interface'
 import { validateOrReject } from 'class-validator'
@@ -20,7 +21,7 @@ export class MatchScoreDatabase {
   private async createEmptyMatchScore (...matchIds: number[]): Promise<void> {
     this.cache.createMany(
       matchIds.map((id) => {
-        return { id: id.toString(), locked: false }
+        return { id: id.toString(), locked: false, redScore: {}, blueScore: {} }
       })
     )
   }
@@ -28,12 +29,19 @@ export class MatchScoreDatabase {
   private readonly logger = new Logger(MatchScoreDatabase.name)
   // copy all scores into memoryDB and lock them
   async onApplicationBootstrap (): Promise<void> {
-    await this.createEmptyMatchScore(...Array(100).fill(0).map((e, i) => i))
+    await this.createEmptyMatchScore(
+      ...Array(100)
+        .fill(0)
+        .map((e, i) => i)
+    )
   }
 
   /** retrieves working score stored in memory */
   getWorkingScore (matchId: number): MatchScoreInMemory {
-    const out = plainToClass(MatchScoreInMemory, this.cache.get(matchId.toString()))
+    const out = plainToClass(
+      MatchScoreInMemory,
+      this.cache.get(matchId.toString())
+    )
     console.log(out)
     return out
   }
@@ -52,25 +60,26 @@ export class MatchScoreDatabase {
       forbidUnknownValues: true
     })
     const memScore = this.getWorkingScore(matchId)
-    for (const key in partialScore) {
-      const prop = partialScore[key]
+    for (const forLoopKey in partialScore) {
+      const key: keyof RecursivePartialMatchScore = forLoopKey as keyof RecursivePartialMatchScore
+      const value = partialScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
-          if (memScore[prop] === undefined) memScore[prop] = {}
+          if (memScore[key] === undefined) memScore[key] = {}
           // look at that lodash thing: https://www.geeksforgeeks.org/lodash-_-merge-method/
-          memScore[prop] = { ...memScore, ...partialScore }
+          memScore[key] = { ...memScore[key], ...partialScore[key] }
           break
         case 'locked':
-          if (typeof prop === 'boolean') memScore.locked = prop
+          if (typeof value === 'boolean') memScore.locked = value
           else {
             // throw error probably?
           }
           break
         case 'autonWinner':
           // @Todo better check if prop is AUTON_WINNER
-          if (typeof prop === 'string') {
-            memScore.autonWinner = prop as AUTON_WINNER
+          if (typeof value === 'string') {
+            memScore.autonWinner = value
           } else {
             // throw error
           }
@@ -86,46 +95,44 @@ export class MatchScoreDatabase {
     this.cache.update(memScore)
   }
 
-  async saveScore (matchId: number): Promise<undefined> {
-    const memScore = this.getWorkingScore(matchId)
-    await validateOrReject(memScore, {
+  async saveScore (matchId: number): Promise<void> {
+    const fullMemScore = plainToClass(FullMatchScoreInMemory, this.getWorkingScore(matchId))
+    // used to validate completeness of fullMemScore
+    await validateOrReject(fullMemScore, {
       whitelist: true,
-      forbidNonWhitelisted: true,
       forbidUnknownValues: true
     })
-    const score: Partial<MatchScoreInPrisma> = {}
-    for (const entry in memScore) {
-      const key: keyof MatchScoreInMemory =
-        entry[0] as keyof MatchScoreInMemory
-      const prop: MatchScoreInMemory[typeof key] = entry[1]
+    const score: Partial<MatchScoreInPrismaCreationData> = {}
+    for (const forLoopKey in fullMemScore) {
+      const key: keyof MatchScoreInMemory = forLoopKey as keyof MatchScoreInMemory
+      const value = fullMemScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
-          score[key] = JSON.stringify(prop)
+          score[key] = JSON.stringify(value)
           break
         case 'autonWinner':
-          if (prop !== undefined) score[key] = prop as AUTON_WINNER
+          if (value !== undefined) score.autonWinner = value as AUTON_WINNER
           break
         case 'locked':
           break
         case 'id':
-          score.matchId = Number(prop)
+          score.matchId = Number(value)
           break
         // ts-standard error that I cant be bothered to deal with:
         // Unexpected lexical declaration in case block. (no-case-declarations)
-
         // default:
         //   const _exhaustiveCheck: never = key
         //   return _exhaustiveCheck
       }
     }
-    const checkableScore = plainToClass(MatchScoreInPrisma, score)
+    const checkableScore = plainToClass(MatchScoreInPrismaCreationData, score)
     await validateOrReject(checkableScore, {
       whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true
     })
-    await this.prisma.matchScore.create({ data: score as MatchScoreInPrisma })
+    await this.prisma.matchScore.create({ data: checkableScore })
   }
 
   private async setLockState (

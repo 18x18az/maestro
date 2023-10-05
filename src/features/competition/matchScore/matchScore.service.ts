@@ -16,6 +16,7 @@ export class MatchScoreService {
     matchId: number,
     partialScore: MatchScoreUpdate
   ): Promise<void> {
+    console.log(partialScore)
     this.logger.log(`Updating score for Match.${matchId}`)
     if ('locked' in partialScore) {
       this.logger.warn(
