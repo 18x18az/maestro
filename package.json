@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": "https://github.com/18x18az/maestro",
   "private": true,
   "scripts": {
