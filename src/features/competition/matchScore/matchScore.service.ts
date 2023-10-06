@@ -131,6 +131,7 @@ export class MatchScoreService {
   }
 
   async handleQualMatches (matches: QualMatch[]): Promise<void> {
+    this.logger.log(`Handling ${matches.length} QualMatches`)
     await this.handleMatches(matches.map(({ id }) => { return { id, round: MATCH_ROUND.QUALIFICATION } }))
   }
 }

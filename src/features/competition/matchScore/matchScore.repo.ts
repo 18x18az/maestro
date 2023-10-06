@@ -3,16 +3,17 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
 import {
   AUTON_WINNER,
-  DefaultMatchScore,
+  ELEVATION,
+  MATCH_ROUND,
   MatchDetails,
   MatchScore,
   MatchScoreInMemory,
   MatchScoreInPrisma,
   MatchScoreInPrismaCreationData,
+  QUAL_TEAM_METADATA,
   RecursivePartialMatchScore
 } from './matchScore.interface'
 import { validateOrReject } from 'class-validator'
-import { plainToClass } from 'class-transformer'
 
 @Injectable()
 export class MatchScoreDatabase {
@@ -22,84 +23,92 @@ export class MatchScoreDatabase {
   ) {}
 
   private static populateEmptyMatchScore (
-    partialScore: Partial<MatchScoreInMemory> &
-    Pick<MatchScoreInMemory, 'id' | 'round'>
-  ): MatchScoreInMemory {
-    const defaultScore = new DefaultMatchScore()
-    return {
-      ...partialScore,
-      redScore: partialScore.redScore ?? defaultScore.redScore,
-      blueScore: partialScore.blueScore ?? defaultScore.blueScore,
-      autonWinner: partialScore.autonWinner ?? defaultScore.autonWinner,
-      metadata: partialScore.metadata ?? defaultScore.metadata,
-      locked: partialScore.locked ?? defaultScore.locked
+    params: { round: MATCH_ROUND, id: string }): MatchScoreInMemory {
+    const baseScore = {
+      redScore: {
+        goalTriballs: 0,
+        zoneTriballs: 0,
+        allianceTriballsInGoal: 0,
+        allianceTriballsInZone: 0,
+        robot1Tier: ELEVATION.NONE,
+        robot2Tier: ELEVATION.NONE
+      },
+      blueScore: {
+        goalTriballs: 0,
+        zoneTriballs: 0,
+        allianceTriballsInGoal: 0,
+        allianceTriballsInZone: 0,
+        robot1Tier: ELEVATION.NONE,
+        robot2Tier: ELEVATION.NONE
+      },
+      autonWinner: AUTON_WINNER.NONE,
+      locked: false
     }
+    const elimMetadata: Extract<MatchScoreInMemory, { round: MATCH_ROUND.ELIMINATION }>['metadata'] = {
+      red: { disqualified: false },
+      blue: { disqualified: false }
+    }
+    const qualMetadata: Extract<MatchScoreInMemory, { round: MATCH_ROUND.QUALIFICATION }>['metadata'] = {
+      red: {
+        team1: QUAL_TEAM_METADATA.NONE,
+        team2: QUAL_TEAM_METADATA.NONE,
+        autonWinPoint: false
+      },
+      blue: {
+        team1: QUAL_TEAM_METADATA.NONE,
+        team2: QUAL_TEAM_METADATA.NONE,
+        autonWinPoint: false
+      }
+    }
+    const metadata = params.round === MATCH_ROUND.ELIMINATION ? elimMetadata : qualMetadata
+    const additional = { round: params.round, id: params.id }
+    const out = { metadata, ...additional, ...baseScore }
+    return out as MatchScoreInMemory
   }
 
   /** retrieves most recent match score with matchId */
   public async getFinalMatchScoreInPrisma (
     matchId: number
   ): Promise<MatchScoreInPrisma | null> {
-    const savedScore: Omit<MatchScoreInPrisma, 'autonWinner'> & { autonWinner: string } | null = await this.prisma.matchScore.findFirst({
+    const rawSavedScore: Omit<MatchScoreInPrisma, 'autonWinner'> & { autonWinner: string } | null = await this.prisma.matchScore.findFirst({
       where: { matchId },
       orderBy: { timeSaved: 'desc' }
     })
-    if (savedScore === null) return null
-    return plainToClass(MatchScoreInPrisma, savedScore)
+    if (rawSavedScore === null) return null
+    const savedScore: MatchScoreInPrisma = { ...rawSavedScore, autonWinner: rawSavedScore.autonWinner as AUTON_WINNER }
+    return savedScore
   }
 
   /** retrieves most recent match score with matchId */
   async getFinalSavedMatchScore (matchId: number): Promise<MatchScore | null> {
     const prismaScore = await this.getFinalMatchScoreInPrisma(matchId)
     if (prismaScore === null) return null
-    const parsedScore: Partial<MatchScore> = { locked: true }
-    for (const forLoopKey in prismaScore) {
-      const key: keyof MatchScoreInPrisma = forLoopKey as keyof MatchScoreInPrisma
-      const value = prismaScore[key]
-      switch (key) {
-        case 'redScore':
-        case 'blueScore':
-        case 'metadata':
-          if (typeof value === 'string') { parsedScore[key] = JSON.parse(value) }
-          break
-        case 'autonWinner':
-          parsedScore[key] = prismaScore[key]
-          break
-        case 'matchId':
-        case 'scoreId':
-        case 'timeSaved':
-          break
-        default:{
-          const _exhaustiveCheck: never = key
-          return _exhaustiveCheck
-        }
-      }
+    const parsedScore: MatchScore = {
+      locked: true,
+      redScore: JSON.parse(prismaScore.redScore),
+      blueScore: JSON.parse(prismaScore.blueScore),
+      metadata: JSON.parse(prismaScore.metadata),
+      autonWinner: prismaScore.autonWinner
     }
-    return plainToClass(MatchScore, parsedScore)
+    return parsedScore
   }
 
   public async hydrateInMemoryDB (matches: MatchDetails[]): Promise<void> {
     await Promise.all(
-      matches.map(async ({ matchId, round }) => {
-        this.cache.create(
-          MatchScoreDatabase.populateEmptyMatchScore({
-            ...(await this.getFinalSavedMatchScore(matchId) ?? {}),
-            id: matchId.toString(),
-            round
-          })
-        )
+      matches.map(async <R extends MATCH_ROUND>({ matchId, round }: { matchId: number, round: R }) => {
+        const savedScore = await this.getFinalSavedMatchScore(matchId)
+        const params = { id: matchId.toString(), round }
+        let data: MatchScoreInMemory
+        if (savedScore === null) data = MatchScoreDatabase.populateEmptyMatchScore(params)
+        else data = { ...savedScore as Extract<typeof savedScore, Extract<MatchScoreInMemory, { round: R } >>, ...params }
+        await this.cache.createAsync(data)
       })
     )
   }
 
   /** retrieves working score stored in memory */
   getWorkingScore (matchId: number): MatchScoreInMemory {
-    const out = plainToClass(
-      MatchScoreInMemory,
-      this.cache.get(matchId.toString())
-    )
-    console.log(out)
-    return out
+    return this.cache.get(matchId.toString())
   }
 
   getLockState (matchId: number): boolean {
@@ -167,49 +176,17 @@ export class MatchScoreDatabase {
   }
 
   async saveScore (matchId: number): Promise<void> {
-    const memScore = plainToClass(
-      MatchScoreInMemory,
-      this.getWorkingScore(matchId)
-    )
-    // used to validate completeness of fullMemScore
-    await validateOrReject(memScore, {
-      whitelist: true,
-      forbidUnknownValues: true
-    })
-    const score: Partial<MatchScoreInPrismaCreationData> = {}
-    for (const forLoopKey in memScore) {
-      const key: keyof MatchScoreInMemory =
-        forLoopKey as keyof MatchScoreInMemory
-      const value = memScore[key]
-      switch (key) {
-        case 'redScore':
-        case 'blueScore':
-        case 'metadata':
-          score[key] = JSON.stringify(value)
-          break
-        case 'autonWinner':
-          if (value !== undefined) score.autonWinner = value as AUTON_WINNER
-          break
-        case 'id':
-          score.matchId = Number(value)
-          break
-        case 'locked':
-        case 'round':
-          break
+    const memScore = this.getWorkingScore(matchId)
 
-        default: {
-          const _exhaustiveCheck: never = key
-          return _exhaustiveCheck
-        }
-      }
+    // used to validate completeness of fullMemScore
+    const score: MatchScoreInPrismaCreationData = {
+      redScore: JSON.stringify(memScore.redScore),
+      blueScore: JSON.stringify(memScore.blueScore),
+      metadata: JSON.stringify(memScore.metadata),
+      autonWinner: memScore.autonWinner,
+      matchId: Number(memScore.id)
     }
-    const checkableScore = plainToClass(MatchScoreInPrismaCreationData, score)
-    await validateOrReject(checkableScore, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true
-    })
-    await this.prisma.matchScore.create({ data: checkableScore })
+    await this.prisma.matchScore.create({ data: score })
   }
 
   private async setLockState (
@@ -218,7 +195,7 @@ export class MatchScoreDatabase {
   ): Promise<void> {
     await this.updateScore(
       matchId,
-      plainToClass(RecursivePartialMatchScore, { locked: lockState })
+      { locked: lockState }
     )
   }
 
