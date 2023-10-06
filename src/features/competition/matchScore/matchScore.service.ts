@@ -2,7 +2,8 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  Logger
+  Logger,
+  NotFoundException
 } from '@nestjs/common'
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
@@ -34,12 +35,27 @@ export class MatchScoreService {
     )
   }
 
+  /** @throws if cached match does not exist */
+  private checkMatchExists (matchId: number): void {
+    if (this.database.getWorkingScore(matchId) === undefined) {
+      this.logger.warn(`MatchScore.${matchId} does not exist`)
+      throw new NotFoundException(`MatchScore.${matchId} does not exist`)
+    }
+  }
+
+  /** @throws if cached match does not match round */
+  private checkRound (matchId: number, round: MATCH_ROUND): void {
+    if (this.database.getWorkingScore(matchId).round !== round) {
+      this.logger.warn(`Attempted to modify ${round}s.MatchScore.${matchId} from /match/${round}/**`)
+      throw new BadRequestException()
+    }
+  }
+
   async updateScore (
     matchId: number,
     partialScore: MatchScoreUpdate,
     round: MATCH_ROUND
   ): Promise<void> {
-    console.log(partialScore)
     this.logger.log(`Updating score for Match.${matchId}`)
     if ('locked' in partialScore) {
       this.logger.warn(
@@ -47,6 +63,8 @@ export class MatchScoreService {
       )
       throw new BadRequestException()
     }
+    this.checkMatchExists(matchId)
+    this.checkRound(matchId, round)
     if (this.database.getLockState(matchId)) {
       this.logger.warn(`MatchScore.${matchId} is locked`)
       throw new BadRequestException()
@@ -57,6 +75,8 @@ export class MatchScoreService {
 
   async saveScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     this.logger.log(`Saving score for Match.${matchId} to database`)
+    this.checkMatchExists(matchId)
+    this.checkRound(matchId, round)
     try {
       await validate(this.database.getWorkingScore(matchId), {
         groups: [`meta.${round}`],
@@ -76,13 +96,17 @@ export class MatchScoreService {
     await this.publishSavedScore(matchId, round)
   }
 
-  async lockScore (matchId: number): Promise<void> {
+  async lockScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     this.logger.log(`Locking score for Match.${matchId}`)
+    this.checkMatchExists(matchId)
+    this.checkRound(matchId, round)
     await this.database.lockScore(matchId)
   }
 
-  async unlockScore (matchId: number): Promise<void> {
+  async unlockScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     this.logger.log(`Unlocking score for Match.${matchId}`)
+    this.checkMatchExists(matchId)
+    this.checkRound(matchId, round)
     await this.database.unlockScore(matchId)
   }
 

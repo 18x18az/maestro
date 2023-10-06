@@ -22,7 +22,6 @@ class MatchScoreParams {
   @IsEnum(MATCH_ROUND)
     type: MATCH_ROUND
 }
-
 // undocumented regex syntax, may break some day: https://stackoverflow.com/a/71671007
 @Controller('match/:type(qual|elim)/:matchId')
 export class MatchScoreController {
@@ -44,12 +43,12 @@ export class MatchScoreController {
 
   @Post('lock')
   async lockScore (@Param() params: MatchScoreParams): Promise<void> {
-    await this.service.lockScore(params.matchId)
+    await this.service.lockScore(params.matchId, params.type)
   }
 
   @Post('unlock')
   async unlockScore (@Param() params: MatchScoreParams): Promise<void> {
-    await this.service.unlockScore(params.matchId)
+    await this.service.unlockScore(params.matchId, params.type)
   }
 
   @EventPattern('qualification/matches')
