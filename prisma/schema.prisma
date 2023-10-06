@@ -71,6 +71,7 @@ model MatchScore {
   matchId     Int      
   redScore    String
   blueScore   String
+  metadata    String
   autonWinner String
   timeSaved   DateTime @default(now())
 }

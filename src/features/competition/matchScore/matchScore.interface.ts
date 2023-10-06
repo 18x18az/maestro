@@ -16,6 +16,7 @@ import {
   IsString,
   Max,
   Min,
+  ValidateIf,
   ValidateNested
 } from 'class-validator'
 import { RecursivePartial } from 'src/utils/recursivePartial'
@@ -24,7 +25,10 @@ import { RecursiveRequired } from 'src/utils/recursiveRequired'
 // declare function ObjectToStringType<T>(
 //   classRef: Type<T>
 // ): Type<{ [K in keyof T]: T[K] extends object ? string : T[K] }>;
-
+export enum MATCH_ROUND {
+  QUALIFICATION = 'qual',
+  ELIMINATION = 'elim'
+}
 enum ELEVATION {
   NONE = 'none',
   A = 'a',
@@ -36,8 +40,55 @@ enum ELEVATION {
   G = 'g',
   H = 'h',
 }
+enum TEAM_METADATA {
+  NONE = 'none',
+  NO_SHOW = 'no_show',
+  DISQUALIFIED = 'disqualified',
+}
+/** This should be completely independent of the current game */
+class AllianceMetadata {
+  @IsEnum(TEAM_METADATA)
+  @ApiProperty({
+    description: 'Whether the first team no-show-ed or dq-ed in the match',
+    example: 'none'
+  })
+    team1: TEAM_METADATA
 
+  @ValidateIf(
+    (meta: AllianceMetadata) =>
+      meta.team1 === meta.team2 ||
+      (meta.team1 !== TEAM_METADATA.DISQUALIFIED &&
+        meta.team2 !== TEAM_METADATA.DISQUALIFIED),
+    { groups: ['meta.elim'] }
+  )
+  @IsEnum(TEAM_METADATA)
+  @ApiProperty({
+    description: 'Whether the first team no-show-ed or dq-ed in the match',
+    example: 'none'
+  })
+    team2: TEAM_METADATA
+
+  @IsBoolean({ groups: ['meta.qual'] })
+  @ApiProperty({
+    description: 'Whether the alliance was awarded the Autonomous Win Point',
+    example: false
+  })
+    autonWinPoint: boolean
+}
+export class MatchScoreMetadata {
+  @ValidateNested()
+  @Type(() => AllianceMetadata)
+  @ApiProperty({ description: "Red's metadata", type: AllianceMetadata })
+    red: AllianceMetadata
+
+  @ValidateNested()
+  @Type(() => AllianceMetadata)
+  @ApiProperty({ description: "Blue's metadata", type: AllianceMetadata })
+    blue: AllianceMetadata
+}
 export class AllianceScore {
+  @Max(56) // Total Triballs (60) - Alliance Triballs (4)
+  @Min(0)
   @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's goal",
@@ -45,6 +96,10 @@ export class AllianceScore {
   })
     goalTriballs: number
 
+  // Check that triballs total is at max 56
+  @ValidateIf(({ zoneTriballs, goalTriballs }: AllianceScore) => (goalTriballs + zoneTriballs) <= 56)
+  @Max(56) // Total Triballs (60) - Alliance Triballs (4)
+  @Min(0)
   @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's offensive zone",
@@ -61,6 +116,8 @@ export class AllianceScore {
   })
     allianceTriballsInGoal: number
 
+  // Check that allianceTriballs total is at max 2
+  @ValidateIf(({ allianceTriballsInGoal, allianceTriballsInZone }: AllianceScore) => (allianceTriballsInGoal + allianceTriballsInZone) <= 2)
   @Min(0)
   @Max(2)
   @IsInt()
@@ -107,6 +164,11 @@ export class MatchScore {
   @ApiProperty({ description: 'Blue team raw score', type: AllianceScore })
     blueScore: AllianceScore
 
+  @ValidateNested()
+  @Type(() => MatchScoreMetadata)
+  @ApiProperty({ description: 'Data about the match that is independent of the current game', type: MatchScoreMetadata })
+    metadata: MatchScoreMetadata
+
   @IsEnum(AUTON_WINNER)
   @ApiProperty({
     description: 'Auton winner',
@@ -124,6 +186,19 @@ export class MatchScore {
     locked: boolean
 }
 class PartialAllianceScore extends PartialType(AllianceScore) {}
+class PartialAllianceMetadata extends PartialType(AllianceMetadata) {}
+
+class PartialMatchScoreMetadata {
+  @ValidateNested()
+  @Type(() => PartialAllianceMetadata)
+  @ApiProperty({ description: "Red's metadata", type: PartialAllianceMetadata })
+    red?: PartialAllianceMetadata
+
+  @ValidateNested()
+  @Type(() => PartialAllianceMetadata)
+  @ApiProperty({ description: "Blue's metadata", type: PartialAllianceMetadata })
+    blue?: PartialAllianceMetadata
+}
 class PartialAllianceMatchScore {
   @ValidateNested()
   @Type(() => PartialAllianceScore)
@@ -140,11 +215,16 @@ class PartialAllianceMatchScore {
     type: PartialAllianceScore
   })
     blueScore?: PartialAllianceScore
+
+  @ValidateNested()
+  @Type(() => PartialMatchScoreMetadata)
+  @ApiProperty({ description: 'Data about the match that is independent of the current game', type: PartialMatchScoreMetadata })
+    metadata?: PartialMatchScoreMetadata
 }
 
 export class RecursivePartialMatchScore extends IntersectionType(
   PartialAllianceMatchScore,
-  PartialType(OmitType(MatchScore, ['redScore', 'blueScore'] as const))
+  PartialType(OmitType(MatchScore, ['redScore', 'blueScore', 'metadata'] as const))
 ) {}
 
 // export type MatchScoreUpdate = RecursivePartial<Omit<MatchScore, 'locked'>>
@@ -188,10 +268,16 @@ class SerializedAllianceScoreMatchScore {
     description: 'Blue team raw score'
   })
     blueScore: string
+
+  @IsJSON()
+  @ApiProperty({
+    description: 'Blue team raw score'
+  })
+    metadata: string
 }
 export class MatchScoreInPrismaCreationData extends IntersectionType(
   SerializedAllianceScoreMatchScore,
-  OmitType(MatchScore, ['locked', 'redScore', 'blueScore'] as const),
+  OmitType(MatchScore, ['locked', 'redScore', 'blueScore', 'metadata'] as const),
   HasMatchId
 ) {}
 class HasScoreId {

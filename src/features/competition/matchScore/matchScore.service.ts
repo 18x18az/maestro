@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
-import { MatchScoreUpdate } from './matchScore.interface'
+import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
+import { validate } from 'class-validator'
 
 @Injectable()
 export class MatchScoreService {
@@ -33,8 +34,14 @@ export class MatchScoreService {
     await this.database.updateScore(matchId, partialScore)
   }
 
-  async saveScore (matchId: number): Promise<void> {
+  async saveScore (matchId: number, matchType: MATCH_ROUND): Promise<void> {
     this.logger.log(`Saving score for Match.${matchId} to database`)
+    try {
+      await validate(this.database.getWorkingScore(matchId), { groups: [`meta.${matchType}`], whitelist: true, forbidNonWhitelisted: true, forbidUnknownValues: true })
+    } catch {
+      this.logger.warn(`Metadata check for Match.${matchId} failed`)
+      throw new BadRequestException()
+    }
     if (!this.database.getLockState(matchId)) {
       this.logger.warn(
         `MatchScore.${matchId} is not locked`

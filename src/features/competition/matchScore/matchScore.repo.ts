@@ -84,6 +84,19 @@ export class MatchScoreDatabase {
             // throw error
           }
           break
+        case 'metadata': {
+          const metadata = partialScore.metadata
+          if ((metadata == null) || typeof metadata !== 'object') break
+          if ((memScore.metadata == null) || typeof memScore.metadata !== 'object') break
+          if ('red' in metadata) {
+            // @todo make memScore completely required
+            memScore.metadata.red = { ...memScore.metadata.red, ...metadata.red }
+          }
+          if ('blue' in metadata) {
+            // @todo make memScore completely required
+            memScore.metadata.blue = { ...memScore.metadata.blue, ...metadata.blue }
+          }
+        }
         // ts-standard error that I cant be bothered to deal with:
         // Unexpected lexical declaration in case block. (no-case-declarations)
 

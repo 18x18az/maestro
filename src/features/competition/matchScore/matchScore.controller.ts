@@ -1,66 +1,52 @@
 import {
-  BadRequestException,
   Body,
   Controller,
-  Logger,
   Param,
   Post,
   UsePipes,
   ValidationPipe
 } from '@nestjs/common'
 import { MatchScoreService } from './matchScore.service'
-import { MatchScoreUpdate } from './matchScore.interface'
+import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
+import { IsEnum, IsInt, IsPositive } from 'class-validator'
+import { Transform } from 'class-transformer'
 
-// matches/:round/:number/:sitting/score (e.g. matches/qualification/27/1 or matches/final/1/2) -
-// takes a Partial of the raw match scores interface and
-// uses that to update the working match score for the given match,
-// then publishes the updated value to the working topic
+class MatchScoreParams {
+  @IsPositive()
+  @IsInt()
+  @Transform(({ value }) => Number(value))
+    matchId: number
 
-// matches/:round/:number/:sitting/save -
-// When called, it stores the raw score in the database.
-// Information such as DQ should be stored as their own columns,
-// but alliance scores should be stored as a giant JSON string
-// (will make it easier to migrate between seasons).
-// It should then publish that saved value to the saved match topic.
-interface MatchScoreParams {
-  matchId: string
+  @IsEnum(MATCH_ROUND)
+    type: MATCH_ROUND
 }
 
-@Controller('match')
+// undocumented regex syntax, may break some day: https://stackoverflow.com/a/71671007
+@Controller('match/:type(qual|elim)/:matchId')
 export class MatchScoreController {
   constructor (private readonly service: MatchScoreService) {}
 
-  @Post(':matchId/score')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, skipUndefinedProperties: true, forbidUnknownValues: true, transform: true }))
+  @Post('score')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, forbidUnknownValues: true, transform: true }))
   async updateScore (
     @Param() params: MatchScoreParams,
       @Body() partialScore: MatchScoreUpdate
   ): Promise<void> {
-    await this.service.updateScore(getMatchId(params), partialScore)
+    await this.service.updateScore(params.matchId, partialScore)
   }
 
-  @Post(':matchId/save')
+  @Post('save')
   async saveScore (@Param() params: MatchScoreParams): Promise<void> {
-    await this.service.saveScore(getMatchId(params))
+    await this.service.saveScore(params.matchId, params.type)
   }
 
-  @Post(':matchId/lock')
+  @Post('lock')
   async lockScore (@Param() params: MatchScoreParams): Promise<void> {
-    await this.service.lockScore(getMatchId(params))
+    await this.service.lockScore(params.matchId)
   }
 
-  @Post(':matchId/unlock')
+  @Post('unlock')
   async unlockScore (@Param() params: MatchScoreParams): Promise<void> {
-    await this.service.unlockScore(getMatchId(params))
+    await this.service.unlockScore(params.matchId)
   }
-}
-
-const logger = new Logger(MatchScoreController.name)
-function getMatchId (params: MatchScoreParams): number {
-  const matchId = Number(params.matchId)
-  if (!Number.isSafeInteger(matchId) || matchId < 0) {
-    logger.warn(`Received Malformed matchID: ${matchId}`)
-    throw new BadRequestException('matchId must be a positive integer')
-  }
-  return matchId
 }
