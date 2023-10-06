@@ -1,20 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsISO8601 } from 'class-validator'
 
-export class AllianceUpload {
+export class Alliance {
   @ApiProperty({ description: 'Team 1 number', example: '127C' })
     team1: string
 
-  @ApiProperty({ description: 'Team 2 number, undefined in VEX U', example: '127C' })
+  @ApiProperty({ description: 'Team 2 number, undefined in VEX U', example: '127C', required: false })
     team2?: string
 }
 
 export class QualScheduleMatchUpload {
   @ApiProperty()
-    redAlliance: AllianceUpload
+    redAlliance: Alliance
 
   @ApiProperty()
-    blueAlliance: AllianceUpload
+    blueAlliance: Alliance
 
   @ApiProperty({ description: 'Match number', example: 12 })
     number: number
@@ -32,4 +32,18 @@ export class QualScheduleBlockUpload {
 export class QualScheduleUpload {
   @ApiProperty({ isArray: true, type: QualScheduleBlockUpload })
     blocks: QualScheduleBlockUpload[]
+}
+
+export class QualMatch {
+  @ApiProperty({ description: 'Match id', example: 1 })
+    id: number
+
+  @ApiProperty({ description: 'Match number', example: 1 })
+    number: number
+
+  @ApiProperty({ description: 'Red aliance members' })
+    red: Alliance
+
+  @ApiProperty({ description: 'Blue aliance members' })
+    blue: Alliance
 }

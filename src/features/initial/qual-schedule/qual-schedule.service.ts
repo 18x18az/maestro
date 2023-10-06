@@ -1,10 +1,16 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { PublishService } from '../../../utils/publish/publish.service'
 import { QualScheduleBlockUpload, QualScheduleUpload } from './qual-schedule.interface'
 import { QualScheduleRepo } from './qual-schedule.repo'
+import { QualSchedulePublisher } from './qual-schedule.publisher'
 
 @Injectable()
 export class QualScheduleService {
+  constructor (private readonly repo: QualScheduleRepo, private readonly publisher: QualSchedulePublisher) { }
+
+  async onApplicationBootstrap (): Promise<void> {
+    await this.broadcastQualSchedule()
+  }
+
   generateQualSchedule (): void {
     if (!this.canConclude) {
       this.logger.warn('Attempted to generate qual schedule at incorrect time')
@@ -17,13 +23,13 @@ export class QualScheduleService {
   private readonly logger = new Logger(QualScheduleService.name)
   canConclude: boolean = false
 
-  constructor (private readonly repo: QualScheduleRepo, private readonly publisher: PublishService) { }
-
   updateCanConclude (canConclude: boolean): void {
     this.canConclude = canConclude
   }
 
   private async storeMatchBlock (block: QualScheduleBlockUpload): Promise<void> {
+    await this.repo.clearSchedule()
+
     const blockId = await this.repo.createBlock(block)
 
     await Promise.all(block.matches.map(async match => {
@@ -40,5 +46,16 @@ export class QualScheduleService {
     await Promise.all(schedule.blocks.map(async block => {
       await this.storeMatchBlock(block)
     }))
+  }
+
+  async broadcastQualSchedule (): Promise<void> {
+    const matches = await this.repo.getMatches()
+
+    if (matches.length === 0) {
+      return
+    }
+
+    this.logger.log('Broadcasting qual schedule')
+    await this.publisher.publishQualMatches(matches)
   }
 }

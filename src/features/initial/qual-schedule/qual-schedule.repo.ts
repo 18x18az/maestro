@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
-import { AllianceUpload, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-schedule.interface'
+import { Alliance, QualMatch, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-schedule.interface'
 
 @Injectable()
 export class QualScheduleRepo {
@@ -14,7 +14,7 @@ export class QualScheduleRepo {
     return id
   }
 
-  async createAlliance (alliance: AllianceUpload): Promise<number> {
+  async createAlliance (alliance: Alliance): Promise<number> {
     const data = {
       team1Number: alliance.team1,
       team2Number: alliance.team2
@@ -66,5 +66,46 @@ export class QualScheduleRepo {
 
       nextMatchId = nextMatch.nextMatchId
     }
+  }
+
+  async clearSchedule (): Promise<void> {
+    await this.repo.scheduledMatch.deleteMany({})
+    await this.repo.match.deleteMany({})
+    await this.repo.matchBlock.deleteMany({})
+    await this.repo.alliance.deleteMany({})
+  }
+
+  async getMatches (): Promise<QualMatch[]> {
+    const matches = await this.repo.match.findMany({
+      select: {
+        id: true,
+        number: true,
+        red: {
+          select: { team1Number: true, team2Number: true }
+        },
+        blue: {
+          select: { team1Number: true, team2Number: true }
+        }
+      },
+      where: { round: 'QUAL' },
+      orderBy: { number: 'asc' }
+    })
+
+    const formattedMatches = matches.map(match => {
+      return {
+        id: match.id,
+        number: match.number,
+        red: {
+          team1: match.red.team1Number,
+          team2: match.red.team2Number !== null ? match.red.team2Number : undefined
+        },
+        blue: {
+          team1: match.blue.team1Number,
+          team2: match.blue.team2Number !== null ? match.blue.team2Number : undefined
+        }
+      }
+    })
+
+    return formattedMatches
   }
 }
