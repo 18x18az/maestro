@@ -1,10 +1,13 @@
 import { InMemoryDBService } from '@nestjs-addons/in-memory-db'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/utils/prisma/prisma.service'
 import {
   AUTON_WINNER,
-  FullMatchScoreInMemory,
+  DefaultMatchScore,
+  MatchDetails,
+  MatchScore,
   MatchScoreInMemory,
+  MatchScoreInPrisma,
   MatchScoreInPrismaCreationData,
   RecursivePartialMatchScore
 } from './matchScore.interface'
@@ -18,21 +21,66 @@ export class MatchScoreDatabase {
     private readonly cache: InMemoryDBService<MatchScoreInMemory>
   ) {}
 
-  private async createEmptyMatchScore (...matchIds: number[]): Promise<void> {
-    this.cache.createMany(
-      matchIds.map((id) => {
-        return { id: id.toString(), locked: false, redScore: {}, blueScore: {} }
-      })
-    )
+  private static populateEmptyMatchScore (
+    partialScore: Partial<MatchScoreInMemory> &
+    Pick<MatchScoreInMemory, 'id' | 'round'>
+  ): MatchScoreInMemory {
+    const defaultScore = new DefaultMatchScore()
+    return {
+      ...partialScore,
+      redScore: partialScore.redScore ?? defaultScore.redScore,
+      blueScore: partialScore.blueScore ?? defaultScore.blueScore,
+      autonWinner: partialScore.autonWinner ?? defaultScore.autonWinner,
+      metadata: partialScore.metadata ?? defaultScore.metadata,
+      locked: partialScore.locked ?? defaultScore.locked
+    }
   }
 
-  private readonly logger = new Logger(MatchScoreDatabase.name)
-  // copy all scores into memoryDB and lock them
-  async onApplicationBootstrap (): Promise<void> {
-    await this.createEmptyMatchScore(
-      ...Array(100)
-        .fill(0)
-        .map((e, i) => i)
+  public async getMostRecentSavedMatchScore (
+    matchId: number
+  ): Promise<MatchScore | null> {
+    const savedScore = await this.prisma.matchScore.findFirst({
+      where: { matchId },
+      orderBy: { timeSaved: 'desc' }
+    })
+    if (savedScore === null) return null
+    const parsedScore: RecursivePartialMatchScore = { locked: true }
+    for (const forLoopKey in savedScore) {
+      const key: keyof MatchScoreInPrisma = forLoopKey as keyof MatchScoreInPrisma
+      const value = savedScore[key]
+      switch (key) {
+        case 'redScore':
+        case 'blueScore':
+        case 'metadata':
+          if (typeof value === 'string') { parsedScore[key] = JSON.parse(value) }
+          break
+        case 'autonWinner':
+          if (typeof value === 'string') { parsedScore.autonWinner = value as AUTON_WINNER }
+          break
+        case 'matchId':
+        case 'scoreId':
+        case 'timeSaved':
+          break
+        default:{
+          const _exhaustiveCheck: never = key
+          return _exhaustiveCheck
+        }
+      }
+    }
+    return plainToClass(MatchScore, parsedScore)
+  }
+
+  public async hydrateInMemoryDB (matches: MatchDetails[]): Promise<void> {
+    await Promise.all(
+      matches.map(async ({ matchId, round }) => {
+        this.cache.create(
+          MatchScoreDatabase.populateEmptyMatchScore({
+            ...(await this.getMostRecentSavedMatchScore(matchId) ?? {}),
+            id: matchId.toString(),
+            round
+          })
+        )
+      })
     )
   }
 
@@ -61,82 +109,90 @@ export class MatchScoreDatabase {
     })
     const memScore = this.getWorkingScore(matchId)
     for (const forLoopKey in partialScore) {
-      const key: keyof RecursivePartialMatchScore = forLoopKey as keyof RecursivePartialMatchScore
+      const key: keyof RecursivePartialMatchScore =
+        forLoopKey as keyof RecursivePartialMatchScore
       const value = partialScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
-          if (memScore[key] === undefined) memScore[key] = {}
           // look at that lodash thing: https://www.geeksforgeeks.org/lodash-_-merge-method/
           memScore[key] = { ...memScore[key], ...partialScore[key] }
           break
         case 'locked':
-          if (typeof value === 'boolean') memScore.locked = value
-          else {
-            // throw error probably?
-          }
+          if (typeof value === 'boolean') { memScore.locked = value }
           break
         case 'autonWinner':
-          // @Todo better check if prop is AUTON_WINNER
-          if (typeof value === 'string') {
-            memScore.autonWinner = value
-          } else {
-            // throw error
-          }
+          if (typeof value === 'string') { memScore.autonWinner = value }
+
           break
         case 'metadata': {
           const metadata = partialScore.metadata
-          if ((metadata == null) || typeof metadata !== 'object') break
-          if ((memScore.metadata == null) || typeof memScore.metadata !== 'object') break
+          if (metadata == null || typeof metadata !== 'object') break
+          if (
+            memScore.metadata == null ||
+            typeof memScore.metadata !== 'object'
+          ) break
+
           if ('red' in metadata) {
-            // @todo make memScore completely required
-            memScore.metadata.red = { ...memScore.metadata.red, ...metadata.red }
+            memScore.metadata.red = {
+              ...memScore.metadata.red,
+              ...metadata.red
+            }
           }
+
           if ('blue' in metadata) {
-            // @todo make memScore completely required
-            memScore.metadata.blue = { ...memScore.metadata.blue, ...metadata.blue }
+            memScore.metadata.blue = {
+              ...memScore.metadata.blue,
+              ...metadata.blue
+            }
           }
         }
-        // ts-standard error that I cant be bothered to deal with:
-        // Unexpected lexical declaration in case block. (no-case-declarations)
+          break
 
-        // default:
-        //   const _exhaustiveCheck: never = key
-        //   return _exhaustiveCheck
+        default: {
+          const _exhaustiveCheck: never = key
+          return _exhaustiveCheck
+        }
       }
     }
     this.cache.update(memScore)
   }
 
   async saveScore (matchId: number): Promise<void> {
-    const fullMemScore = plainToClass(FullMatchScoreInMemory, this.getWorkingScore(matchId))
+    const memScore = plainToClass(
+      MatchScoreInMemory,
+      this.getWorkingScore(matchId)
+    )
     // used to validate completeness of fullMemScore
-    await validateOrReject(fullMemScore, {
+    await validateOrReject(memScore, {
       whitelist: true,
       forbidUnknownValues: true
     })
     const score: Partial<MatchScoreInPrismaCreationData> = {}
-    for (const forLoopKey in fullMemScore) {
-      const key: keyof MatchScoreInMemory = forLoopKey as keyof MatchScoreInMemory
-      const value = fullMemScore[key]
+    for (const forLoopKey in memScore) {
+      const key: keyof MatchScoreInMemory =
+        forLoopKey as keyof MatchScoreInMemory
+      const value = memScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
+        case 'metadata':
           score[key] = JSON.stringify(value)
           break
         case 'autonWinner':
           if (value !== undefined) score.autonWinner = value as AUTON_WINNER
           break
-        case 'locked':
-          break
         case 'id':
           score.matchId = Number(value)
           break
-        // ts-standard error that I cant be bothered to deal with:
-        // Unexpected lexical declaration in case block. (no-case-declarations)
-        // default:
-        //   const _exhaustiveCheck: never = key
-        //   return _exhaustiveCheck
+        case 'locked':
+        case 'round':
+          break
+
+        default: {
+          const _exhaustiveCheck: never = key
+          return _exhaustiveCheck
+        }
       }
     }
     const checkableScore = plainToClass(MatchScoreInPrismaCreationData, score)

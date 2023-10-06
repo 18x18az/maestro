@@ -10,6 +10,8 @@ import { MatchScoreService } from './matchScore.service'
 import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
 import { IsEnum, IsInt, IsPositive } from 'class-validator'
 import { Transform } from 'class-transformer'
+import { EventPattern } from '@nestjs/microservices'
+import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
 
 class MatchScoreParams {
   @IsPositive()
@@ -48,5 +50,10 @@ export class MatchScoreController {
   @Post('unlock')
   async unlockScore (@Param() params: MatchScoreParams): Promise<void> {
     await this.service.unlockScore(params.matchId)
+  }
+
+  @EventPattern('qualification/matches')
+  async handleQualMatches (matches: QualMatch[]): Promise<void> {
+    await this.service.handleQualMatches(matches)
   }
 }

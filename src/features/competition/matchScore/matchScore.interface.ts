@@ -2,8 +2,7 @@ import {
   ApiProperty,
   IntersectionType,
   OmitType,
-  PartialType,
-  PickType
+  PartialType
 } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import {
@@ -29,6 +28,12 @@ export enum MATCH_ROUND {
   QUALIFICATION = 'qual',
   ELIMINATION = 'elim'
 }
+
+export interface MatchDetails {
+  matchId: number
+  round: string
+}
+
 enum ELEVATION {
   NONE = 'none',
   A = 'a',
@@ -50,7 +55,9 @@ class AllianceMetadata {
   @IsEnum(TEAM_METADATA)
   @ApiProperty({
     description: 'Whether the first team no-show-ed or dq-ed in the match',
-    example: 'none'
+    example: 'none',
+    enum: TEAM_METADATA,
+    default: 'none'
   })
     team1: TEAM_METADATA
 
@@ -64,14 +71,17 @@ class AllianceMetadata {
   @IsEnum(TEAM_METADATA)
   @ApiProperty({
     description: 'Whether the first team no-show-ed or dq-ed in the match',
-    example: 'none'
+    example: 'none',
+    enum: TEAM_METADATA,
+    default: 'none'
   })
     team2: TEAM_METADATA
 
   @IsBoolean({ groups: ['meta.qual'] })
   @ApiProperty({
     description: 'Whether the alliance was awarded the Autonomous Win Point',
-    example: false
+    example: false,
+    default: false
   })
     autonWinPoint: boolean
 }
@@ -92,7 +102,8 @@ export class AllianceScore {
   @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's goal",
-    example: 3
+    example: 3,
+    default: 0
   })
     goalTriballs: number
 
@@ -103,7 +114,8 @@ export class AllianceScore {
   @IsInt()
   @ApiProperty({
     description: "Number of balls in the alliance's offensive zone",
-    example: 3
+    example: 3,
+    default: 0
   })
     zoneTriballs: number
 
@@ -112,7 +124,8 @@ export class AllianceScore {
   @IsInt()
   @ApiProperty({
     description: "Number of alliance's triballs in either goal",
-    example: 1
+    example: 1,
+    default: 0
   })
     allianceTriballsInGoal: number
 
@@ -123,7 +136,8 @@ export class AllianceScore {
   @IsInt()
   @ApiProperty({
     description: "Number of alliance's triballs in either offensive zone",
-    example: 1
+    example: 1,
+    default: 0
   })
     allianceTriballsInZone: number
 
@@ -132,7 +146,8 @@ export class AllianceScore {
     description: 'Elevation level of the first robot on the alliance',
     example: ELEVATION.B,
     enum: ELEVATION,
-    enumName: 'ELEVATION'
+    enumName: 'ELEVATION',
+    default: 'none'
   })
     robot1Tier: ELEVATION
 
@@ -141,7 +156,8 @@ export class AllianceScore {
     description: 'Elevation level of the second robot on the alliance',
     example: ELEVATION.B,
     enum: ELEVATION,
-    enumName: 'ELEVATION'
+    enumName: 'ELEVATION',
+    default: 'none'
   })
     robot2Tier: ELEVATION
 }
@@ -173,7 +189,8 @@ export class MatchScore {
   @ApiProperty({
     description: 'Auton winner',
     example: AUTON_WINNER.RED,
-    enum: AUTON_WINNER
+    enum: AUTON_WINNER,
+    default: 'none'
   })
     autonWinner: AUTON_WINNER
 
@@ -181,10 +198,38 @@ export class MatchScore {
   @ApiProperty({
     description:
       'Prevents modification when locked and prevents saving to DB when unlocked',
-    example: false
+    example: false,
+    default: false
   })
     locked: boolean
 }
+
+class DefaultAllianceScore extends AllianceScore {
+  goalTriballs: number = 0
+  zoneTriballs: number = 0
+  allianceTriballsInGoal: number = 0
+  allianceTriballsInZone: number = 0
+  robot1Tier: ELEVATION = ELEVATION.NONE
+  robot2Tier: ELEVATION = ELEVATION.NONE
+}
+class DefaultAllianceMetadata extends AllianceMetadata {
+  team1: TEAM_METADATA = TEAM_METADATA.NONE
+  team2: TEAM_METADATA = TEAM_METADATA.NONE
+  autonWinPoint: boolean = false
+}
+class DefaultMatchScoreMetadata extends MatchScoreMetadata {
+  red: AllianceMetadata = new DefaultAllianceMetadata()
+  blue: AllianceMetadata = new DefaultAllianceMetadata()
+}
+
+export class DefaultMatchScore extends MatchScore {
+  redScore: AllianceScore = new DefaultAllianceScore()
+  blueScore: AllianceScore = new DefaultAllianceScore()
+  metadata: MatchScoreMetadata = new DefaultMatchScoreMetadata()
+  autonWinner: AUTON_WINNER = AUTON_WINNER.NONE
+  locked: boolean = false
+}
+
 class PartialAllianceScore extends PartialType(AllianceScore) {}
 class PartialAllianceMetadata extends PartialType(AllianceMetadata) {}
 
@@ -232,20 +277,20 @@ export class MatchScoreUpdate extends OmitType(RecursivePartialMatchScore, [
   'locked'
 ] as const) {}
 
-class IdForMatchScoreInMemory {
+class AdditionalInfoForMatchScoreInMemory {
   @ApiProperty()
   @IsString()
     id: string
+
+  @ApiProperty()
+  @IsString()
+    round: string
 }
 export class MatchScoreInMemory extends IntersectionType(
-  MatchScoreUpdate,
-  IdForMatchScoreInMemory,
-  PickType(MatchScore, ['locked'] as const)
-) {}
-export class FullMatchScoreInMemory extends IntersectionType(
   MatchScore,
-  IdForMatchScoreInMemory
+  AdditionalInfoForMatchScoreInMemory
 ) {}
+
 // export type MatchScoreInMemory = { id: string } & RecursivePartial<
 // Omit<MatchScore, 'locked'>
 // > &
@@ -312,6 +357,6 @@ RecursivePartial<MatchScore>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _CheckFullMatchScoreInMemory = MutuallyAssignable<
-FullMatchScoreInMemory,
+MatchScoreInMemory,
 RecursiveRequired<MatchScoreInMemory>
 >

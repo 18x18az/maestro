@@ -3,6 +3,7 @@ import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
 import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
 import { validate } from 'class-validator'
+import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
 
 @Injectable()
 export class MatchScoreService {
@@ -59,5 +60,9 @@ export class MatchScoreService {
   async unlockScore (matchId: number): Promise<void> {
     this.logger.log(`Unlocking score for Match.${matchId}`)
     await this.database.unlockScore(matchId)
+  }
+
+  async handleQualMatches (matches: QualMatch[]): Promise<void> {
+    await this.database.hydrateInMemoryDB(matches.map(({ id }) => { return { matchId: id, round: 'qual' } }))
   }
 }
