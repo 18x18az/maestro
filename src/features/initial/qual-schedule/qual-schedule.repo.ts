@@ -97,11 +97,11 @@ export class QualScheduleRepo {
         number: match.number,
         red: {
           team1: match.red.team1Number,
-          team2: match.red.team2Number !== null ? match.red.team2Number : undefined
+          team2: match.red.team2Number ?? undefined
         },
         blue: {
           team1: match.blue.team1Number,
-          team2: match.blue.team2Number !== null ? match.blue.team2Number : undefined
+          team2: match.blue.team2Number ?? undefined
         }
       }
     })
