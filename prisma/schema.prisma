@@ -20,6 +20,11 @@ model GenericPersistent {
   value String
 }
 
+model Division {
+  id Int @id @default(autoincrement())
+  name String
+}
+
 model Team {
   number        String              @unique
   name          String
@@ -29,6 +34,58 @@ model Team {
   ageGroup      String
   checkIn       CheckIn?
   checkedPoints CheckedInspection[]
+  team1 Alliance[] @relation(name: "team1")
+  team2 Alliance[] @relation(name: "team2")
+}
+
+model Alliance {
+  id Int @id @default(autoincrement())
+
+  team1 Team @relation(fields: [team1Number], references: [number], name: "team1")
+  team1Number String
+  team2 Team? @relation(fields: [team1Number], references: [number], name: "team2")
+  team2Number String?
+
+  red Match[] @relation(name: "red")
+  blue Match[] @relation(name: "blue")
+}
+
+model MatchBlock {
+  id Int @id @default(autoincrement())
+  start String
+
+  firstMatch ScheduledMatch? @relation(fields: [firstMatchId], references: [id])
+  firstMatchId Int? @unique
+}
+
+model Match {
+  id Int @id @default(autoincrement())
+
+  red Alliance @relation(fields: [redId], references: [id], name: "red")
+  redId Int
+
+  blue Alliance @relation(fields: [blueId], references: [id], name: "blue")
+  blueId Int
+
+  round String
+  number Int
+
+  scheduled ScheduledMatch[]
+}
+
+model ScheduledMatch {
+  id Int @id @default(autoincrement())
+
+  match Match @relation(fields: [matchId], references: [id])
+  matchId Int
+
+  nextMatch ScheduledMatch? @relation(fields: [nextMatchId], references: [id], name: "link")
+  nextMatchId Int? @unique
+  previousMatch ScheduledMatch? @relation(name: "link") 
+
+  block MatchBlock?
+
+  resolution Int
 }
 
 model CheckIn {
