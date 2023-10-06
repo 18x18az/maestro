@@ -1,7 +1,10 @@
-import { DivisionCreate } from '../division/division.interface'
+import { DivisionsCreate } from '../division/division.interface'
 
-const mockDivision: DivisionCreate[] = [
-  { name: 'Division 1' }
-]
+const mockDivision: DivisionsCreate = {
+  divisions: [
+    { name: 'Division 1' }
+  ]
+
+}
 
 export default mockDivision
