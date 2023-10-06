@@ -13,7 +13,6 @@ import {
   QUAL_TEAM_METADATA,
   RecursivePartialMatchScore
 } from './matchScore.interface'
-import { validateOrReject } from 'class-validator'
 
 @Injectable()
 export class MatchScoreDatabase {
@@ -119,11 +118,6 @@ export class MatchScoreDatabase {
     matchId: number,
     partialScore: RecursivePartialMatchScore
   ): Promise<void> {
-    await validateOrReject(partialScore, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true
-    })
     const memScore = this.getWorkingScore(matchId)
     for (const forLoopKey in partialScore) {
       const key: keyof RecursivePartialMatchScore =

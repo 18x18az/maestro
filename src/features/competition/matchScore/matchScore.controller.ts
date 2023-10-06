@@ -49,6 +49,7 @@ export class MatchScoreController {
   }
 
   @Post(makeRoute('save'))
+  @UsePipes(new ValidationPipe({ transform: true }))
   async saveScore (@Param() params: MatchScoreParams): Promise<void> {
     await this.service.saveScore(params.matchId, params.type)
   }
