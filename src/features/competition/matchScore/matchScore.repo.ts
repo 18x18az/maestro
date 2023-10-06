@@ -36,18 +36,26 @@ export class MatchScoreDatabase {
     }
   }
 
-  public async getMostRecentSavedMatchScore (
+  /** retrieves most recent match score with matchId */
+  public async getFinalMatchScoreInPrisma (
     matchId: number
-  ): Promise<MatchScore | null> {
-    const savedScore = await this.prisma.matchScore.findFirst({
+  ): Promise<MatchScoreInPrisma | null> {
+    const savedScore: Omit<MatchScoreInPrisma, 'autonWinner'> & { autonWinner: string } | null = await this.prisma.matchScore.findFirst({
       where: { matchId },
       orderBy: { timeSaved: 'desc' }
     })
     if (savedScore === null) return null
-    const parsedScore: RecursivePartialMatchScore = { locked: true }
-    for (const forLoopKey in savedScore) {
+    return plainToClass(MatchScoreInPrisma, savedScore)
+  }
+
+  /** retrieves most recent match score with matchId */
+  async getFinalSavedMatchScore (matchId: number): Promise<MatchScore | null> {
+    const prismaScore = await this.getFinalMatchScoreInPrisma(matchId)
+    if (prismaScore === null) return null
+    const parsedScore: Partial<MatchScore> = { locked: true }
+    for (const forLoopKey in prismaScore) {
       const key: keyof MatchScoreInPrisma = forLoopKey as keyof MatchScoreInPrisma
-      const value = savedScore[key]
+      const value = prismaScore[key]
       switch (key) {
         case 'redScore':
         case 'blueScore':
@@ -55,7 +63,7 @@ export class MatchScoreDatabase {
           if (typeof value === 'string') { parsedScore[key] = JSON.parse(value) }
           break
         case 'autonWinner':
-          if (typeof value === 'string') { parsedScore.autonWinner = value as AUTON_WINNER }
+          parsedScore[key] = prismaScore[key]
           break
         case 'matchId':
         case 'scoreId':
@@ -75,7 +83,7 @@ export class MatchScoreDatabase {
       matches.map(async ({ matchId, round }) => {
         this.cache.create(
           MatchScoreDatabase.populateEmptyMatchScore({
-            ...(await this.getMostRecentSavedMatchScore(matchId) ?? {}),
+            ...(await this.getFinalSavedMatchScore(matchId) ?? {}),
             id: matchId.toString(),
             round
           })

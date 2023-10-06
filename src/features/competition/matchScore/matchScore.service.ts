@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
 import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
@@ -13,6 +13,17 @@ export class MatchScoreService {
   ) {}
 
   private readonly logger = new Logger(MatchScoreService.name)
+
+  private async publishSavedScore (matchId: number): Promise<void> {
+    const prismaScore = await this.database.getFinalMatchScoreInPrisma(matchId)
+    if (prismaScore === null) throw new InternalServerErrorException()
+    await this.publisher.publishFinalScore(matchId, prismaScore)
+  }
+
+  private async publishWorkingScore (matchId: number): Promise<void> {
+    // @todo should remove id and round
+    await this.publisher.publishWorkingScore(matchId, this.database.getWorkingScore(matchId))
+  }
 
   async updateScore (
     matchId: number,
@@ -33,6 +44,7 @@ export class MatchScoreService {
       throw new BadRequestException()
     }
     await this.database.updateScore(matchId, partialScore)
+    await this.publishWorkingScore(matchId)
   }
 
   async saveScore (matchId: number, matchType: MATCH_ROUND): Promise<void> {
@@ -50,6 +62,7 @@ export class MatchScoreService {
       throw new BadRequestException()
     }
     await this.database.saveScore(matchId)
+    await this.publishSavedScore(matchId)
   }
 
   async lockScore (matchId: number): Promise<void> {
@@ -63,6 +76,14 @@ export class MatchScoreService {
   }
 
   async handleQualMatches (matches: QualMatch[]): Promise<void> {
-    await this.database.hydrateInMemoryDB(matches.map(({ id }) => { return { matchId: id, round: 'qual' } }))
+    await Promise.all(
+      [
+        Promise.allSettled(matches.map(async ({ id }) => await this.publishSavedScore(id).catch())),
+        (async () => {
+          await this.database.hydrateInMemoryDB(matches.map(({ id }) => { return { matchId: id, round: 'qual' } }))
+          await Promise.all(matches.map(async ({ id }) => await this.publishWorkingScore(id).catch()))
+        })()
+      ]
+    )
   }
 }

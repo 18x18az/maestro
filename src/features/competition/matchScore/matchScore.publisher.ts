@@ -16,7 +16,7 @@ export class MatchScorePublisher {
     await this.publisher.broadcast(makeTopic(false, matchId), score)
   }
 
-  @Publisher('match/:matchId/score/final')
+  @Publisher('match/:matchId/score/saved')
   async publishFinalScore (matchId: number, @Payload({}) score: MatchScoreInPrisma): Promise<void> {
     await this.publisher.broadcast(makeTopic(true, matchId), score)
   }

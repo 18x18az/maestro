@@ -7,7 +7,7 @@ import {
 import { Type } from 'class-transformer'
 import {
   IsBoolean,
-  IsDateString,
+  IsDate,
   IsEnum,
   IsInt,
   IsJSON,
@@ -333,8 +333,8 @@ class HasScoreId {
 }
 class HasTimeSaved {
   @ApiProperty()
-  @IsDateString() // might be correct decorator (im not sure)
-    timeSaved: string
+  @IsDate() // might be correct decorator (im not sure)
+    timeSaved: Date
 }
 export class MatchScoreInPrisma extends IntersectionType(
   MatchScoreInPrismaCreationData,
