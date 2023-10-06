@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger
+} from '@nestjs/common'
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
 import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
@@ -14,20 +19,25 @@ export class MatchScoreService {
 
   private readonly logger = new Logger(MatchScoreService.name)
 
-  private async publishSavedScore (matchId: number): Promise<void> {
+  private async publishSavedScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     const prismaScore = await this.database.getFinalMatchScoreInPrisma(matchId)
     if (prismaScore === null) throw new InternalServerErrorException()
-    await this.publisher.publishFinalScore(matchId, prismaScore)
+    await this.publisher.publishFinalScore(matchId, round, prismaScore)
   }
 
-  private async publishWorkingScore (matchId: number): Promise<void> {
+  private async publishWorkingScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     // @todo should remove id and round
-    await this.publisher.publishWorkingScore(matchId, this.database.getWorkingScore(matchId))
+    await this.publisher.publishWorkingScore(
+      matchId,
+      round,
+      this.database.getWorkingScore(matchId)
+    )
   }
 
   async updateScore (
     matchId: number,
-    partialScore: MatchScoreUpdate
+    partialScore: MatchScoreUpdate,
+    round: MATCH_ROUND
   ): Promise<void> {
     console.log(partialScore)
     this.logger.log(`Updating score for Match.${matchId}`)
@@ -38,31 +48,32 @@ export class MatchScoreService {
       throw new BadRequestException()
     }
     if (this.database.getLockState(matchId)) {
-      this.logger.warn(
-        `MatchScore.${matchId} is locked`
-      )
+      this.logger.warn(`MatchScore.${matchId} is locked`)
       throw new BadRequestException()
     }
     await this.database.updateScore(matchId, partialScore)
-    await this.publishWorkingScore(matchId)
+    await this.publishWorkingScore(matchId, round)
   }
 
-  async saveScore (matchId: number, matchType: MATCH_ROUND): Promise<void> {
+  async saveScore (matchId: number, round: MATCH_ROUND): Promise<void> {
     this.logger.log(`Saving score for Match.${matchId} to database`)
     try {
-      await validate(this.database.getWorkingScore(matchId), { groups: [`meta.${matchType}`], whitelist: true, forbidNonWhitelisted: true, forbidUnknownValues: true })
+      await validate(this.database.getWorkingScore(matchId), {
+        groups: [`meta.${round}`],
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true
+      })
     } catch {
       this.logger.warn(`Metadata check for Match.${matchId} failed`)
       throw new BadRequestException()
     }
     if (!this.database.getLockState(matchId)) {
-      this.logger.warn(
-        `MatchScore.${matchId} is not locked`
-      )
+      this.logger.warn(`MatchScore.${matchId} is not locked`)
       throw new BadRequestException()
     }
     await this.database.saveScore(matchId)
-    await this.publishSavedScore(matchId)
+    await this.publishSavedScore(matchId, round)
   }
 
   async lockScore (matchId: number): Promise<void> {
@@ -75,15 +86,27 @@ export class MatchScoreService {
     await this.database.unlockScore(matchId)
   }
 
+  async handleMatches (matches: Array<{ id: number, round: MATCH_ROUND }>): Promise<void> {
+    await Promise.all([
+      Promise.allSettled(
+        matches.map(async ({ id, round }) => await this.publishSavedScore(id, round).catch())
+      ),
+      this.database
+        .hydrateInMemoryDB(
+          matches.map(({ id, round }) => {
+            return { matchId: id, round }
+          })
+        )
+        .then(
+          async () =>
+            await Promise.all(
+              matches.map(async ({ id, round }) => await this.publishWorkingScore(id, round))
+            )
+        )
+    ])
+  }
+
   async handleQualMatches (matches: QualMatch[]): Promise<void> {
-    await Promise.all(
-      [
-        Promise.allSettled(matches.map(async ({ id }) => await this.publishSavedScore(id).catch())),
-        (async () => {
-          await this.database.hydrateInMemoryDB(matches.map(({ id }) => { return { matchId: id, round: 'qual' } }))
-          await Promise.all(matches.map(async ({ id }) => await this.publishWorkingScore(id).catch()))
-        })()
-      ]
-    )
+    await this.handleMatches(matches.map(({ id }) => { return { id, round: MATCH_ROUND.QUALIFICATION } }))
   }
 }

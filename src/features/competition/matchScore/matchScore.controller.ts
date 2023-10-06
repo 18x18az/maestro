@@ -34,7 +34,7 @@ export class MatchScoreController {
     @Param() params: MatchScoreParams,
       @Body() partialScore: MatchScoreUpdate
   ): Promise<void> {
-    await this.service.updateScore(params.matchId, partialScore)
+    await this.service.updateScore(params.matchId, partialScore, params.type)
   }
 
   @Post('save')
