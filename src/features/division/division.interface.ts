@@ -9,3 +9,8 @@ export class Division {
 }
 
 export class DivisionCreate extends OmitType(Division, ['id'] as const) {}
+
+export class DivisionsCreate {
+  @ApiProperty({ description: 'Divisions to create' })
+    divisions: DivisionCreate[]
+}
