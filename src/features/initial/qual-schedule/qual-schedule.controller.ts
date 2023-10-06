@@ -1,6 +1,7 @@
-import { Controller, Post } from '@nestjs/common'
+import { Body, Controller, Post } from '@nestjs/common'
 import { QualScheduleService } from './qual-schedule.service'
 import { EventPattern } from '@nestjs/microservices'
+import { QualScheduleUpload } from './qual-schedule.interface'
 
 @Controller('qualSchedule')
 export class QualScheduleController {
@@ -14,5 +15,10 @@ export class QualScheduleController {
   @Post('generate')
   async getQualSchedule (): Promise<void> {
     await this.qualScheduleService.generateQualSchedule()
+  }
+
+  @Post('')
+  async uploadQualSchedule (@Body() schedule: QualScheduleUpload): Promise<void> {
+    await this.qualScheduleService.uploadQualSchedule(schedule)
   }
 }
