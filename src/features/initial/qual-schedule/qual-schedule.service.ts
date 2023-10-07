@@ -46,6 +46,8 @@ export class QualScheduleService {
     await Promise.all(schedule.blocks.map(async block => {
       await this.storeMatchBlock(block)
     }))
+
+    await this.broadcastQualSchedule()
   }
 
   async broadcastQualSchedule (): Promise<void> {
