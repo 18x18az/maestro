@@ -8,7 +8,6 @@ import {
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
 import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
-import { validate } from 'class-validator'
 import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
 
 @Injectable()
@@ -77,17 +76,6 @@ export class MatchScoreService {
     this.logger.log(`Saving score for Match.${matchId} to database`)
     this.checkMatchExists(matchId)
     this.checkRound(matchId, round)
-    try {
-      await validate(this.database.getWorkingScore(matchId), {
-        groups: [`meta.${round}`],
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        forbidUnknownValues: true
-      })
-    } catch {
-      this.logger.warn(`Metadata check for Match.${matchId} failed`)
-      throw new BadRequestException()
-    }
     if (!this.database.getLockState(matchId)) {
       this.logger.warn(`MatchScore.${matchId} is not locked`)
       throw new BadRequestException()
@@ -110,7 +98,7 @@ export class MatchScoreService {
     await this.database.unlockScore(matchId)
   }
 
-  async handleMatches (matches: Array<{ id: number, round: MATCH_ROUND }>): Promise<void> {
+  async handleMatches (matches: Array<QualMatch & { round: MATCH_ROUND }>): Promise<void> {
     await Promise.all([
       Promise.allSettled(
         matches.map(async ({ id, round }) => await this.publishSavedScore(id, round).catch())
@@ -132,6 +120,6 @@ export class MatchScoreService {
 
   async handleQualMatches (matches: QualMatch[]): Promise<void> {
     this.logger.log(`Handling ${matches.length} QualMatches`)
-    await this.handleMatches(matches.map(({ id }) => { return { id, round: MATCH_ROUND.QUALIFICATION } }))
+    await this.handleMatches(matches.map((match) => { return { ...match, round: MATCH_ROUND.QUALIFICATION } }))
   }
 }

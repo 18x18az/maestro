@@ -10,7 +10,6 @@ import {
   IsDate,
   IsEnum,
   IsInt,
-  IsJSON,
   IsPositive,
   Max,
   Min,
@@ -214,18 +213,20 @@ export class BaseMatchScore {
     locked: boolean
 }
 
-export class QualMatchScore extends BaseMatchScore {
+class HasQualMatchScoreMetadata {
   @ValidateNested()
   @Type(() => QualMatchScoreMetadata)
   @ApiProperty({ description: 'Data about the match that is independent of the current game', type: QualMatchScoreMetadata })
     metadata: QualMatchScoreMetadata
 }
-export class ElimMatchScore extends BaseMatchScore {
+class HasElimMatchScoreMetadata {
   @ValidateNested()
   @Type(() => ElimMatchScoreMetadata)
   @ApiProperty({ description: 'Data about the match that is independent of the current game', type: ElimMatchScoreMetadata })
     metadata: ElimMatchScoreMetadata
 }
+export class QualMatchScore extends IntersectionType(HasQualMatchScoreMetadata, BaseMatchScore) {}
+export class ElimMatchScore extends IntersectionType(HasElimMatchScoreMetadata, BaseMatchScore) {}
 
 export type MatchScore = ElimMatchScore | QualMatchScore
 
@@ -336,25 +337,7 @@ export type MatchScoreInMemory = { id: string } & ((QualMatchScore & { round: MA
 // Omit<MatchScore, 'locked'>
 // > &
 // Pick<MatchScore, 'locked'>
-class SerializedAllianceScoreMatchScore {
-  @IsJSON()
-  @ApiProperty({
-    description: 'Blue team raw score'
-  })
-    redScore: string
-
-  @IsJSON()
-  @ApiProperty({
-    description: 'Blue team raw score'
-  })
-    blueScore: string
-
-  @IsJSON()
-  @ApiProperty({
-    description: 'Data about the match that is independent of the current game'
-  })
-    metadata: string
-
+class AdditionalMatchScoreFromPrismaProperties {
   @IsPositive()
   @IsInt()
   @ApiProperty({ description: 'the id of the match' })
@@ -369,8 +352,14 @@ class SerializedAllianceScoreMatchScore {
   @ApiProperty({ description: 'The time this MatchScore was saved to the database' })
     timeSaved: Date
 }
-export class MatchScoreInPrisma extends IntersectionType(SerializedAllianceScoreMatchScore, OmitType(BaseMatchScore, ['redScore', 'blueScore', 'locked'] as const)) {}
+export class BaseMatchScoreFromPrisma extends IntersectionType(AdditionalMatchScoreFromPrismaProperties, OmitType(BaseMatchScore, ['locked'] as const)) {}
 
+export class QualMatchScoreFromPrisma extends IntersectionType(BaseMatchScoreFromPrisma, HasQualMatchScoreMetadata) {}
+export class ElimMatchScoreFromPrisma extends IntersectionType(BaseMatchScoreFromPrisma, HasElimMatchScoreMetadata) {}
+
+export type MatchScoreFromPrisma = QualMatchScoreFromPrisma | ElimMatchScoreFromPrisma
+
+export type MatchScoreInPrisma = { [K in keyof MatchScoreFromPrisma]: MatchScoreFromPrisma[K] extends Date ? MatchScoreFromPrisma[K] : MatchScoreFromPrisma[K] extends object | string ? string : MatchScoreFromPrisma[K] }
 // ---------------------------
 //        Type Checks
 // ---------------------------

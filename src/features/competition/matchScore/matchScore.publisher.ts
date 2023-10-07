@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'src/utils/publish/publish.service'
-import { ElimMatchScore, MATCH_ROUND, MatchScore, MatchScoreInPrisma, QualMatchScore } from './matchScore.interface'
+import { ElimMatchScore, MATCH_ROUND, MatchScore, MatchScoreFromPrisma, QualMatchScore } from './matchScore.interface'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 
 function makeTopic (matchId: number, round: MATCH_ROUND, isFinal: boolean): string {
@@ -28,7 +28,7 @@ export class MatchScorePublisher {
   }
 
   @Publisher('match/:round/:matchId/score/saved')
-  async publishFinalScore (matchId: number, round: MATCH_ROUND, @Payload({}) score: MatchScoreInPrisma): Promise<void> {
+  async publishFinalScore (matchId: number, round: MATCH_ROUND, @Payload({}) score: MatchScoreFromPrisma): Promise<void> {
     await this.publisher.broadcast(makeTopic(matchId, round, true), score)
   }
 }

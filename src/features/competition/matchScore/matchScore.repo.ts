@@ -8,9 +8,10 @@ import {
   MatchDetails,
   MatchScore,
   MatchScoreInMemory,
-  MatchScoreInPrisma,
+  MatchScoreFromPrisma,
   QUAL_TEAM_METADATA,
-  RecursivePartialMatchScore
+  RecursivePartialMatchScore,
+  MatchScoreInPrisma
 } from './matchScore.interface'
 
 @Injectable()
@@ -67,13 +68,19 @@ export class MatchScoreDatabase {
   /** retrieves most recent match score with matchId */
   public async getFinalMatchScoreInPrisma (
     matchId: number
-  ): Promise<MatchScoreInPrisma | null> {
-    const rawSavedScore: Omit<MatchScoreInPrisma, 'autonWinner'> & { autonWinner: string } | null = await this.prisma.matchScore.findFirst({
+  ): Promise<MatchScoreFromPrisma | null> {
+    const rawSavedScore: MatchScoreInPrisma | null = await this.prisma.matchScore.findFirst({
       where: { matchId },
       orderBy: { timeSaved: 'desc' }
     })
     if (rawSavedScore === null) return null
-    const savedScore: MatchScoreInPrisma = { ...rawSavedScore, autonWinner: rawSavedScore.autonWinner as AUTON_WINNER }
+    const savedScore: MatchScoreFromPrisma = {
+      ...rawSavedScore,
+      redScore: JSON.parse(rawSavedScore.redScore),
+      blueScore: JSON.parse(rawSavedScore.blueScore),
+      metadata: JSON.parse(rawSavedScore.metadata),
+      autonWinner: rawSavedScore.autonWinner as AUTON_WINNER
+    }
     return savedScore
   }
 
@@ -81,14 +88,14 @@ export class MatchScoreDatabase {
   async getFinalSavedMatchScore (matchId: number): Promise<MatchScore | null> {
     const prismaScore = await this.getFinalMatchScoreInPrisma(matchId)
     if (prismaScore === null) return null
-    const parsedScore: MatchScore = {
+    const parsedScore = {
       locked: true,
-      redScore: JSON.parse(prismaScore.redScore),
-      blueScore: JSON.parse(prismaScore.blueScore),
-      metadata: JSON.parse(prismaScore.metadata),
+      redScore: prismaScore.redScore,
+      blueScore: prismaScore.blueScore,
+      metadata: prismaScore.metadata,
       autonWinner: prismaScore.autonWinner
     }
-    return parsedScore
+    return parsedScore as MatchScore
   }
 
   public async hydrateInMemoryDB (matches: MatchDetails[]): Promise<void> {
