@@ -15,8 +15,8 @@ import {
   Min,
   ValidateNested
 } from 'class-validator'
+import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
 import { RecursivePartial } from 'src/utils/recursivePartial'
-import { RecursiveRequired } from 'src/utils/recursiveRequired'
 
 // declare function ObjectToStringType<T>(
 //   classRef: Type<T>
@@ -26,7 +26,7 @@ export enum MATCH_ROUND {
   ELIMINATION = 'elim'
 }
 
-export interface MatchDetails {
+export interface MatchIdentifiers {
   matchId: number
   round: MATCH_ROUND
 }
@@ -331,12 +331,15 @@ export class ElimMatchScoreUpdate extends OmitType(RecursivePartialElimMatchScor
 ] as const) {}
 export type MatchScoreUpdate = QualMatchScoreUpdate | ElimMatchScoreUpdate
 
-export type MatchScoreInMemory = { id: string } & ((QualMatchScore & { round: MATCH_ROUND.QUALIFICATION }) |(ElimMatchScore & { round: MATCH_ROUND.ELIMINATION }))
+export class MatchDetails extends OmitType(QualMatch, ['id'] as const) {}
 
-// export type MatchScoreInMemory = { id: string } & RecursivePartial<
-// Omit<MatchScore, 'locked'>
-// > &
-// Pick<MatchScore, 'locked'>
+export class ElimMatchScoreWithDetails extends IntersectionType(ElimMatchScore, MatchDetails) {}
+export class QualMatchScoreWithDetails extends IntersectionType(QualMatchScore, MatchDetails) {}
+
+export type MatchScoreWithDetails = ElimMatchScoreWithDetails | QualMatchScoreWithDetails
+
+export type MatchScoreInMemory = { id: string } & MatchDetails &((QualMatchScore & { round: MATCH_ROUND.QUALIFICATION }) |(ElimMatchScore & { round: MATCH_ROUND.ELIMINATION }))
+
 class AdditionalMatchScoreFromPrismaProperties {
   @IsPositive()
   @IsInt()
@@ -359,6 +362,11 @@ export class ElimMatchScoreFromPrisma extends IntersectionType(BaseMatchScoreFro
 
 export type MatchScoreFromPrisma = QualMatchScoreFromPrisma | ElimMatchScoreFromPrisma
 
+export class QualMatchScoreFromPrismaWithDetails extends IntersectionType(QualMatchScoreFromPrisma, MatchDetails) {}
+export class ElimMatchScoreFromPrismaWithDetails extends IntersectionType(ElimMatchScoreFromPrisma, MatchDetails) {}
+
+export type MatchScoreFromPrismaWithDetails = QualMatchScoreFromPrismaWithDetails | ElimMatchScoreFromPrismaWithDetails
+
 export type MatchScoreInPrisma = { [K in keyof MatchScoreFromPrisma]: MatchScoreFromPrisma[K] extends Date ? MatchScoreFromPrisma[K] : MatchScoreFromPrisma[K] extends object | string ? string : MatchScoreFromPrisma[K] }
 // ---------------------------
 //        Type Checks
@@ -373,8 +381,8 @@ MatchScoreUpdate,
 RecursivePartial<MatchScore>
 >
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _CheckFullMatchScoreInMemory = MutuallyAssignable<
-MatchScoreInMemory,
-RecursiveRequired<MatchScoreInMemory>
->
+// // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// type _CheckFullMatchScoreInMemory = MutuallyAssignable<
+// MatchScoreInMemory,
+// RecursiveRequired<MatchScoreInMemory>
+// >

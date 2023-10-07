@@ -20,7 +20,7 @@ export class MatchScoreService {
   private readonly logger = new Logger(MatchScoreService.name)
 
   private async publishSavedScore (matchId: number, round: MATCH_ROUND): Promise<void> {
-    const prismaScore = await this.database.getFinalMatchScoreInPrisma(matchId)
+    const prismaScore = await this.database.getFinalMatchScoreFromPrismaWithDetails(matchId)
     if (prismaScore === null) throw new InternalServerErrorException()
     await this.publisher.publishFinalScore(matchId, round, prismaScore)
   }
@@ -105,8 +105,8 @@ export class MatchScoreService {
       ),
       this.database
         .hydrateInMemoryDB(
-          matches.map(({ id, round }) => {
-            return { matchId: id, round }
+          matches.map((details) => {
+            return { matchId: details.id, round: details.round, blue: details.blue, red: details.red, number: details.number }
           })
         )
         .then(

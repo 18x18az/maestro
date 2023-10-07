@@ -5,13 +5,15 @@ import {
   AUTON_WINNER,
   ELEVATION,
   MATCH_ROUND,
-  MatchDetails,
+  MatchIdentifiers,
   MatchScore,
   MatchScoreInMemory,
   MatchScoreFromPrisma,
   QUAL_TEAM_METADATA,
   RecursivePartialMatchScore,
-  MatchScoreInPrisma
+  MatchScoreInPrisma,
+  MatchDetails,
+  MatchScoreFromPrismaWithDetails
 } from './matchScore.interface'
 
 @Injectable()
@@ -22,7 +24,7 @@ export class MatchScoreDatabase {
   ) {}
 
   private static populateEmptyMatchScore (
-    params: { round: MATCH_ROUND, id: string }): MatchScoreInMemory {
+    params: { round: MATCH_ROUND, id: string } & MatchDetails): MatchScoreInMemory {
     const baseScore = {
       redScore: {
         goalTriballs: 0,
@@ -60,13 +62,13 @@ export class MatchScoreDatabase {
       }
     }
     const metadata = params.round === MATCH_ROUND.ELIMINATION ? elimMetadata : qualMetadata
-    const additional = { round: params.round, id: params.id }
+    const additional: MatchDetails & Omit<MatchIdentifiers, 'matchId'> & { id: string } = params
     const out = { metadata, ...additional, ...baseScore }
     return out as MatchScoreInMemory
   }
 
   /** retrieves most recent match score with matchId */
-  public async getFinalMatchScoreInPrisma (
+  public async getFinalMatchScoreFromPrisma (
     matchId: number
   ): Promise<MatchScoreFromPrisma | null> {
     const rawSavedScore: MatchScoreInPrisma | null = await this.prisma.matchScore.findFirst({
@@ -85,8 +87,24 @@ export class MatchScoreDatabase {
   }
 
   /** retrieves most recent match score with matchId */
+  public async getFinalMatchScoreFromPrismaWithDetails (
+    matchId: number
+  ): Promise<MatchScoreFromPrismaWithDetails | null> {
+    const prismaScore = await this.getFinalMatchScoreFromPrisma(matchId)
+    const cachedScore = this.getWorkingScore(matchId)
+    if (prismaScore === null || cachedScore === null) return null
+    const scoreWithDetails: MatchScoreFromPrismaWithDetails = {
+      ...prismaScore,
+      red: cachedScore.red,
+      blue: cachedScore.blue,
+      number: cachedScore.number
+    }
+    return scoreWithDetails
+  }
+
+  /** retrieves most recent match score with matchId */
   async getFinalSavedMatchScore (matchId: number): Promise<MatchScore | null> {
-    const prismaScore = await this.getFinalMatchScoreInPrisma(matchId)
+    const prismaScore = await this.getFinalMatchScoreFromPrisma(matchId)
     if (prismaScore === null) return null
     const parsedScore = {
       locked: true,
@@ -98,15 +116,15 @@ export class MatchScoreDatabase {
     return parsedScore as MatchScore
   }
 
-  public async hydrateInMemoryDB (matches: MatchDetails[]): Promise<void> {
+  public async hydrateInMemoryDB (matches: Array<MatchIdentifiers & MatchDetails>): Promise<void> {
     await Promise.all(
-      matches.map(async <R extends MATCH_ROUND>({ matchId, round }: { matchId: number, round: R }) => {
-        const savedScore = await this.getFinalSavedMatchScore(matchId)
-        const params = { id: matchId.toString(), round }
+      matches.map(async <R extends MATCH_ROUND>(details: MatchIdentifiers & MatchDetails & { round: R }) => {
+        const savedScore = await this.getFinalSavedMatchScore(details.matchId)
+        const params = { ...details, id: details.matchId.toString() }
         let data: MatchScoreInMemory
         if (savedScore === null) data = MatchScoreDatabase.populateEmptyMatchScore(params)
         else data = { ...savedScore as Extract<typeof savedScore, Extract<MatchScoreInMemory, { round: R } >>, ...params }
-        await this.cache.createAsync(data)
+        await this.cache.create(data)
       })
     )
   }
