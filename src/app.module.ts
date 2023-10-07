@@ -18,7 +18,7 @@ import { MockModule } from './features/mock/mock.module'
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     SetupModule,
     DivisionModule,
     InspectionModule,
