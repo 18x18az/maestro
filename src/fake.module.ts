@@ -1,4 +1,4 @@
-import { PigeonService } from 'pigeon-mqtt-nest'
+import { PigeonService } from '@alecmmiller/pigeon-mqtt-nest'
 import { WithoutPigeonModule } from './app.module'
 import { Global, Module } from '@nestjs/common'
 

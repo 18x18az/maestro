@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { PigeonModule, Transport } from 'pigeon-mqtt-nest'
+import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ConfigModule } from '@nestjs/config'
 import { SetupModule } from './features/initial/setup/setup.module'
 import { DivisionModule } from './features/division/division.module'
