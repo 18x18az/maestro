@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { PigeonService } from 'pigeon-mqtt-nest'
+import { PigeonService } from '@alecmmiller/pigeon-mqtt-nest'
 import { makeString } from '../string2json'
 
 @Injectable()
