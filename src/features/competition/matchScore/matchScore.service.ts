@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
-import { MATCH_ROUND, MatchScoreUpdate } from './matchScore.interface'
+import { MATCH_ROUND, MatchScoreUpdate, MatchScoreWithDetails } from './matchScore.interface'
 import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
 
 @Injectable()
@@ -26,11 +26,14 @@ export class MatchScoreService {
   }
 
   private async publishWorkingScore (matchId: number, round: MATCH_ROUND): Promise<void> {
-    // @todo should remove id and round
+    const { red, redScore, blue, blueScore, autonWinner, metadata, number, locked } = this.database.getWorkingScore(matchId)
+    const cleansedScore = {
+      red, redScore, blue, blueScore, autonWinner, metadata, number, locked
+    }
     await this.publisher.publishWorkingScore(
       matchId,
       round,
-      this.database.getWorkingScore(matchId)
+      cleansedScore as MatchScoreWithDetails
     )
   }
 
