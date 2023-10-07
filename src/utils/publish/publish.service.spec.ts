@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PublishService } from './publish.service'
-import { PigeonService } from 'pigeon-mqtt-nest'
+import { PigeonService } from '@alecmmiller/pigeon-mqtt-nest'
 
 describe('PublishService', () => {
   const mockPigeonService = {
