@@ -40,7 +40,7 @@
     "class-validator": "^0.14.0",
     "dgram": "^1.0.1",
     "helmet": "^7.0.0",
-    "mqtt": "^4.3.7",
+    "mqtt": "^5.1.0",
     "mqtt-connection": "^4.1.0",
     "reflect-metadata": "^0.1.13",
     "regex": "^0.1.1",
