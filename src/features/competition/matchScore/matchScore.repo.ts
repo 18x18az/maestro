@@ -9,7 +9,6 @@ import {
   MatchScore,
   MatchScoreInMemory,
   MatchScoreInPrisma,
-  MatchScoreInPrismaCreationData,
   QUAL_TEAM_METADATA,
   RecursivePartialMatchScore
 } from './matchScore.interface'
@@ -173,7 +172,7 @@ export class MatchScoreDatabase {
     const memScore = this.getWorkingScore(matchId)
 
     // used to validate completeness of fullMemScore
-    const score: MatchScoreInPrismaCreationData = {
+    const score = {
       redScore: JSON.stringify(memScore.redScore),
       blueScore: JSON.stringify(memScore.blueScore),
       metadata: JSON.stringify(memScore.metadata),

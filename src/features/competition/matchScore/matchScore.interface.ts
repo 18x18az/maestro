@@ -336,12 +336,6 @@ export type MatchScoreInMemory = { id: string } & ((QualMatchScore & { round: MA
 // Omit<MatchScore, 'locked'>
 // > &
 // Pick<MatchScore, 'locked'>
-class HasMatchId {
-  @ApiProperty()
-  @IsPositive()
-  @IsInt()
-    matchId: number
-}
 class SerializedAllianceScoreMatchScore {
   @IsJSON()
   @ApiProperty({
@@ -357,30 +351,25 @@ class SerializedAllianceScoreMatchScore {
 
   @IsJSON()
   @ApiProperty({
-    description: 'Blue team raw score'
+    description: 'Data about the match that is independent of the current game'
   })
     metadata: string
-}
-export type MatchScoreInPrismaCreationData =
-  & SerializedAllianceScoreMatchScore
-  & Omit<MatchScore, 'locked' | 'redScore' | 'blueScore' | 'metadata'>
-  & HasMatchId
 
-class HasScoreId {
-  @ApiProperty()
   @IsPositive()
   @IsInt()
+  @ApiProperty({ description: 'the id of the match' })
+    matchId: number
+
+  @IsPositive()
+  @IsInt()
+  @ApiProperty({ description: 'The id of the MatchScore' })
     scoreId: number
-}
-class HasTimeSaved {
-  @ApiProperty()
+
   @IsDate() // might be correct decorator (im not sure)
+  @ApiProperty({ description: 'The time this MatchScore was saved to the database' })
     timeSaved: Date
 }
-export type MatchScoreInPrisma =
-  & MatchScoreInPrismaCreationData
-  & HasScoreId
-  & HasTimeSaved
+export class MatchScoreInPrisma extends IntersectionType(SerializedAllianceScoreMatchScore, OmitType(BaseMatchScore, ['redScore', 'blueScore', 'locked'] as const)) {}
 
 // ---------------------------
 //        Type Checks
