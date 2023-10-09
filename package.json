@@ -34,7 +34,7 @@
     "@nestjs/microservices": "^10.2.6",
     "@nestjs/platform-express": "^10.2.6",
     "@nestjs/swagger": "^7.1.8",
-    "@prisma/client": "^4.16.2",
+    "@prisma/client": "^5.4.1",
     "axios": "^1.5.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
