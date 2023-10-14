@@ -1,0 +1,23 @@
+_id: req_c6bc93199b064f7d94b8395a6ac31795
+type: Request
+parentId: wrk_397a317aec2643078bc4eb4435c57b6e
+modified: 1696379484110
+created: 1696379464045
+url: http://localhost/api/mock/generate
+name: New Request
+description: ""
+method: POST
+body: {}
+parameters: []
+headers:
+  - name: User-Agent
+    value: Insomnia/2023.5.7
+authentication: {}
+metaSortKey: -1696379464045
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
