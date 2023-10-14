@@ -1,10 +1,31 @@
 import { Injectable } from '@nestjs/common'
 import { InspectionDatabase } from '../repo.service'
 import { INSPECTION_STAGE } from '../inspection.interface'
+import { BaseInspection } from '../consts/baseInspection'
 
 @Injectable()
 export class TeamModel {
   constructor (private readonly repo: InspectionDatabase) {}
+
+  async onApplicationBootstrap (): Promise<void> {
+    const numCriteria = await this.repo.getTotalNumberOfCriteria()
+    if (numCriteria > 0) {
+      return
+    }
+
+    const groups = Object.entries(BaseInspection)
+    const createPromises = groups.map(async ([groupName, items]) => {
+      console.log(groupName)
+      await this.repo.addGroup(groupName)
+      const itemPromises = items.map(async (item) => {
+        console.log(item)
+        await this.repo.addCriteria(groupName, item)
+      })
+      await Promise.all(itemPromises)
+    })
+
+    await Promise.all(createPromises)
+  }
 
   async markCheckinStage (team: string, status: INSPECTION_STAGE): Promise<INSPECTION_STAGE> {
     await this.repo.setCheckinStage(team, status)
