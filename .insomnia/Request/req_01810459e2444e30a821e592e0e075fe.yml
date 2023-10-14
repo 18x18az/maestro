@@ -1,0 +1,23 @@
+_id: req_01810459e2444e30a821e592e0e075fe
+type: Request
+parentId: wrk_397a317aec2643078bc4eb4435c57b6e
+modified: 1697066910396
+created: 1695996860636
+url: http://localhost/api/fields/1/runTestMatch
+name: Run test match
+description: ""
+method: POST
+body: {}
+parameters: []
+headers:
+  - name: User-Agent
+    value: Insomnia/2023.5.7
+authentication: {}
+metaSortKey: -1695996860636
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
