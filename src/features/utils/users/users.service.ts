@@ -57,6 +57,7 @@ export class UsersService {
   async removeUser (userId: number): Promise<void> {
     await this.repo.removeOne(userId)
     this.logger.log(`Removed user with id ${userId}`)
+    await this.publisher.removeUser(userId)
     await this.publishUsers()
   }
 }
