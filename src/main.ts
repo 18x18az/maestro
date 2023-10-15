@@ -17,7 +17,7 @@ async function bootstrap (): Promise<void> {
   await app.startAllMicroservices()
   app.useGlobalPipes(new ValidationPipe())
   app.use(helmet({ crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false }))
-  await app.listen(80)
+  await app.listen(2000)
 }
 
 void bootstrap()

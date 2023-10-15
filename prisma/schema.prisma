@@ -132,3 +132,10 @@ model MatchScore {
   autonWinner String
   timeSaved   DateTime @default(now())
 }
+
+model User {
+  userId Int @id @unique @default(autoincrement())
+  name String @unique @default(cuid())
+  role String @default("NONE")
+  key String
+}

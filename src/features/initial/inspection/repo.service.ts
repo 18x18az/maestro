@@ -82,4 +82,12 @@ export class InspectionDatabase {
   getStage (team: string): INSPECTION_STAGE {
     return this.getRollup(team).status
   }
+
+  async addGroup (name: string): Promise<void> {
+    await this.prisma.inspectionGroup.create({ data: { name } })
+  }
+
+  async addCriteria (groupName: string, text: string): Promise<void> {
+    await this.prisma.inspectionCriteria.create({ data: { text, groupName } })
+  }
 }
