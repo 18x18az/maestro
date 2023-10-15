@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { PublishService } from '../../../utils/publish/publish.service'
 import { Publisher, Payload } from '@alecmmiller/nestjs-client-generator'
-import { UserInfo } from './users.interface'
+import { User, UserInfo } from './users.interface'
 
 function makeUserTopic (userIdString: string): string {
-  return `user/${userIdString}`
+  return `users/${userIdString}`
 }
 
 @Injectable()
@@ -15,5 +15,15 @@ export class UserPublisher {
   async publishUser (userId: number, @Payload({}) user: UserInfo): Promise<void> {
     const topic = makeUserTopic(userId.toString())
     await this.publisher.broadcast(topic, user)
+  }
+
+  async removeUser (userId: number): Promise<void> {
+    const topic = makeUserTopic(userId.toString())
+    await this.publisher.broadcast(topic, null)
+  }
+
+  @Publisher('users')
+  async publishUsers (@Payload({ isArray: true, type: User }) users: User[]): Promise<void> {
+    await this.publisher.broadcast('users', users)
   }
 }

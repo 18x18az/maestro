@@ -1,5 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common'
-import { LocalAuthGuard } from './local-auth.guard'
+import { Body, Controller, Post } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { CreatedUser } from '../users/users.interface'
 import { UserValidation } from './auth.interface'
@@ -8,10 +7,14 @@ import { UserValidation } from './auth.interface'
 export class AuthController {
   constructor (private readonly service: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login (@Body() identity: UserValidation): Promise<void> {
-    await this.service.validateUser(identity)
+  async login (@Body() identity: UserValidation): Promise<boolean> {
+    const result = await this.service.validateUser(identity)
+    if (result === null) {
+      return false
+    } else {
+      return true
+    }
   }
 
   @Post('register')
