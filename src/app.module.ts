@@ -15,6 +15,7 @@ import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
 import { MatchScoreModule } from './features/competition/matchScore/matchScore.module'
 import { SkillsScoreModule } from './features/competition/skillsScore/skillsScore.module'
 import { MockModule } from './features/mock/mock.module'
+import { AuthModule } from './features/utils/auth/auth.module'
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { MockModule } from './features/mock/mock.module'
     FieldSetModule,
     MatchScoreModule,
     SkillsScoreModule,
-    MockModule
+    MockModule,
+    AuthModule
   ]
 })
 export class WithoutPigeonModule {}
