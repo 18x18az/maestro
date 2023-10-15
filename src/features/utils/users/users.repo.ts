@@ -8,7 +8,7 @@ async function databaseToUser (user: User): Promise<UserDto> {
     userId: user.userId,
     name: user.name,
     role: user.role as Role,
-    hashedKey: user.key
+    hashedToken: user.key
   }
 }
 
@@ -38,5 +38,10 @@ export class UserRepo {
     }
 
     return await databaseToUser(user)
+  }
+
+  async findAll (): Promise<UserDto[]> {
+    const users = await this.prisma.user.findMany()
+    return await Promise.all(users.map(databaseToUser))
   }
 }

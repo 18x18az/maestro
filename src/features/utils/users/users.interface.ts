@@ -5,13 +5,11 @@ export enum Role {
   CHECKIN = 'CHECKIN',
   REFEREE = 'REFEREE',
   EMCEE = 'EMCEE',
+  LOCAL = 'LOCAL',
   NONE = 'NONE'
 }
 
-export class User {
-  @ApiProperty({ example: 1, description: 'ID of the device' })
-    userId: number
-
+export class UserInfo {
   @ApiProperty({ example: 'Tablet 1', description: 'Name of the device' })
     name: string
 
@@ -19,8 +17,13 @@ export class User {
     role: Role
 }
 
+export class User extends UserInfo {
+  @ApiProperty({ example: 1, description: 'ID of the device' })
+    userId: number
+}
+
 export class UserDto extends User {
-  hashedKey: string
+  hashedToken: string
 }
 
 export class CreatedUser extends User {

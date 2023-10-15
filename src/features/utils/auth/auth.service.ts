@@ -17,9 +17,9 @@ export class AuthService {
       return null
     }
 
-    const { hashedKey, ...result } = user
+    const { hashedToken, ...result } = user
 
-    const isCorrectKey = await bcrypt.compare(payload.token, hashedKey)
+    const isCorrectKey = await bcrypt.compare(payload.token, hashedToken)
 
     if (isCorrectKey === false) {
       return null
