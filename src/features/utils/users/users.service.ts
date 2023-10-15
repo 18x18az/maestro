@@ -12,6 +12,7 @@ export class UsersService {
   async onApplicationBootstrap (): Promise<void> {
     const users = await this.repo.findAll()
     const promises = users.map(async user => await this.publishUser(user.userId, user))
+    promises.push(this.publishUsers())
     await Promise.all(promises)
   }
 
@@ -28,10 +29,34 @@ export class UsersService {
     await this.publisher.publishUser(userId, publishableUser)
   }
 
+  async publishIndividualUser (userId: number, user: User): Promise<void> {
+    await this.publishUser(userId, user)
+    await this.publishUsers()
+  }
+
+  async publishUsers (): Promise<void> {
+    const rawUsers = await this.repo.findAll()
+    const publishableUsers = rawUsers.map(user => {
+      const publishableUser: User = {
+        name: user.name,
+        role: user.role,
+        userId: user.userId
+      }
+      return publishableUser
+    })
+    await this.publisher.publishUsers(publishableUsers)
+  }
+
   async createUser (hashedToken: string): Promise<User> {
     const { hashedToken: _, ...newUser } = await this.repo.createUser(hashedToken)
     this.logger.log(`Created user with name ${newUser.name}`)
-    void this.publishUser(newUser.userId, newUser)
+    void this.publishIndividualUser(newUser.userId, newUser)
     return newUser
+  }
+
+  async removeUser (userId: number): Promise<void> {
+    await this.repo.removeOne(userId)
+    this.logger.log(`Removed user with id ${userId}`)
+    await this.publishUsers()
   }
 }

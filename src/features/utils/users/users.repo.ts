@@ -44,4 +44,12 @@ export class UserRepo {
     const users = await this.prisma.user.findMany()
     return await Promise.all(users.map(databaseToUser))
   }
+
+  async removeOne (userId: number): Promise<void> {
+    await this.prisma.user.delete({
+      where: {
+        userId
+      }
+    })
+  }
 }
