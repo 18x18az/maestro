@@ -36,5 +36,6 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 *.db
+*.db.journal
 prisma/migrations
 generated

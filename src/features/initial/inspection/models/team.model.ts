@@ -15,10 +15,8 @@ export class TeamModel {
 
     const groups = Object.entries(BaseInspection)
     const createPromises = groups.map(async ([groupName, items]) => {
-      console.log(groupName)
       await this.repo.addGroup(groupName)
       const itemPromises = items.map(async (item) => {
-        console.log(item)
         await this.repo.addCriteria(groupName, item)
       })
       await Promise.all(itemPromises)

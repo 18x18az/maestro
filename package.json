@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@alecmmiller/pigeon-mqtt-nest": "^0.0.1",
+    "@alecmmiller/nestjs-client-generator": "^1.4.5",
     "@nestjs-addons/in-memory-db": "^3.0.3",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^10.2.6",
@@ -53,7 +54,6 @@
   },
   "devDependencies": {
     "@alecmmiller/interface-generator": "^1.2.2",
-    "@alecmmiller/nestjs-client-generator": "^1.4.5",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
