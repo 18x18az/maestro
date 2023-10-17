@@ -29,6 +29,12 @@ export class StageService {
     }
   }
 
+  async receivedQuals (): Promise<void> {
+    if (await this.getStage() === EVENT_STAGE.CHECKIN) {
+      await this.setStage(EVENT_STAGE.EVENT)
+    }
+  }
+
   private async getStage (): Promise<EVENT_STAGE> {
     return await this.storage.getPersistent(EVENT_STAGE_KEY, EVENT_STAGE.SETUP) as EVENT_STAGE
   }

@@ -3,7 +3,7 @@ import { PublishService } from 'src/utils/publish/publish.service'
 import { QualMatch } from './qual-schedule.interface'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 
-const QUAL_MATCH_CHANNEL = 'qualification/matches'
+export const QUAL_MATCH_CHANNEL = 'qualification/matches'
 
 @Injectable()
 export class QualSchedulePublisher {

@@ -4,6 +4,7 @@ const mockMatches: QualScheduleUpload = {
   blocks: [
     {
       start: '2021-04-24T09:00:00.000Z',
+      cycleTime: 300,
       matches: [
         {
           redAlliance: {
