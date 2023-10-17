@@ -88,16 +88,19 @@ class AllianceSelection{
         for (const mrrp of this._operations) {
             this.applyOperation(mrrp)
         }
+        return {success: true}
     }
     buildState(){
         this.resetState()
         for (const mrrp of this._operations) {
             this.applyOperation(mrrp)
         }
+        return {success: true}
     }
     clearAllianceSelection(){
         this._operations = new Array<RankingsOperation>()
         this.resetState()
+        return {success: true}
     }
     pick(team: string){
         if(!this._state.allowed_actions.includes(ActionType.Pick)){
@@ -144,6 +147,7 @@ class AllianceSelection{
     }
 }
 
+/* Example
 let a = new AllianceSelection(["5090X", "6030J", "99067B", "127A", "2114V", "PYRO", "RIT3"])
 a.noShow()
 a.pick("127A")
@@ -156,3 +160,4 @@ a.undo()
 console.log(a.getCurrentState())
 a.buildState()
 console.log(a.getCurrentState())
+*/
