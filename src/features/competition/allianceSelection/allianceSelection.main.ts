@@ -41,14 +41,17 @@ class AllianceSelection{
         this._state.allowed_actions = [ActionType.Pick, ActionType.NoShow]
     }
     applyOperation(operation: RankingsOperation): void{
+        /**
+         * changes the state of the internal alliance selection variable based on an instruction given
+         */
         if(!this._state.allowed_actions.includes(operation.action)){
-            throw Error("action not allowed")
+            throw Error("action not allowed") // would a specific type of error be better?
         }
         if(operation.action == ActionType.Pick){
             if(!this._state.eligible.includes(operation.target as string)){
                 throw Error("team not eligible")
             }
-            this._state.picked = operation.target as string
+            this._state.picked = operation.target as string // typescript is fucking annoying sometimes
             this._state.allowed_actions = [ActionType.Accept, ActionType.Decline]
         }
         else if(operation.action == ActionType.Accept){
@@ -79,10 +82,16 @@ class AllianceSelection{
         }
     }
     addOperation(operation : RankingsOperation): void{
+        /**
+         * adds an operation to the history, and also applies it 
+         */
         this._operations.push(operation)
         this.applyOperation(operation)
     }
     undo(){
+        /**
+         * removes the previous operation from the history, and rebuilds the state
+         */
         this._operations.pop()
         this.resetState()
         for (const mrrp of this._operations) {
@@ -91,6 +100,9 @@ class AllianceSelection{
         return {success: true}
     }
     buildState(){
+        /**
+         * rebuilds the state without making changes. ideally this should never change anything and shouldn't be used
+         */
         this.resetState()
         for (const mrrp of this._operations) {
             this.applyOperation(mrrp)
@@ -98,11 +110,17 @@ class AllianceSelection{
         return {success: true}
     }
     clearAllianceSelection(){
+        /**
+         * resets all of alliance selection. make sure to add an endpoint for this so when i hack your network it will be funny!
+         */
         this._operations = new Array<RankingsOperation>()
         this.resetState()
         return {success: true}
     }
     pick(team: string){
+        /**
+         * instruct the currently picking team to pick the team specifed in the argument
+         */
         if(!this._state.allowed_actions.includes(ActionType.Pick)){
             return {success: false, error: "picking not allowed at this time"}
         }
@@ -116,6 +134,9 @@ class AllianceSelection{
         return {success: true}
     }
     accept(){
+        /**
+         * have team accept offer
+         */
         if(!this._state.allowed_actions.includes(ActionType.Accept)){
             return {success: false, error: "accepting not allowed at this time"}
         }
@@ -125,6 +146,9 @@ class AllianceSelection{
         return {success: true}
     }
     decline(){
+        /**
+         * have team decline offer
+         */
         if(!this._state.allowed_actions.includes(ActionType.Decline)){
             return {success: false, error: "declining not allowed at this time"}
         }
@@ -134,6 +158,9 @@ class AllianceSelection{
         return {success: true}
     }
     noShow(){
+        /**
+         * call this function if a picking team doesnt show up
+         */
         if(!this._state.allowed_actions.includes(ActionType.NoShow)){
             return {success: false, error: "no-showing not allowed at this time"}
         }
@@ -143,6 +170,9 @@ class AllianceSelection{
         return {success: true}
     }
     getCurrentState() : Object{
+        /**
+         *  returns the entire current state
+         */
         return this._state
     }
 }
