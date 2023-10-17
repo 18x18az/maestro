@@ -19,7 +19,7 @@ export class UserPublisher {
 
   async removeUser (userId: number): Promise<void> {
     const topic = makeUserTopic(userId.toString())
-    await this.publisher.broadcast(topic, null)
+    await this.publisher.broadcast(topic, {})
   }
 
   @Publisher('users')

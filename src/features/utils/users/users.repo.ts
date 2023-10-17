@@ -52,4 +52,36 @@ export class UserRepo {
       }
     })
   }
+
+  async setRole (userId: number, role: Role): Promise<void> {
+    await this.prisma.user.update({
+      where: {
+        userId
+      },
+      data: {
+        role
+      }
+    })
+  }
+
+  async setName (userId: number, name: string): Promise<void> {
+    await this.prisma.user.update({
+      where: {
+        userId
+      },
+      data: {
+        name
+      }
+    })
+  }
+
+  async adminsExist (): Promise<boolean> {
+    const admin = await this.prisma.user.findFirst({
+      where: {
+        role: 'ADMIN'
+      }
+    })
+
+    return admin !== null
+  }
 }

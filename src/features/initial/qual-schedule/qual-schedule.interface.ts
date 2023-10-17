@@ -25,6 +25,9 @@ export class QualScheduleBlockUpload {
   @ApiProperty({ description: 'Start time of the first match in the block in UTC', example: '2021-04-24T09:00:00.000Z' })
     start: string
 
+  @ApiProperty({ description: 'Cycle time in seconds of the block', example: 300 })
+    cycleTime: number
+
   @ApiProperty({ isArray: true, type: QualScheduleMatchUpload })
     matches: QualScheduleMatchUpload[]
 }
