@@ -45,7 +45,7 @@ async function sendTeams (teams: string[]): Promise<void> {
 }
 
 async function setEventStage (stage: EVENT_STAGE): Promise<void> {
-  await transport.mockEvent('eventStage', stage)
+  await transport.mockEvent('eventStage', { stage })
 }
 
 function haveCheckinDbReturn (stage: INSPECTION_STAGE | null): void {

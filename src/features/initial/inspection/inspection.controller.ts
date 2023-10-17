@@ -3,7 +3,7 @@ import { InspectionService } from './inspection.service'
 import { EventPattern } from '@nestjs/microservices'
 import { ApiResponse } from '@nestjs/swagger'
 import { InspectionChecklist, InspectionSectionSummary, InspectionSummary } from '../../../interfaces/inspection'
-import { EVENT_STAGE } from '../../stage/stage.interface'
+import { EVENT_STAGE_KEY, EventStage } from '../../stage'
 import { INSPECTION_STAGE } from './inspection.interface'
 
 @Controller('inspection')
@@ -16,9 +16,9 @@ export class InspectionController {
     await this.inspectionService.loadTeams(message)
   }
 
-  @EventPattern('eventStage')
-  handleEventStage (message: EVENT_STAGE): void {
-    this.inspectionService.setEventStage(message)
+  @EventPattern(EVENT_STAGE_KEY)
+  handleEventStage (message: EventStage): void {
+    this.inspectionService.setEventStage(message.stage)
   }
 
   @Post(':teamNumber/checkedIn')

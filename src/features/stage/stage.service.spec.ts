@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { StageService } from './stage.service'
 import { StorageService } from '../../utils/storage/storage.service'
-import { PublishService } from '../../utils/publish/publish.service'
 import { EVENT_STAGE } from './stage.interface'
+import { StagePublisher } from './stage.publisher'
 
 describe('StageService', () => {
   let service: StageService
@@ -13,14 +13,14 @@ describe('StageService', () => {
   }
 
   const mockPublishService = {
-    broadcast: jest.fn()
+    publishStage: jest.fn()
   }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StageService, { provide: StorageService, useValue: mockStorageService },
-        StageService, { provide: PublishService, useValue: mockPublishService }
+        StageService, { provide: StagePublisher, useValue: mockPublishService }
       ]
     }).compile()
 
@@ -42,7 +42,7 @@ describe('StageService', () => {
       await service.onApplicationBootstrap()
 
       expect(mockStorageService.setPersistent).toHaveBeenCalledWith('eventStage', EVENT_STAGE.SETUP)
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('eventStage', EVENT_STAGE.SETUP)
+      expect(mockPublishService.publishStage).toHaveBeenCalledWith({ stage: EVENT_STAGE.SETUP })
     })
 
     it('should broadcast the current stage', async () => {
@@ -50,7 +50,7 @@ describe('StageService', () => {
 
       await service.onApplicationBootstrap()
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('eventStage', EVENT_STAGE.SETUP)
+      expect(mockPublishService.publishStage).toHaveBeenCalledWith({ stage: EVENT_STAGE.SETUP })
     })
   })
 
@@ -61,16 +61,16 @@ describe('StageService', () => {
       await service.receivedTeams()
 
       expect(mockStorageService.setPersistent).toHaveBeenCalledWith('eventStage', EVENT_STAGE.CHECKIN)
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('eventStage', EVENT_STAGE.CHECKIN)
+      expect(mockPublishService.publishStage).toHaveBeenCalledWith({ stage: EVENT_STAGE.CHECKIN })
     })
 
     it('should not change the stage if it is not SETUP', async () => {
-      mockStorageService.getPersistent.mockResolvedValue(EVENT_STAGE.CHECKIN)
+      mockStorageService.getPersistent.mockResolvedValue({ stage: EVENT_STAGE.CHECKIN })
 
       await service.receivedTeams()
 
       expect(mockStorageService.setPersistent).not.toHaveBeenCalled()
-      expect(mockPublishService.broadcast).not.toHaveBeenCalled()
+      expect(mockPublishService.publishStage).not.toHaveBeenCalled()
     })
   })
 
@@ -84,7 +84,7 @@ describe('StageService', () => {
     it('should broadcast the new stage', async () => {
       await service.setStage(EVENT_STAGE.TEARDOWN)
 
-      expect(mockPublishService.broadcast).toHaveBeenCalledWith('eventStage', EVENT_STAGE.TEARDOWN)
+      expect(mockPublishService.publishStage).toHaveBeenCalledWith({ stage: EVENT_STAGE.TEARDOWN })
     })
   })
 })

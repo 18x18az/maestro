@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StorageService } from '../../utils/storage/storage.service'
-import { PublishService } from '../../utils/publish/publish.service'
-import { EVENT_STAGE } from './stage.interface'
-
-const EVENT_STAGE_KEY = 'eventStage'
+import { EVENT_STAGE, EVENT_STAGE_KEY } from './stage.interface'
+import { StagePublisher } from './stage.publisher'
 
 @Injectable()
 export class StageService {
   private readonly logger = new Logger(StageService.name)
-  constructor (private readonly storage: StorageService, private readonly publisher: PublishService) { }
+  constructor (private readonly storage: StorageService, private readonly publisher: StagePublisher) { }
 
   async onApplicationBootstrap (): Promise<void> {
     const existing = await this.getStage()
@@ -46,6 +44,6 @@ export class StageService {
   }
 
   private async broadcastStage (stage: EVENT_STAGE): Promise<void> {
-    await this.publisher.broadcast(EVENT_STAGE_KEY, stage)
+    await this.publisher.publishStage({ stage })
   }
 }
