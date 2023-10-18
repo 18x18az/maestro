@@ -55,12 +55,11 @@ export class UsersService {
     await this.publisher.publishUsers(publishableUsers)
   }
 
-  async createUser (hashedToken: string): Promise<User> {
-    const { hashedToken: _, ...newUser } = await this.repo.createUser(hashedToken)
+  async createUser (hashedToken: string, isLocal: boolean): Promise<User> {
+    const { hashedToken: _, ...newUser } = await this.repo.createUser(hashedToken, isLocal)
     this.logger.log(`Created user with name ${newUser.name}`)
-    if (!await this.repo.adminsExist()) {
-      await this.setUserRole(newUser.userId, Role.ADMIN)
-      this.logger.log('First user created, setting as admin')
+    if (isLocal) {
+      this.logger.log(`User with name ${newUser.name} is local`)
     }
     void this.publishIndividualUser(newUser.userId, newUser)
     return newUser
