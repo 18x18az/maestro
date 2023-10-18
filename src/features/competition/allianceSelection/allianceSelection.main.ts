@@ -63,16 +63,16 @@ class AllianceSelection {
 
   doAccept (): void {
     this.state.alliances.push({ captain: this.state.picking, picked: this.state.picked })
-    this.state.eligible = this.state.eligible.filter(meow => meow !== this.state.picked)
-    this.state.rankings = this.state.rankings.filter(meow => meow !== this.state.picked)
-    this.state.eligible = this.state.eligible.filter(meow => meow !== this.state.picking)
-    this.state.rankings = this.state.rankings.filter(meow => meow !== this.state.picking)
+    this.state.eligible = this.state.eligible.filter(team => team !== this.state.picked)
+    this.state.rankings = this.state.rankings.filter(team => team !== this.state.picked)
+    this.state.eligible = this.state.eligible.filter(team => team !== this.state.picking)
+    this.state.rankings = this.state.rankings.filter(team => team !== this.state.picking)
     this.clearPicked()
     this.state.picking = this.state.rankings[0]
   }
 
   doDecline (): void {
-    this.state.eligible = this.state.eligible.filter(meow => meow !== this.state.picked)
+    this.state.eligible = this.state.eligible.filter(team => team !== this.state.picked)
     if (this.state.picked !== undefined) {
       this.state.ineligible.push(this.state.picked)
     }
@@ -88,8 +88,8 @@ class AllianceSelection {
   }
 
   doNoShow (): void {
-    this.state.eligible = this.state.eligible.filter(meow => meow !== this.state.picking)
-    this.state.rankings = this.state.rankings.filter(meow => meow !== this.state.picking)
+    this.state.eligible = this.state.eligible.filter(team => team !== this.state.picking)
+    this.state.rankings = this.state.rankings.filter(team => team !== this.state.picking)
     this.state.ineligible.push(this.state.picking)
     this.state.picking = this.state.rankings[0]
     this.clearPicked()
