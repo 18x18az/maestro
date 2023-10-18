@@ -43,7 +43,7 @@
     "class-validator": "^0.14.0",
     "dgram": "^1.0.1",
     "helmet": "^7.0.0",
-    "mqtt": "^4.3.7",
+    "mqtt": "^5.1.2",
     "mqtt-connection": "^4.1.0",
     "nestjs-real-ip": "^3.0.1",
     "passport": "^0.6.0",
