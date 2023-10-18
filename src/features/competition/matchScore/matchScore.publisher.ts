@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PublishService } from 'src/utils/publish/publish.service'
+import { PublishService } from 'utils/publish/publish.service'
 import { ElimMatchScoreWithDetails, MATCH_ROUND, MatchScoreFromPrismaWithDetails, MatchScoreWithDetails, QualMatchScoreWithDetails } from './matchScore.interface'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 

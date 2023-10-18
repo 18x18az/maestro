@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { CreatedUser } from '../users/users.interface'
 import { UserValidation } from './auth.interface'
+import { RealIp } from 'nestjs-real-ip'
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +19,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async register (): Promise<CreatedUser> {
-    return await this.service.registerUser()
+  async register (@RealIp() ip: string): Promise<CreatedUser> {
+    return await this.service.registerUser(ip)
   }
 }

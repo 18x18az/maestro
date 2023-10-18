@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common'
 import { DisplaysController } from './displays.controller'
 import { DisplaysService } from './displays.service'
 import { DisplaysPublisher } from './displays.publisher'
-import { PublishService } from 'src/utils/publish/publish.service'
-import { PrismaService } from 'src/utils/prisma/prisma.service'
+import { PublishService } from 'utils/publish/publish.service'
+import { PrismaService } from 'utils/prisma/prisma.service'
 import { DisplaysDatabase } from './displays.repo'
 
 // @question should something be exported (at the moment the database is only written to)

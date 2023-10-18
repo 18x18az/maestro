@@ -8,7 +8,7 @@ import {
 import { MatchScorePublisher } from './matchScore.publisher'
 import { MatchScoreDatabase } from './matchScore.repo'
 import { MATCH_ROUND, MatchScoreUpdate, MatchScoreWithDetails } from './matchScore.interface'
-import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
+import { QualMatch } from 'features/initial/qual-schedule/qual-schedule.interface'
 
 @Injectable()
 export class MatchScoreService {

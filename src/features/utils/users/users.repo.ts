@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../utils/prisma/prisma.service'
+import { PrismaService } from '@/utils/prisma/prisma.service'
 import { Role, UserDto } from './users.interface'
 import { User } from '@prisma/client'
 
@@ -16,10 +16,12 @@ async function databaseToUser (user: User): Promise<UserDto> {
 export class UserRepo {
   constructor (private readonly prisma: PrismaService) {}
 
-  async createUser (hashedToken: string): Promise<UserDto> {
+  async createUser (hashedToken: string, isLocal: boolean): Promise<UserDto> {
+    const role = isLocal ? Role.LOCAL : Role.NONE
     const user = await this.prisma.user.create({
       data: {
-        key: hashedToken
+        key: hashedToken,
+        role
       }
     })
 

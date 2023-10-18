@@ -1,6 +1,6 @@
 import { InMemoryDBService } from '@nestjs-addons/in-memory-db'
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/utils/prisma/prisma.service'
+import { PrismaService } from 'utils/prisma/prisma.service'
 import {
   AUTON_WINNER,
   ELEVATION,
