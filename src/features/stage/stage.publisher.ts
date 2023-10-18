@@ -11,6 +11,6 @@ export class StagePublisher {
 
   @Publisher(EVENT_STAGE_KEY)
   async publishStage (@Payload({}) stage: EventStage): Promise<void> {
-    await this.publisher.broadcast('stage', stage)
+    await this.publisher.broadcast(EVENT_STAGE_KEY, stage)
   }
 }
