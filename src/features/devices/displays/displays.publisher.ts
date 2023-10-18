@@ -1,6 +1,6 @@
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
-import { PublishService } from 'src/utils/publish/publish.service'
+import { PublishService } from 'utils/publish/publish.service'
 import { DisplayConfig } from './displays.interface'
 
 const DISPLAYS_TOPIC = 'displays'

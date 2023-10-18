@@ -11,7 +11,7 @@ import { ElimMatchScoreUpdate, MATCH_ROUND, QualMatchScoreUpdate } from './match
 import { IsEnum, IsInt, IsPositive } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { EventPattern } from '@nestjs/microservices'
-import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
+import { QualMatch } from 'features/initial/qual-schedule/qual-schedule.interface'
 
 class MatchScoreParams {
   @IsPositive()

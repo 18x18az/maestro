@@ -15,8 +15,8 @@ import {
   Min,
   ValidateNested
 } from 'class-validator'
-import { QualMatch } from 'src/features/initial/qual-schedule/qual-schedule.interface'
-import { RecursivePartial } from 'src/utils/recursivePartial'
+import { QualMatch } from 'features/initial/qual-schedule/qual-schedule.interface'
+import { RecursivePartial } from 'utils/recursivePartial'
 
 // declare function ObjectToStringType<T>(
 //   classRef: Type<T>

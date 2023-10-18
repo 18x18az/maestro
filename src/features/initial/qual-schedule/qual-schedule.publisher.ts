@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PublishService } from 'src/utils/publish/publish.service'
+import { PublishService } from 'utils/publish/publish.service'
 import { QualMatch } from './qual-schedule.interface'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 

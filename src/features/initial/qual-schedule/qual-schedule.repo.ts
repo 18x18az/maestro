@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/utils/prisma/prisma.service'
+import { PrismaService } from 'utils/prisma/prisma.service'
 import { Alliance, QualMatch, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-schedule.interface'
 
 @Injectable()
