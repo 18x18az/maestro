@@ -105,22 +105,7 @@ export class SavedScoreDatabase {
     return savedScore as unknown as SavedElimMatch
   }
 
-  async saveQual (match: SavedQualMatch): Promise<void> {
-    await this.repo.matchScore.create({
-      data: {
-        matchId: match.matchId,
-        autonWinner: match.autonWinner,
-        blueScore: JSON.stringify(match.blueRaw),
-        redScore: JSON.stringify(match.redRaw),
-        metadata: JSON.stringify({
-          red: match.redMetadata,
-          blue: match.blueMetadata
-        })
-      }
-    })
-  }
-
-  async saveElim (match: SavedElimMatch): Promise<void> {
+  async saveMatch (match: SavedQualMatch | SavedElimMatch): Promise<void> {
     await this.repo.matchScore.create({
       data: {
         matchId: match.matchId,

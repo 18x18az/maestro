@@ -70,7 +70,7 @@ export class MatchScoreService {
       timeSaved: new Date()
     }
 
-    await this.saved.saveQual(savedData)
+    await this.saved.saveMatch(savedData)
     await this.publisher.publishQualSavedScore(match)
   }
 
@@ -84,7 +84,7 @@ export class MatchScoreService {
       redRaw: match.redRaw,
       timeSaved: new Date()
     }
-    await this.saved.saveElim(savedData)
+    await this.saved.saveMatch(savedData)
     await this.publisher.publishElimSavedScore(match)
   }
 
