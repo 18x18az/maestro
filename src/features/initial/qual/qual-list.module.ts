@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
-import { QualScheduleController } from './qual-schedule.controller'
-import { QualScheduleService } from './qual-schedule.service'
+import { QualListController } from './qual-list.controller'
+import { QualScheduleService } from './qual-list.service'
 import { StorageModule } from '../../../utils/storage/storage.module'
 import { PublishModule } from '../../../utils/publish/publish.module'
 import { PrismaService } from 'utils/prisma/prisma.service'
-import { QualScheduleRepo } from './qual-schedule.repo'
-import { QualSchedulePublisher } from './qual-schedule.publisher'
+import { QualScheduleRepo } from './qual-list.repo'
+import { QualSchedulePublisher } from './qual-list.publisher'
 
 @Module({
   imports: [StorageModule, PublishModule],
-  controllers: [QualScheduleController],
+  controllers: [QualListController],
   providers: [QualScheduleService, QualScheduleService, PrismaService, QualScheduleRepo, QualSchedulePublisher]
 })
-export class QualScheduleModule {}
+export class QualListModule {}

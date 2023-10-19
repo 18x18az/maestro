@@ -7,15 +7,14 @@ import { InspectionModule } from './features/initial/inspection/inspection.modul
 import { InMemoryDBModule } from '@nestjs-addons/in-memory-db'
 import { StageModule } from './features/stage/stage.module'
 import { StorageModule } from './utils/storage/storage.module'
-import { QualScheduleModule } from './features/initial/qual-schedule/qual-schedule.module'
 import { BeaconService } from './utils/discovery'
 import { DisplaysModule } from './features/devices/displays/displays.module'
 import { FieldsModule } from './features/devices/fields/fields.module'
 import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
-import { MatchScoreModule } from './features/competition/matchScore/matchScore.module'
 import { SkillsScoreModule } from './features/competition/skillsScore/skillsScore.module'
 import { MockModule } from './features/mock/mock.module'
 import { AuthModule } from './features/utils/auth/auth.module'
+import { MatchScoreModule, QualListModule } from '@/features'
 
 @Module({
   imports: [
@@ -26,7 +25,7 @@ import { AuthModule } from './features/utils/auth/auth.module'
     InMemoryDBModule.forRoot({}),
     StageModule,
     StorageModule,
-    QualScheduleModule,
+    QualListModule,
     DisplaysModule,
     FieldsModule,
     FieldSetModule,

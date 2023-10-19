@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { QualScheduleBlockUpload, QualScheduleUpload } from './qual-schedule.interface'
-import { QualScheduleRepo } from './qual-schedule.repo'
-import { QualSchedulePublisher } from './qual-schedule.publisher'
+import { QualScheduleBlockUpload, QualUpload } from './qual-list.interface'
+import { QualScheduleRepo } from './qual-list.repo'
+import { QualSchedulePublisher } from './qual-list.publisher'
 
 @Injectable()
 export class QualScheduleService {
@@ -40,7 +40,7 @@ export class QualScheduleService {
     }))
   }
 
-  async uploadQualSchedule (schedule: QualScheduleUpload): Promise<void> {
+  async uploadQualSchedule (schedule: QualUpload): Promise<void> {
     this.logger.log('Received qual schedule')
 
     await Promise.all(schedule.blocks.map(async block => {
@@ -58,6 +58,6 @@ export class QualScheduleService {
     }
 
     this.logger.log('Broadcasting qual schedule')
-    await this.publisher.publishQualMatches(matches)
+    await this.publisher.publishQuals(matches)
   }
 }

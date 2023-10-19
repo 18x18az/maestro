@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common'
 import { EventPattern } from '@nestjs/microservices'
 import { StageService } from './stage.service'
-import { QUAL_MATCH_CHANNEL } from '../initial/qual-schedule/qual-schedule.publisher'
+import { QUAL_MATCH_LIST_CHANNEL } from '../initial'
 
 @Controller('stage')
 export class StageController {
@@ -12,7 +12,7 @@ export class StageController {
     await this.stageService.receivedTeams()
   }
 
-  @EventPattern(QUAL_MATCH_CHANNEL)
+  @EventPattern(QUAL_MATCH_LIST_CHANNEL)
   async handleGotQuals (): Promise<void> {
     await this.stageService.receivedQuals()
   }
