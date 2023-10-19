@@ -14,7 +14,7 @@ import {
   MatchScoreInPrisma,
   MatchDetails,
   MatchScoreFromPrismaWithDetails
-} from './matchScore.interface'
+} from './match-score.dto'
 
 @Injectable()
 export class MatchScoreDatabase {
@@ -123,14 +123,14 @@ export class MatchScoreDatabase {
         const params = { ...details, id: details.matchId.toString() }
         let data: MatchScoreInMemory
         if (savedScore === null) data = MatchScoreDatabase.populateEmptyMatchScore(params)
-        else data = { ...savedScore as Extract<typeof savedScore, Extract<MatchScoreInMemory, { round: R } >>, ...params }
+        else data = { ...savedScore, ...params }
         await this.cache.create(data)
       })
     )
   }
 
   /** retrieves working score stored in memory */
-  getWorkingScore (matchId: number): MatchScoreInMemory {
+  getWorkingScore (matchId: number): MatchScoreInMemory | null {
     return this.cache.get(matchId.toString())
   }
 

@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common'
 import { EventPattern } from '@nestjs/microservices'
 import { StageService } from './stage.service'
-import { QUAL_MATCH_CHANNEL } from '../initial/qual-schedule/qual-schedule.publisher'
+import { QUAL_MATCH_CHANNEL } from '../initial/qual/qual-list.publisher'
 
 @Controller('stage')
 export class StageController {

@@ -1,10 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common'
-import { QualScheduleService } from './qual-schedule.service'
+import { QualScheduleService } from './qual-list.service'
 import { EventPattern } from '@nestjs/microservices'
-import { QualScheduleUpload } from './qual-schedule.interface'
+import { QualUpload } from './qual-list.interface'
 
-@Controller('qualSchedule')
-export class QualScheduleController {
+@Controller('quals')
+export class QualListController {
   constructor (private readonly qualScheduleService: QualScheduleService) { }
 
   @EventPattern('inspection/canConclude')
@@ -18,7 +18,7 @@ export class QualScheduleController {
   }
 
   @Post('')
-  async uploadQualSchedule (@Body() schedule: QualScheduleUpload): Promise<void> {
+  async uploadQualSchedule (@Body() schedule: QualUpload): Promise<void> {
     await this.qualScheduleService.uploadQualSchedule(schedule)
   }
 }

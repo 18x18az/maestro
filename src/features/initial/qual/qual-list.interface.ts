@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsISO8601 } from 'class-validator'
 
+export const QUAL_MATCH_LIST_CHANNEL = 'qualification/matches'
+
 export class Alliance {
   @ApiProperty({ description: 'Team 1 number', example: '127C' })
     team1: string
@@ -32,7 +34,7 @@ export class QualScheduleBlockUpload {
     matches: QualScheduleMatchUpload[]
 }
 
-export class QualScheduleUpload {
+export class QualUpload {
   @ApiProperty({ isArray: true, type: QualScheduleBlockUpload })
     blocks: QualScheduleBlockUpload[]
 }
@@ -49,4 +51,23 @@ export class QualMatch {
 
   @ApiProperty({ description: 'Blue aliance members' })
     blue: Alliance
+}
+
+export enum MatchResolution {
+  NOT_STARTED = 'NOT_STARTED',
+  ON_DECK = 'ON_DECK',
+  IN_PROGRESS = 'IN_PROGRESS',
+  SCORING = 'SCORING',
+  RESOLVED = 'RESOLVED'
+}
+
+export class QualMatchSitting extends QualMatch {
+  @ApiProperty({ description: 'Field the match will be played on', example: 'Field 2' })
+    field: string
+
+  @ApiProperty({ description: 'How many times the match has been replayed', example: '1' })
+    sitting: number
+
+  @ApiProperty({ description: 'Progress of the match sitting', example: MatchResolution.ON_DECK, enum: MatchResolution, enumName: 'MatchResolution' })
+    resolution: MatchResolution
 }

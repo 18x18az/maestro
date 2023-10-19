@@ -1,6 +1,6 @@
-import { QualScheduleUpload } from '../initial/qual-schedule/qual-schedule.interface'
+import { QualUpload } from '../initial/qual/qual-list.interface'
 
-const mockMatches: QualScheduleUpload = {
+const mockMatches: QualUpload = {
   blocks: [
     {
       start: '2021-04-24T09:00:00.000Z',
