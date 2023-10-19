@@ -57,13 +57,15 @@ export function hydrateQualMatch (matchInfo: QualMatch, storedData: SavedQualMat
     locked: true,
     saved: true,
     redRaw: storedData.redRaw,
-    blueRaw: storedData.blueRaw
+    blueRaw: storedData.blueRaw,
+    matchNumber: matchInfo.number
   }
 }
 
 export function createQualMatch (matchInfo: QualMatch): PublishedQualMatchScore {
   const id = matchInfo.id.toString()
   const created: PublishedQualMatchScore = {
+    matchNumber: matchInfo.number,
     redRaw: createEmptyRawAllianceScore(),
     blueRaw: createEmptyRawAllianceScore(),
     autonWinner: AUTON_WINNER.NONE,

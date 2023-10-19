@@ -10,7 +10,6 @@ export class QualSchedulePublisher {
 
   @Publisher(QUAL_MATCH_LIST_CHANNEL)
   async publishQuals (@Payload({ isArray: true, type: QualMatch }) matches: QualMatch[]): Promise<void> {
-    console.log(matches)
     await this.publisher.broadcast(QUAL_MATCH_LIST_CHANNEL, matches)
   }
 }
