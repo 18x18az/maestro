@@ -12,5 +12,7 @@ export class ResetRepo {
     await this.prisma.checkedInspection.deleteMany({})
     await this.prisma.checkIn.deleteMany({})
     await this.prisma.team.deleteMany({})
+    await this.prisma.field.deleteMany({})
+    await this.prisma.genericEphemeral.deleteMany({})
   }
 }

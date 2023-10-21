@@ -1,5 +1,5 @@
 import { Controller, Param, Post } from '@nestjs/common'
-import { FieldsService } from './fields.service'
+import { FieldService } from './fields.service'
 
 interface FieldParams {
   fieldId: string
@@ -7,7 +7,7 @@ interface FieldParams {
 
 @Controller('fields')
 export class FieldsController {
-  constructor (private readonly service: FieldsService) {}
+  constructor (private readonly service: FieldService) {}
 
   @Post(':fieldId/runTestMatch')
   async runTestMatch (@Param() params: FieldParams): Promise<void> {

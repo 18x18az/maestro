@@ -53,7 +53,7 @@ export class TeamService {
       })
     })
 
-    await this.broadcastTeamInfo(teams)
     await Promise.all(createPromises)
+    await this.broadcastTeamInfo(teams)
   }
 }

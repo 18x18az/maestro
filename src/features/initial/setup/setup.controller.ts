@@ -1,7 +1,8 @@
-import { Body, Controller, HttpException, HttpStatus, Logger, Post } from '@nestjs/common'
-import { EventCodeDto } from './eventCode.dto'
-import { testTeamList } from './testTeamList'
-import { TeamService } from '../team/team.service'
+import { Body, Controller, Logger, Post } from '@nestjs/common'
+import { SetupService } from './setup.service'
+import { SetupConfig } from './setup.interface'
+import { EventPattern } from '@nestjs/microservices'
+import { EVENT_STAGE_KEY } from '@/features/stage'
 
 enum STAGE {
   NONE = 'none',
@@ -14,33 +15,18 @@ export class SetupController {
   private readonly logger = new Logger(SetupController.name)
   private readonly stage: STAGE
 
-  constructor (private readonly teamService: TeamService) {
+  constructor (private readonly service: SetupService) {
     this.stage = STAGE.CODE
-    this.teamService = teamService
   }
 
-  // @EventPattern('teams')
-  // teamsUpdated(@Payload() teams: Team[]) {
-  //     this.logger.log(teams);
-  // }
+  @Post('config')
+  async submitConfig (@Body() config: SetupConfig): Promise<void> {
+    console.log(config)
+    await this.service.initialConfig(config)
+  }
 
-  // @MqttSubscribe('scores/:matchId')
-  // handleScore(@Param() params: any, message: string) {
-  //     console.log(params.matchId)
-  //     console.log('Received MQTT message:', message.toString());
-  //     // Handle the received message
-  // }
-
-  @Post('eventCode')
-  async submitEventCode (@Body() eventCode: EventCodeDto): Promise<void> {
-    if (this.stage !== STAGE.CODE) {
-      throw new HttpException('Not accepting event code', HttpStatus.CONFLICT)
-    }
-
-    if (eventCode.eventCode === 'test') {
-      this.logger.log('Using fake team and schedule data for testing')
-      await this.teamService.createTeams(testTeamList)
-      // this.stage = STAGE.DONE;
-    }
+  @EventPattern(EVENT_STAGE_KEY)
+  async handleStage (): Promise<void> {
+    await this.service.handleStageChange()
   }
 }

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { FieldState, FieldsPublisher } from './fields.publisher'
+import { FieldInfo } from './fields.interface'
+import { FieldRepo } from './field.repo'
 
 @Injectable()
-export class FieldsService {
-  private readonly logger = new Logger(FieldsService.name)
+export class FieldService {
+  private readonly logger = new Logger(FieldService.name)
   private readonly outstandingTimers: Map<string, NodeJS.Timeout>
-  constructor (private readonly publisher: FieldsPublisher
+  constructor (private readonly publisher: FieldsPublisher, private readonly repo: FieldRepo
   ) {
     this.outstandingTimers = new Map()
   }
@@ -44,5 +46,9 @@ export class FieldsService {
     const isCompletedTimeout = setTimeout(() => { void this.clearTimer(fieldId) }, remainingTime)
     this.outstandingTimers.set(fieldId, isCompletedTimeout)
     this.logger.log(`Running ${mode} for ${seconds} seconds on field ${fieldId}`)
+  }
+
+  async createField (field: FieldInfo): Promise<void> {
+    await this.repo.createField(field)
   }
 }
