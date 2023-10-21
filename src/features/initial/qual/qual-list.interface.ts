@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsISO8601 } from 'class-validator'
 
 export const QUAL_MATCH_LIST_CHANNEL = 'qualification/matches'
+export const QUAL_BLOCK_LIST_CHANNEL = 'qualification/blocks'
 
 export class Alliance {
   @ApiProperty({ description: 'Team 1 number', example: '127C' })
@@ -22,14 +23,16 @@ export class QualScheduleMatchUpload {
     number: number
 }
 
-export class QualScheduleBlockUpload {
+export class QualScheduleBlockMetadata {
   @IsISO8601({ strict: true })
   @ApiProperty({ description: 'Start time of the first match in the block in UTC', example: '2021-04-24T09:00:00.000Z' })
     start: string
 
   @ApiProperty({ description: 'Cycle time in seconds of the block', example: 300 })
     cycleTime: number
+}
 
+export class QualScheduleBlockUpload extends QualScheduleBlockMetadata {
   @ApiProperty({ isArray: true, type: QualScheduleMatchUpload })
     matches: QualScheduleMatchUpload[]
 }
@@ -62,7 +65,7 @@ export enum MatchResolution {
 }
 
 export class QualMatchSitting extends QualMatch {
-  @ApiProperty({ description: 'Field the match will be played on', example: 'Field 2' })
+  @ApiProperty({ description: 'Field the match should nominally be played on', example: 'Field 2' })
     field: string
 
   @ApiProperty({ description: 'How many times the match has been replayed', example: '1' })
@@ -70,4 +73,9 @@ export class QualMatchSitting extends QualMatch {
 
   @ApiProperty({ description: 'Progress of the match sitting', example: MatchResolution.ON_DECK, enum: MatchResolution, enumName: 'MatchResolution' })
     resolution: MatchResolution
+}
+
+export class QualMatchBlockBroadcast extends QualScheduleBlockMetadata {
+  @ApiProperty({ description: 'List of matches in the block', isArray: true, type: QualMatchSitting })
+    matches: QualMatchSitting[]
 }
