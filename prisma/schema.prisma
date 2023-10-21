@@ -119,8 +119,16 @@ model CheckedInspection {
 
 model Display {
   uuid    String  @unique
-  fieldId String?
+  field Field? @relation(fields: [fieldId], references: [id])
+  fieldId Int?
   name    String
+}
+
+model Field {
+  id  Int @id @default(autoincrement())
+  name String
+  isCompetition Int
+  displays Display[]
 }
 
 model MatchScore {

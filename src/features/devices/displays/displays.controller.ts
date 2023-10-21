@@ -39,7 +39,7 @@ export class DisplaysController {
   @Post(':uuid/assign')
   async assignFieldId (
     @Param() params: DisplayParams,
-      @Body() body: { fieldId: string }
+      @Body() body: { fieldId: number }
   ): Promise<void> {
     await this.displaysService.assignFieldId(
       params.uuid,

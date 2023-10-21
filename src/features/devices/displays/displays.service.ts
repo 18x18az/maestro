@@ -70,7 +70,7 @@ export class DisplaysService {
     await this.onDisplayChange(uuid)
   }
 
-  async assignFieldId (uuid: string, fieldId: string): Promise<void> {
+  async assignFieldId (uuid: string, fieldId: number): Promise<void> {
     this.logger.log(
       `Assigning display ${uuid} to field: "${fieldId}"`
     )
