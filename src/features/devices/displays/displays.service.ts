@@ -14,6 +14,17 @@ export class DisplaysService {
   async onApplicationBootstrap (): Promise<void> {
     const displays = await this.database.getAllDisplays()
     await Promise.all(displays.map(async (display) => await this.broadcastConfig(display.uuid)))
+    await this.broadcastAllDisplays()
+  }
+
+  private async broadcastAllDisplays (): Promise<void> {
+    const displays = await this.database.getAllDisplays()
+    await this.publisher.publishAllDisplays(displays)
+  }
+
+  private async onDisplayChange (uuid: string): Promise<void> {
+    await this.broadcastConfig(uuid)
+    await this.broadcastAllDisplays()
   }
 
   private async broadcastConfig (uuid: string): Promise<void> {
@@ -32,7 +43,7 @@ export class DisplaysService {
       `Received registration request from display with UUID "${uuid}"`
     )
     if (await this.database.getDisplay(uuid) === null) { await this.database.createDisplay(uuid) }
-    await this.broadcastConfig(uuid)
+    await this.onDisplayChange(uuid)
   }
 
   async adviseHasFieldControl (
@@ -56,7 +67,7 @@ export class DisplaysService {
       )
       throw new BadRequestException()
     }
-    await this.broadcastConfig(uuid)
+    await this.onDisplayChange(uuid)
   }
 
   async assignFieldId (uuid: string, fieldId: string): Promise<void> {
@@ -71,6 +82,6 @@ export class DisplaysService {
       )
       throw new BadRequestException()
     }
-    await this.broadcastConfig(uuid)
+    await this.onDisplayChange(uuid)
   }
 }

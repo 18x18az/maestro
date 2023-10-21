@@ -17,4 +17,9 @@ export class DisplaysPublisher {
     const topic = makeDisplayTopic(uuid)
     await this.publisher.broadcast(topic, display)
   }
+
+  @Publisher(DISPLAYS_TOPIC)
+  async publishAllDisplays (@Payload({ isArray: true, type: DisplayConfig }) displays: DisplayConfig[]): Promise<void> {
+    await this.publisher.broadcast(DISPLAYS_TOPIC, displays)
+  }
 }
