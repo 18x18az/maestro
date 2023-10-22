@@ -3,6 +3,7 @@ import { StageService } from './stage.service'
 import { StorageService } from '../../utils/storage/storage.service'
 import { EVENT_STAGE } from './stage.interface'
 import { StagePublisher } from './stage.publisher'
+import { ResetRepo } from './reset.repo'
 
 describe('StageService', () => {
   let service: StageService
@@ -16,11 +17,16 @@ describe('StageService', () => {
     publishStage: jest.fn()
   }
 
+  const mockRepoService = {
+    reset: jest.fn()
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StageService, { provide: StorageService, useValue: mockStorageService },
-        StageService, { provide: StagePublisher, useValue: mockPublishService }
+        StageService, { provide: StagePublisher, useValue: mockPublishService },
+        StageService, { provide: ResetRepo, useValue: mockRepoService }
       ]
     }).compile()
 

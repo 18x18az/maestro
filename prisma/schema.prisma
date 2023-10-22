@@ -56,6 +56,8 @@ model MatchBlock {
 
   firstMatch ScheduledMatch? @relation(fields: [firstMatchId], references: [id])
   firstMatchId Int? @unique
+
+  cycleTime Int
 }
 
 model Match {
@@ -85,7 +87,10 @@ model ScheduledMatch {
 
   block MatchBlock?
 
-  resolution Int
+  resolution String
+
+  field Field @relation(fields: [fieldId], references: [id])
+  fieldId Int
 }
 
 model CheckIn {
@@ -119,8 +124,17 @@ model CheckedInspection {
 
 model Display {
   uuid    String  @unique
-  fieldId String?
+  field Field? @relation(fields: [fieldId], references: [id])
+  fieldId Int?
   name    String
+}
+
+model Field {
+  id  Int @id @default(autoincrement())
+  name String
+  isCompetition Int
+  displays Display[]
+  matches ScheduledMatch[]
 }
 
 model MatchScore {

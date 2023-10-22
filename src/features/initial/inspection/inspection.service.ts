@@ -64,9 +64,9 @@ export class InspectionService {
     if (canConclude !== this.canConclude) {
       if (this.eventStage === EVENT_STAGE.CHECKIN) {
         this.logger.log(`Check in can conclude: ${canConclude.toString()}`)
+        this.canConclude = canConclude
+        await this.publisher.publishCanConclude(canConclude)
       }
-      this.canConclude = canConclude
-      await this.publisher.publishCanConclude(canConclude)
     }
   }
 
@@ -74,8 +74,13 @@ export class InspectionService {
     return await this.overallModel.getInspectionChecklist()
   }
 
-  setEventStage (stage: EVENT_STAGE): void {
+  async setEventStage (stage: EVENT_STAGE): Promise<void> {
     this.eventStage = stage
+
+    if (this.eventStage !== EVENT_STAGE.CHECKIN) {
+      this.canConclude = false
+      await this.publisher.publishCanConclude(false)
+    }
   }
 
   private async handleChange (team: string, prev: INSPECTION_STAGE, now: INSPECTION_STAGE): Promise<void> {

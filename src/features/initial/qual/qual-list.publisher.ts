@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'utils/publish/publish.service'
-import { QualMatch } from './qual-list.interface'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
-import { QUAL_MATCH_LIST_CHANNEL } from '.'
+import { QUAL_MATCH_LIST_CHANNEL, QUAL_BLOCK_LIST_CHANNEL, QualMatch, QualMatchBlockBroadcast } from '.'
 
 @Injectable()
 export class QualSchedulePublisher {
@@ -11,5 +10,10 @@ export class QualSchedulePublisher {
   @Publisher(QUAL_MATCH_LIST_CHANNEL)
   async publishQuals (@Payload({ isArray: true, type: QualMatch }) matches: QualMatch[]): Promise<void> {
     await this.publisher.broadcast(QUAL_MATCH_LIST_CHANNEL, matches)
+  }
+
+  @Publisher(QUAL_BLOCK_LIST_CHANNEL)
+  async publishBlocks (@Payload({ isArray: true, type: QualMatchBlockBroadcast }) blocks: QualMatchBlockBroadcast[]): Promise<void> {
+    await this.publisher.broadcast(QUAL_BLOCK_LIST_CHANNEL, blocks)
   }
 }

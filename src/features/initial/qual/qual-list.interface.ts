@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsISO8601 } from 'class-validator'
+import { Type } from 'class-transformer'
+import { IsArray, IsDate, ValidateNested } from 'class-validator'
 
 export const QUAL_MATCH_LIST_CHANNEL = 'qualification/matches'
+export const QUAL_BLOCK_LIST_CHANNEL = 'qualification/blocks'
 
 export class Alliance {
   @ApiProperty({ description: 'Team 1 number', example: '127C' })
@@ -22,19 +24,30 @@ export class QualScheduleMatchUpload {
     number: number
 }
 
-export class QualScheduleBlockUpload {
-  @IsISO8601({ strict: true })
+export class QualScheduleBlockMetadataUpload {
+  @Type(() => Date)
+  @IsDate()
   @ApiProperty({ description: 'Start time of the first match in the block in UTC', example: '2021-04-24T09:00:00.000Z' })
-    start: string
+    start: Date
 
   @ApiProperty({ description: 'Cycle time in seconds of the block', example: 300 })
     cycleTime: number
+}
 
+export class QualScheduleBlockMetadata extends QualScheduleBlockMetadataUpload {
+  @ApiProperty({ description: 'Block id', example: 1 })
+    id: number
+}
+
+export class QualScheduleBlockUpload extends QualScheduleBlockMetadataUpload {
   @ApiProperty({ isArray: true, type: QualScheduleMatchUpload })
     matches: QualScheduleMatchUpload[]
 }
 
 export class QualUpload {
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => QualScheduleBlockUpload)
   @ApiProperty({ isArray: true, type: QualScheduleBlockUpload })
     blocks: QualScheduleBlockUpload[]
 }
@@ -62,12 +75,20 @@ export enum MatchResolution {
 }
 
 export class QualMatchSitting extends QualMatch {
-  @ApiProperty({ description: 'Field the match will be played on', example: 'Field 2' })
-    field: string
+  @ApiProperty({ description: 'Field the match should nominally be played on', example: 'Field 2' })
+    field: number
+
+  @ApiProperty({ description: 'Match sitting id', example: 1 })
+    sittingId: number
 
   @ApiProperty({ description: 'How many times the match has been replayed', example: '1' })
     sitting: number
 
   @ApiProperty({ description: 'Progress of the match sitting', example: MatchResolution.ON_DECK, enum: MatchResolution, enumName: 'MatchResolution' })
     resolution: MatchResolution
+}
+
+export class QualMatchBlockBroadcast extends QualScheduleBlockMetadata {
+  @ApiProperty({ description: 'List of matches in the block', isArray: true, type: QualMatchSitting })
+    matches: QualMatchSitting[]
 }

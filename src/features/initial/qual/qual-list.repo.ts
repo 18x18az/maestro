@@ -1,111 +1,113 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
-import { PrismaService } from 'utils/prisma/prisma.service'
-import { Alliance, QualMatch, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-list.interface'
+import { Injectable } from '@nestjs/common'
+import { PersistentRepo, RawBlock } from './persistent.repo'
+import { WorkingRepo } from './working.repo'
+import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-list.interface'
 
 @Injectable()
-export class QualScheduleRepo {
-  constructor (private readonly repo: PrismaService) { }
+export class QualListRepo {
+  constructor (private readonly persistent: PersistentRepo, private readonly working: WorkingRepo) {}
+
+  private async hydrateBlock (block: RawBlock): Promise<void> {
+    this.working.addBlock(block)
+    const firstSittingId = await this.persistent.getFirstMatchId(block.id)
+    if (firstSittingId === null) {
+      return
+    }
+
+    let nextSittingId: number | null = firstSittingId
+    do {
+      const rawSitting = await this.persistent.getScheduledMatch(nextSittingId)
+      const matchId = rawSitting.matchId
+      const match = this.working.getMatch(matchId)
+      const sittingNumber = this.working.getPreviousNumber(matchId)
+      const sitting: QualMatchSitting = {
+        field: rawSitting.fieldId, sittingId: rawSitting.id, sitting: sittingNumber, resolution: rawSitting.resolution, ...match
+      }
+      this.working.addMatchToBlock(block.id, sitting)
+      nextSittingId = rawSitting.nextMatchId
+    } while (nextSittingId !== null)
+  }
+
+  async hydrateQuals (): Promise<boolean> {
+    const quals = await this.persistent.getMatches()
+    if (quals === null) {
+      return false
+    }
+
+    this.working.hydrateQuals(quals)
+
+    const blocks = await this.persistent.getBlocks()
+    for (const block of blocks) {
+      await this.hydrateBlock(block)
+    }
+
+    return true
+  }
 
   async createBlock (block: QualScheduleBlockUpload): Promise<number> {
-    const data = {
-      start: block.start
-    }
-    const { id } = await this.repo.matchBlock.create({ data })
-    return id
+    const blockId = this.persistent.createBlock(block)
+    this.working.addBlock({ ...block, id: await blockId })
+    return await blockId
   }
 
-  async createAlliance (alliance: Alliance): Promise<number> {
-    const data = {
-      team1Number: alliance.team1,
-      team2Number: alliance.team2
-    }
-
-    const { id } = await this.repo.alliance.create({ data })
-    return id
+  getQuals (): QualMatch[] {
+    return this.working.getQuals()
   }
 
-  async createMatch (red: number, blue: number, match: QualScheduleMatchUpload): Promise<number> {
-    const data = {
-      redId: red,
-      blueId: blue,
+  getBlocks (): QualMatchBlockBroadcast[] {
+    return this.working.getBlocks()
+  }
+
+  getBlock (blockId: number): QualMatchBlockBroadcast {
+    return this.working.getBlock(blockId)
+  }
+
+  getMatch (matchId: number): QualMatch {
+    return this.working.getMatch(matchId)
+  }
+
+  async createMatch (match: QualScheduleMatchUpload): Promise<number> {
+    const matchId = await this.persistent.createMatch(match)
+    const fullMatch: QualMatch = {
+      id: matchId,
       number: match.number,
-      round: 'QUAL'
-    }
-
-    const { id } = await this.repo.match.create({ data })
-    return id
-  }
-
-  async appendMatchToBlock (blockId: number, matchId: number): Promise<void> {
-    const data = { matchId, resolution: 0 }
-    const { id: scheduledMatchId } = await this.repo.scheduledMatch.create({ data })
-
-    const block = await this.repo.matchBlock.findUnique({ where: { id: blockId } })
-
-    if (block === null) {
-      throw new BadRequestException('Block does not exist')
-    }
-
-    let nextMatchId = block.firstMatchId
-
-    if (nextMatchId === null) {
-      await this.repo.matchBlock.update({ where: { id: blockId }, data: { firstMatchId: matchId } })
-    }
-
-    while (nextMatchId !== null) {
-      const nextMatch = await this.repo.scheduledMatch.findUnique({ where: { id: nextMatchId } })
-
-      if (nextMatch === null) {
-        throw new Error('Nonexistent match referenced')
-      }
-
-      if (nextMatch.nextMatchId === null) {
-        await this.repo.scheduledMatch.update({ where: { id: nextMatchId }, data: { nextMatchId: scheduledMatchId } })
-        break
-      }
-
-      nextMatchId = nextMatch.nextMatchId
-    }
-  }
-
-  async clearSchedule (): Promise<void> {
-    await this.repo.scheduledMatch.deleteMany({})
-    await this.repo.match.deleteMany({})
-    await this.repo.matchBlock.deleteMany({})
-    await this.repo.alliance.deleteMany({})
-  }
-
-  async getMatches (): Promise<QualMatch[]> {
-    const matches = await this.repo.match.findMany({
-      select: {
-        id: true,
-        number: true,
-        red: {
-          select: { team1Number: true, team2Number: true }
-        },
-        blue: {
-          select: { team1Number: true, team2Number: true }
-        }
+      red: {
+        team1: match.redAlliance.team1,
+        team2: match.redAlliance.team2
       },
-      where: { round: 'QUAL' },
-      orderBy: { number: 'asc' }
-    })
-
-    const formattedMatches = matches.map(match => {
-      return {
-        id: match.id,
-        number: match.number,
-        red: {
-          team1: match.red.team1Number,
-          team2: match.red.team2Number ?? undefined
-        },
-        blue: {
-          team1: match.blue.team1Number,
-          team2: match.blue.team2Number ?? undefined
-        }
+      blue: {
+        team1: match.blueAlliance.team1,
+        team2: match.blueAlliance.team2
       }
-    })
+    }
+    this.working.addQual(fullMatch)
+    return matchId
+  }
 
-    return formattedMatches
+  async appendMatchToBlock (blockId: number, matchId: number, fieldId: number): Promise<void> {
+    const block = this.getBlock(blockId)
+    const match = this.getMatch(matchId)
+
+    const previousNumber = this.working.getPreviousNumber(matchId)
+    const previousId = this.working.getFinalMatchId(blockId)
+
+    const sittingId = await this.persistent.createScheduledMatch(match, fieldId)
+
+    const sitting: QualMatchSitting = {
+      ...match, sittingId, sitting: previousNumber, resolution: MatchResolution.NOT_STARTED, field: fieldId
+    }
+
+    block.matches.push(sitting)
+    if (previousId === null) {
+      await this.persistent.addFirstMatch(blockId, sittingId)
+    } else {
+      await this.persistent.addMatchAfter(previousId, sittingId)
+    }
+
+    this.working.addMatchToBlock(blockId, sitting)
+  }
+
+  async reset (): Promise<void> {
+    this.working.reset()
   }
 }

@@ -9,17 +9,17 @@ import { StageModule } from './features/stage/stage.module'
 import { StorageModule } from './utils/storage/storage.module'
 import { BeaconService } from './utils/discovery'
 import { DisplaysModule } from './features/devices/displays/displays.module'
-import { FieldsModule } from './features/devices/fields/fields.module'
+import { FieldModule } from './features/devices/field/field.module'
 import { FieldSetModule } from './features/competition/fieldSet/fieldSet.module'
 import { SkillsScoreModule } from './features/competition/skillsScore/skillsScore.module'
 import { MockModule } from './features/mock/mock.module'
 import { AuthModule } from './features/utils/auth/auth.module'
 import { MatchScoreModule, QualListModule } from '@/features'
+import { TeamModule } from './features/initial/team/team.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    SetupModule,
     DivisionModule,
     InspectionModule,
     InMemoryDBModule.forRoot({}),
@@ -27,12 +27,14 @@ import { MatchScoreModule, QualListModule } from '@/features'
     StorageModule,
     QualListModule,
     DisplaysModule,
-    FieldsModule,
+    FieldModule,
     FieldSetModule,
     MatchScoreModule,
     SkillsScoreModule,
     MockModule,
-    AuthModule
+    TeamModule,
+    AuthModule,
+    SetupModule
   ]
 })
 export class WithoutPigeonModule {}

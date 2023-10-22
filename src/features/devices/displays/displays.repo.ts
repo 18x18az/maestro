@@ -17,7 +17,7 @@ export class DisplaysDatabase {
   }
 
   /** @throws {RecordNotFound} Will throw if display with {@link uuid} is not found */
-  async setFieldId (uuid: string, fieldId: string): Promise<void> {
+  async setFieldId (uuid: string, fieldId: number): Promise<void> {
     await this.prisma.display.update({
       data: { fieldId },
       where: { uuid }
@@ -39,7 +39,7 @@ export class DisplaysDatabase {
     return await this.prisma.display.findMany()
   }
 
-  async getFieldId (uuid: string): Promise<string | undefined | null> {
+  async getFieldId (uuid: string): Promise<number | undefined | null> {
     return (await this.getDisplay(uuid))?.fieldId
   }
 

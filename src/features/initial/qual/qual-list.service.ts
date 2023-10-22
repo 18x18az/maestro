@@ -1,63 +1,68 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { QualScheduleBlockUpload, QualUpload } from './qual-list.interface'
-import { QualScheduleRepo } from './qual-list.repo'
 import { QualSchedulePublisher } from './qual-list.publisher'
+import { QualListRepo } from './qual-list.repo'
+import { EVENT_STAGE } from '@/features/stage'
+import { FieldInfoBroadcast } from '@/features/devices/field'
 
 @Injectable()
 export class QualScheduleService {
-  constructor (private readonly repo: QualScheduleRepo, private readonly publisher: QualSchedulePublisher) { }
+  private fieldsCache: number[] = []
+
+  constructor (private readonly repo: QualListRepo, private readonly publisher: QualSchedulePublisher) { }
 
   async onApplicationBootstrap (): Promise<void> {
-    await this.broadcastQualSchedule()
-  }
+    const existing = await this.repo.hydrateQuals()
 
-  generateQualSchedule (): void {
-    if (!this.canConclude) {
-      this.logger.warn('Attempted to generate qual schedule at incorrect time')
-      throw new HttpException('Not in state to generate qual schedule', HttpStatus.BAD_REQUEST)
-    }
+    if (!existing) return
 
-    this.logger.log('Generating qual schedule')
+    this.logger.log('Qual schedule loaded')
+    await this.broadcastQuals()
   }
 
   private readonly logger = new Logger(QualScheduleService.name)
-  canConclude: boolean = false
 
-  updateCanConclude (canConclude: boolean): void {
-    this.canConclude = canConclude
-  }
-
-  private async storeMatchBlock (block: QualScheduleBlockUpload): Promise<void> {
-    await this.repo.clearSchedule()
-
+  private async storeMatchBlock (block: QualScheduleBlockUpload, fields: number[]): Promise<void> {
     const blockId = await this.repo.createBlock(block)
 
-    await Promise.all(block.matches.map(async match => {
-      const redAllianceId = this.repo.createAlliance(match.redAlliance)
-      const blueAllianceId = this.repo.createAlliance(match.blueAlliance)
-      const matchId = await this.repo.createMatch(await redAllianceId, await blueAllianceId, match)
-      await this.repo.appendMatchToBlock(blockId, matchId)
-    }))
+    for (const [index, match] of block.matches.entries()) {
+      const matchId = await this.repo.createMatch(match)
+      const fieldIndex = index % fields.length
+      const fieldId = fields[fieldIndex]
+      await this.repo.appendMatchToBlock(blockId, matchId, fieldId)
+    }
   }
 
   async uploadQualSchedule (schedule: QualUpload): Promise<void> {
     this.logger.log('Received qual schedule')
 
-    await Promise.all(schedule.blocks.map(async block => {
-      await this.storeMatchBlock(block)
-    }))
-
-    await this.broadcastQualSchedule()
-  }
-
-  async broadcastQualSchedule (): Promise<void> {
-    const matches = await this.repo.getMatches()
-
-    if (matches.length === 0) {
-      return
+    if (this.fieldsCache.length === 0) {
+      throw new Error('No fields available')
     }
 
+    for (const block of schedule.blocks) {
+      await this.storeMatchBlock(block, this.fieldsCache)
+    }
+
+    await this.broadcastQuals()
+  }
+
+  async broadcastQuals (): Promise<void> {
+    const quals = this.repo.getQuals()
+    const blocks = this.repo.getBlocks()
     this.logger.log('Broadcasting qual schedule')
-    await this.publisher.publishQuals(matches)
+    await this.publisher.publishQuals(quals)
+    await this.publisher.publishBlocks(blocks)
+  }
+
+  async handleStageChange (stage: string): Promise<void> {
+    if (stage === EVENT_STAGE.SETUP) {
+      await this.repo.reset()
+      await this.broadcastQuals()
+    }
+  }
+
+  async handleGetFields (fields: FieldInfoBroadcast[]): Promise<void> {
+    this.fieldsCache = fields.filter(field => field.isCompetition).map(field => field.fieldId)
   }
 }

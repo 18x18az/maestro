@@ -12,7 +12,8 @@ export class DisplayConfig {
 
   @ApiProperty({
     description: "The id of the display's assigned field",
-    example: '1'
+    example: 1,
+    nullable: true
   })
-    fieldId: string | null
+    fieldId: number | null
 }
