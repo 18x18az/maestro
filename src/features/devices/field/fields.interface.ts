@@ -18,6 +18,6 @@ export class FieldInfoBroadcast extends FieldInfo {
   @ApiProperty({ description: 'The field ID', example: 1 })
     fieldId: number
 
-  @ApiProperty({ description: 'The current state of the field', example: FieldState.SKILLS, enum: FieldState, enumName: 'FieldState' })
+  @ApiProperty({ description: 'The current state of the field', example: FieldState.SKILLS, enum: FieldState, enumName: 'FIELD_STATE' })
     state: FieldState
 }
