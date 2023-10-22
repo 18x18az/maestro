@@ -21,7 +21,7 @@ export class QualListRepo {
       const match = this.working.getMatch(matchId)
       const sittingNumber = this.working.getPreviousNumber(matchId)
       const sitting: QualMatchSitting = {
-        field: 'todo', sittingId: rawSitting.id, sitting: sittingNumber, resolution: rawSitting.resolution, ...match
+        field: rawSitting.fieldId, sittingId: rawSitting.id, sitting: sittingNumber, resolution: rawSitting.resolution, ...match
       }
       this.working.addMatchToBlock(block.id, sitting)
       nextSittingId = rawSitting.nextMatchId
@@ -84,17 +84,17 @@ export class QualListRepo {
     return matchId
   }
 
-  async appendMatchToBlock (blockId: number, matchId: number): Promise<void> {
+  async appendMatchToBlock (blockId: number, matchId: number, fieldId: number): Promise<void> {
     const block = this.getBlock(blockId)
     const match = this.getMatch(matchId)
 
     const previousNumber = this.working.getPreviousNumber(matchId)
     const previousId = this.working.getFinalMatchId(blockId)
 
-    const sittingId = await this.persistent.createScheduledMatch(match)
+    const sittingId = await this.persistent.createScheduledMatch(match, fieldId)
 
     const sitting: QualMatchSitting = {
-      ...match, sittingId, sitting: previousNumber, resolution: MatchResolution.NOT_STARTED, field: 'TODO'
+      ...match, sittingId, sitting: previousNumber, resolution: MatchResolution.NOT_STARTED, field: fieldId
     }
 
     block.matches.push(sitting)

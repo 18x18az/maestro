@@ -7,7 +7,6 @@ export class PublicFieldService {
   constructor (private readonly fieldService: FieldService) {}
 
   async initialFields (fields: FieldInfo[]): Promise<void> {
-    const createPromises = fields.map(async (field) => await this.fieldService.createField(field))
-    await Promise.all(createPromises)
+    await this.fieldService.createFields(fields)
   }
 }

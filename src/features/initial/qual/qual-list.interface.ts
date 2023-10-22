@@ -76,7 +76,7 @@ export enum MatchResolution {
 
 export class QualMatchSitting extends QualMatch {
   @ApiProperty({ description: 'Field the match should nominally be played on', example: 'Field 2' })
-    field: string
+    field: number
 
   @ApiProperty({ description: 'Match sitting id', example: 1 })
     sittingId: number

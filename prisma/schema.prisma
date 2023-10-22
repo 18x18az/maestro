@@ -88,6 +88,9 @@ model ScheduledMatch {
   block MatchBlock?
 
   resolution String
+
+  field Field @relation(fields: [fieldId], references: [id])
+  fieldId Int
 }
 
 model CheckIn {
@@ -131,6 +134,7 @@ model Field {
   name String
   isCompetition Int
   displays Display[]
+  matches ScheduledMatch[]
 }
 
 model MatchScore {

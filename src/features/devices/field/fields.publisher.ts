@@ -1,17 +1,7 @@
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'utils/publish/publish.service'
-
-export enum FieldState {
-  DRIVER = 'DRIVER',
-  AUTO = 'AUTO',
-  DISABLED = 'DISABLED'
-}
-
-interface FieldInfo {
-  state: FieldState
-  endTime?: Date
-}
+import { FieldInfoBroadcast } from './fields.interface'
 
 function makeFieldTopic (fieldId: string): string {
   return `fields/${fieldId}`
@@ -22,8 +12,13 @@ export class FieldsPublisher {
   constructor (private readonly publisher: PublishService) {}
 
   @Publisher('fields/:fieldId')
-  async publishField (fieldId: string, @Payload({}) info: FieldInfo): Promise<void> {
+  async publishField (fieldId: string, @Payload({}) info: FieldInfoBroadcast): Promise<void> {
     const topic = makeFieldTopic(fieldId)
     await this.publisher.broadcast(topic, info)
+  }
+
+  @Publisher('fields')
+  async publishFields (@Payload({}) info: FieldInfoBroadcast[]): Promise<void> {
+    await this.publisher.broadcast('fields', info)
   }
 }

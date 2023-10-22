@@ -3,9 +3,12 @@ import { QualScheduleBlockUpload, QualUpload } from './qual-list.interface'
 import { QualSchedulePublisher } from './qual-list.publisher'
 import { QualListRepo } from './qual-list.repo'
 import { EVENT_STAGE } from '@/features/stage'
+import { FieldInfoBroadcast } from '@/features/devices/field'
 
 @Injectable()
 export class QualScheduleService {
+  private fieldsCache: number[] = []
+
   constructor (private readonly repo: QualListRepo, private readonly publisher: QualSchedulePublisher) { }
 
   async onApplicationBootstrap (): Promise<void> {
@@ -19,20 +22,26 @@ export class QualScheduleService {
 
   private readonly logger = new Logger(QualScheduleService.name)
 
-  private async storeMatchBlock (block: QualScheduleBlockUpload): Promise<void> {
+  private async storeMatchBlock (block: QualScheduleBlockUpload, fields: number[]): Promise<void> {
     const blockId = await this.repo.createBlock(block)
 
-    for (const match of block.matches) {
+    for (const [index, match] of block.matches.entries()) {
       const matchId = await this.repo.createMatch(match)
-      await this.repo.appendMatchToBlock(blockId, matchId)
+      const fieldIndex = index % fields.length
+      const fieldId = fields[fieldIndex]
+      await this.repo.appendMatchToBlock(blockId, matchId, fieldId)
     }
   }
 
   async uploadQualSchedule (schedule: QualUpload): Promise<void> {
     this.logger.log('Received qual schedule')
 
+    if (this.fieldsCache.length === 0) {
+      throw new Error('No fields available')
+    }
+
     for (const block of schedule.blocks) {
-      await this.storeMatchBlock(block)
+      await this.storeMatchBlock(block, this.fieldsCache)
     }
 
     await this.broadcastQuals()
@@ -51,5 +60,9 @@ export class QualScheduleService {
       await this.repo.reset()
       await this.broadcastQuals()
     }
+  }
+
+  async handleGetFields (fields: FieldInfoBroadcast[]): Promise<void> {
+    this.fieldsCache = fields.filter(field => field.isCompetition).map(field => field.fieldId)
   }
 }

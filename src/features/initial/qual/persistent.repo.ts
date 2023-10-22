@@ -14,6 +14,7 @@ export interface RawScheduledMatch {
   matchId: number
   resolution: MatchResolution
   nextMatchId: number | null
+  fieldId: number
 }
 
 @Injectable()
@@ -88,12 +89,13 @@ export class PersistentRepo {
     return blockIds
   }
 
-  async createScheduledMatch (match: QualMatch): Promise<number> {
+  async createScheduledMatch (match: QualMatch, fieldId: number): Promise<number> {
     const scheduledMatch = await this.repo.scheduledMatch.create({
       data: {
         matchId: match.id,
         resolution: MatchResolution.NOT_STARTED,
-        nextMatchId: null
+        nextMatchId: null,
+        fieldId
       }
     })
     return scheduledMatch.id
