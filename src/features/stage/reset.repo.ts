@@ -9,6 +9,7 @@ export class ResetRepo {
     await this.prisma.scheduledMatch.deleteMany({})
     await this.prisma.match.deleteMany({})
     await this.prisma.alliance.deleteMany({})
+    await this.prisma.matchBlock.deleteMany({})
     await this.prisma.checkedInspection.deleteMany({})
     await this.prisma.checkIn.deleteMany({})
     await this.prisma.team.deleteMany({})

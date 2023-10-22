@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PersistentRepo } from './persistent.repo'
+import { PersistentRepo, RawBlock } from './persistent.repo'
 import { WorkingRepo } from './working.repo'
 import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-list.interface'
 
@@ -7,23 +7,55 @@ import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, 
 export class QualListRepo {
   constructor (private readonly persistent: PersistentRepo, private readonly working: WorkingRepo) {}
 
-  // async hydrateQuals (): Promise<boolean> {
-  //   const quals = await this.persistent.getMatches()
-  //   if (quals.length === 0) {
-  //     return false
-  //   }
-  //   this.working.hydrateQuals(quals)
+  private async hydrateBlock (block: RawBlock): Promise<void> {
+    this.working.addBlock(block)
+    const firstSittingId = await this.persistent.getFirstMatchId(block.id)
+    if (firstSittingId === null) {
+      return
+    }
 
-  //   const existingBlockIds = await this.persistent.getMatchBlockIds()
-  //   const existingBlocks = existingBlockIds.map(async id => await this.persistent.getBlock(id))
+    let nextSittingId: number | null = firstSittingId
+    do {
+      const rawSitting = await this.persistent.getScheduledMatch(nextSittingId)
+      const matchId = rawSitting.matchId
+      const match = this.working.getMatch(matchId)
+      const sittingNumber = this.working.getPreviousNumber(matchId)
+      const sitting: QualMatchSitting = {
+        field: 'todo', sittingId: rawSitting.id, sitting: sittingNumber, resolution: rawSitting.resolution, ...match
+      }
+      this.working.addMatchToBlock(block.id, sitting)
+      nextSittingId = rawSitting.nextMatchId
+    } while (nextSittingId !== null)
+  }
 
-  //   return true
-  // }
+  async hydrateQuals (): Promise<boolean> {
+    const quals = await this.persistent.getMatches()
+    if (quals === null) {
+      return false
+    }
+
+    this.working.hydrateQuals(quals)
+
+    const blocks = await this.persistent.getBlocks()
+    for (const block of blocks) {
+      await this.hydrateBlock(block)
+    }
+
+    return true
+  }
 
   async createBlock (block: QualScheduleBlockUpload): Promise<number> {
     const blockId = this.persistent.createBlock(block)
     this.working.addBlock({ ...block, id: await blockId })
     return await blockId
+  }
+
+  getQuals (): QualMatch[] {
+    return this.working.getQuals()
+  }
+
+  getBlocks (): QualMatchBlockBroadcast[] {
+    return this.working.getBlocks()
   }
 
   getBlock (blockId: number): QualMatchBlockBroadcast {
@@ -62,7 +94,7 @@ export class QualListRepo {
     const sittingId = await this.persistent.createScheduledMatch(match)
 
     const sitting: QualMatchSitting = {
-      ...match, sittingId, sitting: previousNumber + 1, resolution: MatchResolution.NOT_STARTED, field: 'TODO'
+      ...match, sittingId, sitting: previousNumber, resolution: MatchResolution.NOT_STARTED, field: 'TODO'
     }
 
     block.matches.push(sitting)
@@ -71,5 +103,11 @@ export class QualListRepo {
     } else {
       await this.persistent.addMatchAfter(previousId, sittingId)
     }
+
+    this.working.addMatchToBlock(blockId, sitting)
+  }
+
+  async reset (): Promise<void> {
+    this.working.reset()
   }
 }

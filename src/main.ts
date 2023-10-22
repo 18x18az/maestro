@@ -15,7 +15,7 @@ async function bootstrap (): Promise<void> {
     }
   })
   await app.startAllMicroservices()
-  app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes(new ValidationPipe({ transform: true }))
   app.use(helmet({ crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false }))
   await app.listen(2000)
 }

@@ -56,6 +56,8 @@ model MatchBlock {
 
   firstMatch ScheduledMatch? @relation(fields: [firstMatchId], references: [id])
   firstMatchId Int? @unique
+
+  cycleTime Int
 }
 
 model Match {

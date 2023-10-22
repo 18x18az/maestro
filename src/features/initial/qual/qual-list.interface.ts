@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsISO8601 } from 'class-validator'
+import { Type } from 'class-transformer'
+import { IsArray, IsDate, ValidateNested } from 'class-validator'
 
 export const QUAL_MATCH_LIST_CHANNEL = 'qualification/matches'
 export const QUAL_BLOCK_LIST_CHANNEL = 'qualification/blocks'
@@ -24,15 +25,16 @@ export class QualScheduleMatchUpload {
 }
 
 export class QualScheduleBlockMetadataUpload {
-  @IsISO8601({ strict: true })
+  @Type(() => Date)
+  @IsDate()
   @ApiProperty({ description: 'Start time of the first match in the block in UTC', example: '2021-04-24T09:00:00.000Z' })
-    start: string
+    start: Date
 
   @ApiProperty({ description: 'Cycle time in seconds of the block', example: 300 })
     cycleTime: number
 }
 
-export class QualScheduleBlockMetadata {
+export class QualScheduleBlockMetadata extends QualScheduleBlockMetadataUpload {
   @ApiProperty({ description: 'Block id', example: 1 })
     id: number
 }
@@ -43,6 +45,9 @@ export class QualScheduleBlockUpload extends QualScheduleBlockMetadataUpload {
 }
 
 export class QualUpload {
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => QualScheduleBlockUpload)
   @ApiProperty({ isArray: true, type: QualScheduleBlockUpload })
     blocks: QualScheduleBlockUpload[]
 }
