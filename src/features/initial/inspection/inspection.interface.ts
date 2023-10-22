@@ -20,7 +20,7 @@ export class RequirementDataBroadcast {
 }
 
 export class InspectionSectionDataBroadcast {
-  @ApiProperty({ description: 'The section title', example: 'Robot' })
+  @ApiProperty({ description: 'The section title', example: 'Robot rules' })
     title: string
 
   @ApiProperty({ description: 'The section requirements', isArray: true, type: RequirementDataBroadcast })
