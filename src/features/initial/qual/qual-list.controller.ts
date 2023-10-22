@@ -4,6 +4,7 @@ import { EventPattern } from '@nestjs/microservices'
 import { QualUpload } from './qual-list.interface'
 import { EVENT_STAGE_KEY, EventStage } from '@/features/stage'
 import { FieldInfoBroadcast } from '@/features/devices/field'
+import { QueuedMatch } from '@/features/competition'
 
 @Controller('quals')
 export class QualListController {
@@ -17,6 +18,11 @@ export class QualListController {
   @EventPattern('fields')
   async handleGetFields (fields: FieldInfoBroadcast[]): Promise<void> {
     await this.qualScheduleService.handleGetFields(fields)
+  }
+
+  @EventPattern('queuedMatches')
+  async handleQueueingUpdate (queued: QueuedMatch[]): Promise<void> {
+    await this.qualScheduleService.handleQueueingUpdate(queued)
   }
 
   @Post('')

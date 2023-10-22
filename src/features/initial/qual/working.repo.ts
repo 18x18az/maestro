@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockMetadata } from './qual-list.interface'
+import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockMetadata } from './qual-list.interface'
+import { QueuedMatch } from '@/features/competition'
 
 @Injectable()
 export class WorkingRepo {
@@ -69,6 +70,15 @@ export class WorkingRepo {
       return null
     }
     return block.matches[block.matches.length - 1].sittingId
+  }
+
+  markSittingResolution (match: QueuedMatch, resolution: MatchResolution): void {
+    const block = this.getBlock(match.blockId)
+    const sitting = block.matches.find(sitting => sitting.sittingId === match.sittingId)
+
+    if (sitting === undefined) throw new Error('Sitting not found')
+
+    sitting.resolution = resolution
   }
 
   reset (): void {

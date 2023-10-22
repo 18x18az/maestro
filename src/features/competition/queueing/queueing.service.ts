@@ -1,4 +1,4 @@
-import { QualMatchBlockBroadcast } from '@/features/initial'
+import { MatchResolution, QualMatchBlockBroadcast } from '@/features/initial'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { QueueingPublisher } from './queueing.publisher'
 import { FieldInfoBroadcast } from '@/features/devices/field'
@@ -16,6 +16,27 @@ export class QueueingService {
 
   async handleQualBlockUpdate (blocks: QualMatchBlockBroadcast[]): Promise<void> {
     this.allBlocks = blocks
+
+    if (this.currentBlock === null) {
+      this.logger.log('No block currently running')
+      for (const block of blocks) {
+        // See if the first match has been at least queued
+        const firstMatch = block.matches[0]
+        if (firstMatch.resolution === MatchResolution.NOT_STARTED) continue
+
+        // See if any of the last n matches have not been resolved
+        const numFields = this.fields.length
+        const lastNMatches = block.matches.slice(-numFields)
+        if (lastNMatches.find(match => match.resolution !== MatchResolution.RESOLVED) === undefined) continue
+
+        // If we get here, we have an incomplete block
+        this.currentBlock = block
+        this.logger.log('Resuming incomplete block')
+        await this.handleQueueingUpdate()
+        return
+      }
+    }
+
     await this.publishBlock()
   }
 
@@ -36,7 +57,11 @@ export class QueueingService {
     const matches = this.currentBlock.matches.slice(0, numSlots).map((match) => {
       const fieldName = this.fields.find((field) => field.fieldId === match.field)?.name
       if (fieldName === undefined) throw new Error('Field name is undefined')
-      return { ...match, fieldName }
+      if (this.currentBlock === null) throw new Error('Current block is null')
+
+      const blockId = this.currentBlock.id
+
+      return { ...match, fieldName, blockId }
     })
     await this.publisher.publishQueuedMatches(matches)
   }
