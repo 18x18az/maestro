@@ -23,7 +23,7 @@ export class QualScheduleMatchUpload {
     number: number
 }
 
-export class QualScheduleBlockMetadata {
+export class QualScheduleBlockMetadataUpload {
   @IsISO8601({ strict: true })
   @ApiProperty({ description: 'Start time of the first match in the block in UTC', example: '2021-04-24T09:00:00.000Z' })
     start: string
@@ -32,7 +32,12 @@ export class QualScheduleBlockMetadata {
     cycleTime: number
 }
 
-export class QualScheduleBlockUpload extends QualScheduleBlockMetadata {
+export class QualScheduleBlockMetadata {
+  @ApiProperty({ description: 'Block id', example: 1 })
+    id: number
+}
+
+export class QualScheduleBlockUpload extends QualScheduleBlockMetadataUpload {
   @ApiProperty({ isArray: true, type: QualScheduleMatchUpload })
     matches: QualScheduleMatchUpload[]
 }
@@ -67,6 +72,9 @@ export enum MatchResolution {
 export class QualMatchSitting extends QualMatch {
   @ApiProperty({ description: 'Field the match should nominally be played on', example: 'Field 2' })
     field: string
+
+  @ApiProperty({ description: 'Match sitting id', example: 1 })
+    sittingId: number
 
   @ApiProperty({ description: 'How many times the match has been replayed', example: '1' })
     sitting: number

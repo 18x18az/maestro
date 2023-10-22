@@ -8,7 +8,7 @@ export class QualScheduleService {
   constructor (private readonly repo: QualListRepo, private readonly publisher: QualSchedulePublisher) { }
 
   async onApplicationBootstrap (): Promise<void> {
-    await this.repo.hydrateQuals()
+    // await this.repo.hydrateQuals()
     // await this.broadcastQuals()
   }
 
@@ -31,7 +31,16 @@ export class QualScheduleService {
   private async storeMatchBlock (block: QualScheduleBlockUpload): Promise<void> {
     // await this.repo.clearSchedule()
 
-    // const blockId = await this.repo.createBlock(block)
+    const blockId = await this.repo.createBlock(block)
+
+    for (const match of block.matches) {
+      const matchId = await this.repo.createMatch(match)
+      await this.repo.appendMatchToBlock(blockId, matchId)
+      // const redAllianceId = await this.repo.createAlliance(match.redAlliance)
+      // const blueAllianceId = await this.repo.createAlliance(match.blueAlliance)
+      // const matchId = await this.repo.createMatch(redAllianceId, blueAllianceId, match)
+      // await this.repo.appendMatchToBlock(blockId, matchId)
+    }
 
     // const previousPromise = Promise.resolve()
 
@@ -50,6 +59,10 @@ export class QualScheduleService {
   async uploadQualSchedule (schedule: QualUpload): Promise<void> {
     this.logger.log('Received qual schedule')
 
+    for (const block of schedule.blocks) {
+      await this.storeMatchBlock(block)
+    }
+
     // let previousPromise = Promise.resolve()
 
     // schedule.blocks.forEach(async block => {
@@ -59,7 +72,7 @@ export class QualScheduleService {
 
     // await previousPromise
 
-    await this.broadcastQuals()
+    // await this.broadcastQuals()
   }
 
   async broadcastQuals (): Promise<void> {

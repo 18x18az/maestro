@@ -21,7 +21,6 @@ export class SetupController {
 
   @Post('config')
   async submitConfig (@Body() config: SetupConfig): Promise<void> {
-    console.log(config)
     await this.service.initialConfig(config)
   }
 

@@ -85,7 +85,7 @@ model ScheduledMatch {
 
   block MatchBlock?
 
-  resolution Int
+  resolution String
 }
 
 model CheckIn {
