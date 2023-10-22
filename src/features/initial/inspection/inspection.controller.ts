@@ -2,9 +2,9 @@ import { Controller, Get, Param, Post, Query } from '@nestjs/common'
 import { InspectionService } from './inspection.service'
 import { EventPattern } from '@nestjs/microservices'
 import { ApiResponse } from '@nestjs/swagger'
-import { InspectionChecklist, InspectionSectionSummary, InspectionSummary } from '../../../interfaces/inspection'
+import { InspectionChecklist, InspectionSectionSummary } from '../../../interfaces/inspection'
 import { EVENT_STAGE_KEY, EventStage } from '../../stage'
-import { INSPECTION_STAGE } from './inspection.interface'
+import { INSPECTION_STAGE, InspectionSectionDataBroadcast } from './inspection.interface'
 
 @Controller('inspection')
 export class InspectionController {
@@ -17,8 +17,8 @@ export class InspectionController {
   }
 
   @EventPattern(EVENT_STAGE_KEY)
-  handleEventStage (message: EventStage): void {
-    this.inspectionService.setEventStage(message.stage)
+  async handleEventStage (message: EventStage): Promise<void> {
+    await this.inspectionService.setEventStage(message.stage)
   }
 
   @Post(':teamNumber/checkedIn')
@@ -48,7 +48,7 @@ export class InspectionController {
 
   @Get(':teamNumber')
   @ApiResponse({ status: 200, description: 'Returns the inspection summary for the team', type: InspectionSectionSummary, isArray: true })
-  async getTeamProgress (@Param() params: any): Promise<InspectionSummary> {
+  async getTeamProgress (@Param() params: any): Promise<InspectionSectionDataBroadcast[]> {
     return await this.inspectionService.getTeamProgress(params.teamNumber)
   }
 }

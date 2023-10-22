@@ -1,7 +1,7 @@
 import { Publisher, Payload } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { PublishService } from '../../../utils/publish/publish.service'
-import { INSPECTION_STAGE } from './inspection.interface'
+import { INSPECTION_STAGE, InspectionSectionDataBroadcast } from './inspection.interface'
 
 @Injectable()
 export class InspectionPublisher {
@@ -12,6 +12,11 @@ export class InspectionPublisher {
   @Publisher('inspection/stage/:stage')
   async publishStage (stage: INSPECTION_STAGE, @Payload({ isArray: true, type: String }) teams: string[]): Promise<void> {
     await this.publisher.broadcast(`inspection/stage/${stage as string}`, { teams })
+  }
+
+  @Publisher('inspection/team/:team/inspection')
+  async publishInspection (teamNumber: string, @Payload({}) inspection: InspectionSectionDataBroadcast[]): Promise<void> {
+    await this.publisher.broadcast(`inspection/team/${teamNumber}/inspection`, inspection)
   }
 
   @Publisher('inspection/team/:team')

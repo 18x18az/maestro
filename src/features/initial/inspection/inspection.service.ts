@@ -2,9 +2,9 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import { TeamModel } from './models/team.model'
 import { OverallModel } from './models/overall.model'
 import { InspectionPublisher } from './inspection.publisher'
-import { InspectionChecklist, InspectionSummary } from '../../../interfaces/inspection'
+import { InspectionChecklist } from '../../../interfaces/inspection'
 import { EVENT_STAGE } from '../../stage/stage.interface'
-import { INSPECTION_STAGE } from './inspection.interface'
+import { INSPECTION_STAGE, InspectionSectionDataBroadcast } from './inspection.interface'
 
 @Injectable()
 export class InspectionService {
@@ -30,6 +30,13 @@ export class InspectionService {
     }))
     await this.evaluateCanConclude()
     this.logger.log('Inspection loaded')
+  }
+
+  private async publishTeam (team: string): Promise<void> {
+    const stage = this.teamModel.getStage(team)
+    const summary = await this.getTeamProgress(team)
+    await this.publisher.publishTeam(team, stage)
+    await this.publisher.publishInspection(team, summary)
   }
 
   private async publishStage (stage: INSPECTION_STAGE): Promise<void> {
@@ -98,7 +105,7 @@ export class InspectionService {
     }
   }
 
-  async getTeamProgress (team: string): Promise<InspectionSummary> {
+  async getTeamProgress (team: string): Promise<InspectionSectionDataBroadcast[]> {
     const currentStatus = this.teamModel.getStage(team)
     if (currentStatus === INSPECTION_STAGE.NOT_HERE || currentStatus === INSPECTION_STAGE.NO_SHOW) {
       throw new HttpException('Team not checked in', HttpStatus.BAD_REQUEST)
@@ -109,10 +116,10 @@ export class InspectionService {
     return Object.entries(criteria).map(([group, criteria]) => {
       return {
         title: group,
-        criteria: criteria.map(criterion => {
+        childRequirements: criteria.map(criterion => {
           return {
-            text: criterion.text,
-            met: met.includes(criterion.uuid),
+            description: criterion.text,
+            isMet: met.includes(criterion.uuid),
             uuid: criterion.uuid
           }
         })

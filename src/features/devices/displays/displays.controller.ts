@@ -28,11 +28,11 @@ export class DisplaysController {
   @Post(':uuid/name')
   async setDisplayName (
     @Param() params: DisplayParams,
-      @Body() body: { displayName: string }
+      @Body() body: { name: string }
   ): Promise<void> {
     await this.displaysService.setDisplayName(
       params.uuid,
-      body.displayName
+      body.name
     )
   }
 
