@@ -20,8 +20,7 @@ export class InspectionService {
 
   async loadTeams (teams: string[]): Promise<void> {
     await Promise.all(teams.map(async (team) => {
-      const stage = await this.teamModel.initialLoad(team)
-      await this.publisher.publishTeam(team, stage)
+      await this.publishTeam(team)
     }))
     const allStages = Object.values(INSPECTION_STAGE)
 
@@ -94,7 +93,6 @@ export class InspectionService {
     if (prev !== now) {
       this.logger.log(`Team ${team} changed from ${prev as string} to ${now as string}`)
       await Promise.all([
-        await this.publisher.publishTeam(team, now),
         await this.publishStage(prev),
         await this.publishStage(now)
       ])
@@ -103,6 +101,7 @@ export class InspectionService {
         await this.evaluateCanConclude()
       }
     }
+    await this.publishTeam(team)
   }
 
   async getTeamProgress (team: string): Promise<InspectionSectionDataBroadcast[]> {

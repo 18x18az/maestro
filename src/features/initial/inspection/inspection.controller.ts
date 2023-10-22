@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { InspectionService } from './inspection.service'
 import { EventPattern } from '@nestjs/microservices'
 import { ApiResponse } from '@nestjs/swagger'
@@ -37,8 +37,8 @@ export class InspectionController {
   }
 
   @Post(':teamNumber/criteria/:criteriaId')
-  async markMetOrNot (@Param() params: any, @Query() query: any): Promise<void> {
-    await this.inspectionService.markMetOrNot(params.teamNumber, parseInt(params.criteriaId), query.isMet === 'true')
+  async markMetOrNot (@Param() params: any, @Body() body: { met: boolean }): Promise<void> {
+    await this.inspectionService.markMetOrNot(params.teamNumber, parseInt(params.criteriaId), body.met)
   }
 
   @Get('checklist')
