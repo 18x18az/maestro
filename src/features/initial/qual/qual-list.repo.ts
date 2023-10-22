@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PersistentRepo, RawBlock } from './persistent.repo'
 import { WorkingRepo } from './working.repo'
 import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-list.interface'
+import { QueuedMatch } from '@/features'
 
 @Injectable()
 export class QualListRepo {
@@ -105,6 +106,11 @@ export class QualListRepo {
     }
 
     this.working.addMatchToBlock(blockId, sitting)
+  }
+
+  async markSittingResolution (match: QueuedMatch, resolution: MatchResolution): Promise<void> {
+    await this.persistent.markSittingResolution(match.sittingId, resolution)
+    this.working.markSittingResolution(match, resolution)
   }
 
   async reset (): Promise<void> {

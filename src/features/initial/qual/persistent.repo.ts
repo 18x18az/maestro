@@ -119,6 +119,10 @@ export class PersistentRepo {
     await this.repo.matchBlock.update({ where: { id: blockId }, data: { firstMatchId: sittingId } })
   }
 
+  async markSittingResolution (sittingId: number, resolution: MatchResolution): Promise<void> {
+    await this.repo.scheduledMatch.update({ where: { id: sittingId }, data: { resolution } })
+  }
+
   async getFirstMatchId (blockId: number): Promise<number | null> {
     const block = await this.repo.matchBlock.findUnique({ where: { id: blockId }, select: { firstMatchId: true } })
     if (block === null) {

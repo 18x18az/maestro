@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { QualScheduleBlockUpload, QualUpload } from './qual-list.interface'
+import { MatchResolution, QualScheduleBlockUpload, QualUpload } from './qual-list.interface'
 import { QualSchedulePublisher } from './qual-list.publisher'
 import { QualListRepo } from './qual-list.repo'
 import { EVENT_STAGE } from '@/features/stage'
 import { FieldInfoBroadcast } from '@/features/devices/field'
+import { QueuedMatch } from '@/features'
 
 @Injectable()
 export class QualScheduleService {
@@ -64,5 +65,30 @@ export class QualScheduleService {
 
   async handleGetFields (fields: FieldInfoBroadcast[]): Promise<void> {
     this.fieldsCache = fields.filter(field => field.isCompetition).map(field => field.fieldId)
+  }
+
+  async handleQueueingUpdate (queued: QueuedMatch[]): Promise<void> {
+    const numFields = this.fieldsCache.length
+    const onFieldMatches = queued.slice(0, numFields)
+
+    for (const match of onFieldMatches) {
+      if ([MatchResolution.SCORING, MatchResolution.RESOLVED, MatchResolution.ON_DECK, MatchResolution.IN_PROGRESS].includes(match.resolution)) {
+        continue
+      }
+      this.logger.log(`Marking match ${match.number} as ON_DECK`)
+      await this.repo.markSittingResolution(match, MatchResolution.ON_DECK)
+    }
+
+    const queuedMatches = queued.slice(numFields)
+    for (const match of queuedMatches) {
+      if (match.resolution === MatchResolution.QUEUED) {
+        continue
+      }
+      this.logger.log(`Marking match ${match.number} as QUEUED`)
+      await this.repo.markSittingResolution(match, MatchResolution.QUEUED)
+    }
+
+    const blocks = this.repo.getBlocks()
+    await this.publisher.publishBlocks(blocks)
   }
 }

@@ -71,7 +71,8 @@ export enum MatchResolution {
   ON_DECK = 'ON_DECK',
   IN_PROGRESS = 'IN_PROGRESS',
   SCORING = 'SCORING',
-  RESOLVED = 'RESOLVED'
+  RESOLVED = 'RESOLVED',
+  QUEUED = 'QUEUED'
 }
 
 export class QualMatchSitting extends QualMatch {
