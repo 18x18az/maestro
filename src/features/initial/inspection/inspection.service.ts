@@ -20,6 +20,7 @@ export class InspectionService {
 
   async loadTeams (teams: string[]): Promise<void> {
     await Promise.all(teams.map(async (team) => {
+      await this.teamModel.initialLoad(team)
       await this.publishTeam(team)
     }))
     const allStages = Object.values(INSPECTION_STAGE)
@@ -33,9 +34,11 @@ export class InspectionService {
 
   private async publishTeam (team: string): Promise<void> {
     const stage = this.teamModel.getStage(team)
-    const summary = await this.getTeamProgress(team)
     await this.publisher.publishTeam(team, stage)
-    await this.publisher.publishInspection(team, summary)
+    if (stage === INSPECTION_STAGE.PARTIAL || stage === INSPECTION_STAGE.COMPLETE) {
+      const summary = await this.getTeamProgress(team)
+      await this.publisher.publishInspection(team, summary)
+    }
   }
 
   private async publishStage (stage: INSPECTION_STAGE): Promise<void> {
