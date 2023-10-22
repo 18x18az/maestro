@@ -20,7 +20,7 @@ export class FieldService {
   }
 
   async createFields (fields: FieldInfo[]): Promise<void> {
-    await this.repo.clearFields()
+    this.repo.clearFields()
     for (const field of fields) {
       await this.repo.createField(field)
     }
