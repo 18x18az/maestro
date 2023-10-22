@@ -20,7 +20,7 @@ The following are typical components of a folder
 
 * foo.controller.ts
 
-REST or message bus inputs to a module (e.g if it accepts a POST request to /api/foo/bar, or it listens for messages on /foo). This stage is also responsible for authentication/authorization as well as basic data sanitization (e.g. make sure integers are actually integers)
+REST or message bus inputs to a module (e.g if it accepts a POST request to /api/foo/bar, or it listens for messages on /foo). This stage is also responsible for authentication/authorization as well as basic data sanitization (e.g. make sure that integers are actually integers)
 
 * foo.service.ts
 
