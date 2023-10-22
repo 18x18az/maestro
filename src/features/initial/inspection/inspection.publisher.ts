@@ -15,7 +15,7 @@ export class InspectionPublisher {
   }
 
   @Publisher('inspection/team/:team/inspection')
-  async publishInspection (teamNumber: string, @Payload({}) inspection: InspectionSectionDataBroadcast[]): Promise<void> {
+  async publishInspection (teamNumber: string, @Payload({ isArray: true, type: InspectionSectionDataBroadcast }) inspection: InspectionSectionDataBroadcast[]): Promise<void> {
     await this.publisher.broadcast(`inspection/team/${teamNumber}/inspection`, inspection)
   }
 
