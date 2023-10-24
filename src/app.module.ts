@@ -4,6 +4,7 @@ import { BeaconService } from './utils/discovery'
 import { ConfigModule } from '@nestjs/config'
 import { SimpleModule } from './simple/simple.module'
 import { StorageModule } from './utils/storage/storage.module'
+import { DisplaysModule } from './features/devices/displays/displays.module'
 
 // @Module({
 //   imports: [
@@ -32,7 +33,8 @@ import { StorageModule } from './utils/storage/storage.module'
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     SimpleModule,
-    StorageModule
+    StorageModule,
+    DisplaysModule
   ]
 })
 export class WithoutPigeonModule {}

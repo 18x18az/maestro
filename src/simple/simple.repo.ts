@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '@/utils/prisma/prisma.service'
-import { QualMatch } from './simple.interface'
+import { Field, QualMatch } from './simple.interface'
 
 @Injectable()
 export class SimpleRepo {
@@ -14,6 +14,53 @@ export class SimpleRepo {
     })
 
     return fields.map(field => field.id)
+  }
+
+  async getFields (): Promise<Field[]> {
+    const fields = await this.repo.simpleField.findMany({
+      select: {
+        id: true,
+        name: true
+      },
+      where: {
+        name: {
+          not: 'UNUSED'
+        }
+      }
+    })
+
+    return fields
+  }
+
+  async setFieldNames (fieldNames: string[]): Promise<void> {
+    const fieldIds = await this.getFieldIds()
+    const numFields = fieldNames.length
+
+    for (let i = 0; i < numFields; i++) {
+      const fieldId = fieldIds[i]
+      const fieldName = fieldNames[i]
+
+      await this.repo.simpleField.update({
+        where: {
+          id: fieldId
+        },
+        data: {
+          name: fieldName
+        }
+      })
+    }
+
+    const extra = fieldIds.slice(numFields)
+    for (const fieldId of extra) {
+      await this.repo.simpleField.update({
+        where: {
+          id: fieldId
+        },
+        data: {
+          name: 'UNUSED'
+        }
+      })
+    }
   }
 
   async ensureFieldsExists (): Promise<void> {
@@ -64,6 +111,10 @@ export class SimpleRepo {
         time: new Date(match.scheduled)
       }
     })
+  }
+
+  async reset (): Promise<void> {
+    await this.repo.simpleMatch.deleteMany({})
   }
 
   async storeQuals (quals: QualMatch[]): Promise<void> {

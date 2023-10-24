@@ -1,6 +1,6 @@
 import { QualBlock, QualMatch } from './simple.interface'
 
-export function qualParser (file: string, fields: number[]): QualMatch[] {
+export function qualParser (file: string, fields: number[]): [QualMatch[], string[]] {
   const lines = file.split('\n').slice(1)
 
   const fieldDict: { [key: string]: number } = {}
@@ -40,7 +40,9 @@ export function qualParser (file: string, fields: number[]): QualMatch[] {
     return qual
   })
 
-  return matches
+  const fieldNames = Object.keys(fieldDict)
+
+  return [matches, fieldNames]
 }
 
 export function blockParser (quals: QualMatch[]): QualBlock[] {
@@ -50,7 +52,7 @@ export function blockParser (quals: QualMatch[]): QualBlock[] {
   let previousTime: null | Date = null
 
   for (const qual of quals) {
-    if (previousTime === null || qual.time.getTime() - previousTime.getTime() > 30 * 60 * 1000) {
+    if (previousTime !== null && qual.time.getTime() - previousTime.getTime() > 30 * 60 * 1000) {
       currentBlock = { matches: [] }
       blocks.push(currentBlock)
     }

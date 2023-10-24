@@ -29,4 +29,9 @@ export class SimpleController {
   async reset (): Promise<void> {
     await this.service.reset()
   }
+
+  @Post('continue')
+  async continue (): Promise<void> {
+    await this.service.continue()
+  }
 }

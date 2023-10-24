@@ -1,6 +1,6 @@
 import { PublishService } from '@/utils/publish/publish.service'
 import { Injectable } from '@nestjs/common'
-import { QualBlock, STAGE, Team } from './simple.interface'
+import { FieldStatus, QualBlock, STAGE, Team } from './simple.interface'
 
 @Injectable()
 export class SimplePublisher {
@@ -16,5 +16,13 @@ export class SimplePublisher {
 
   async publishTeams (teams: Team[]): Promise<void> {
     await this.publisher.broadcast('teams', teams)
+  }
+
+  async publishFieldStatus (fieldStatus: FieldStatus): Promise<void> {
+    await this.publisher.broadcast(`fieldStatus/${fieldStatus.id}`, fieldStatus)
+  }
+
+  async publishFieldStatuses (fieldStatuses: FieldStatus[]): Promise<void> {
+    await this.publisher.broadcast('fieldStatuses', fieldStatuses)
   }
 }
