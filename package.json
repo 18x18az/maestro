@@ -35,6 +35,7 @@
     "@nestjs/microservices": "^10.2.6",
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.2.6",
+    "@nestjs/schedule": "^4.0.0",
     "@nestjs/swagger": "^7.1.8",
     "@prisma/client": "^4.16.2",
     "axios": "^1.5.1",

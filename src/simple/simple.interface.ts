@@ -17,18 +17,21 @@ export interface Team {
   school: string
 }
 
-export interface QualMatch {
+export interface Match {
+  round: number
   matchNum: number
+  sitting: number
   fieldId: number
   red1: string
   red2: string
   blue1: string
   blue2: string
-  time: Date
+  time?: Date
+  status: MATCH_STATE
 }
 
-export interface QualBlock {
-  matches: QualMatch[]
+export interface MatchBlock {
+  matches: Match[]
 }
 
 export interface MatchResult extends MatchIdentifier {
@@ -63,4 +66,17 @@ export interface FieldStatus extends Field {
   redAlliance?: Alliance
   blueAlliance?: Alliance
   match?: MatchIdentifier
+}
+
+export enum BLOCK_STATE {
+  NOT_STARTED = 'NOT_STARTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  FINISHED = 'FINISHED'
+}
+
+export enum MATCH_STATE {
+  NOT_STARTED = 'NOT_STARTED',
+  ON_FIELD = 'ON_FIELD',
+  SCORING = 'SCORING',
+  RESOLVED = 'RESOLVED'
 }

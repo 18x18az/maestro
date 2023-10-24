@@ -124,7 +124,7 @@ model CheckedInspection {
 
 model Display {
   uuid    String  @unique
-  field Field? @relation(fields: [fieldId], references: [id])
+  field SimpleField? @relation(fields: [fieldId], references: [id])
   fieldId Int?
   name    String
 }
@@ -133,7 +133,6 @@ model Field {
   id  Int @id @default(autoincrement())
   name String
   isCompetition Int
-  displays Display[]
   matches ScheduledMatch[]
 }
 
@@ -158,6 +157,13 @@ model SimpleField {
   id Int @id @unique @default(autoincrement())
   name String
   matches SimpleMatch[]
+  displays Display[]
+}
+
+model SimpleBlock {
+  id Int @id @unique @default(autoincrement())
+  matches SimpleMatch[]
+  status String @default("NOT_STARTED")
 }
 
 model SimpleMatch {
@@ -172,4 +178,7 @@ model SimpleMatch {
   scheduled DateTime?
   field SimpleField? @relation(fields: [fieldId], references: [id])
   fieldId Int
+  block SimpleBlock @relation(fields: [blockId], references: [id])
+  blockId Int
+  status String @default("NOT_STARTED")
 }

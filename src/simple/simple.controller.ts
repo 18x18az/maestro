@@ -34,4 +34,14 @@ export class SimpleController {
   async continue (): Promise<void> {
     await this.service.continue()
   }
+
+  @Post('start')
+  async start (): Promise<void> {
+    await this.service.startAuto()
+  }
+
+  @Post('resume')
+  async resume (): Promise<void> {
+    await this.service.resumeMatch()
+  }
 }

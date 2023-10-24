@@ -1,12 +1,16 @@
-import { QualBlock, QualMatch } from './simple.interface'
+import { MatchBlock, Match, MATCH_STATE } from './simple.interface'
 
-export function qualParser (file: string, fields: number[]): [QualMatch[], string[]] {
+export function qualParser (file: string, fields: number[]): [MatchBlock[], string[]] {
   const lines = file.split('\n').slice(1)
 
   const fieldDict: { [key: string]: number } = {}
   let usedFields = 0
 
-  const matches = lines.flatMap(line => {
+  let currentBlock: MatchBlock = { matches: [] }
+  const blocks: MatchBlock[] = [currentBlock]
+  const previousTime: null | Date = null
+
+  lines.forEach(line => {
     const split = line.split(',')
 
     const round = split[1]
@@ -36,29 +40,16 @@ export function qualParser (file: string, fields: number[]): [QualMatch[], strin
       usedFields++
     }
 
-    const qual: QualMatch = { matchNum, fieldId, red1, red2, blue1, blue2, time }
-    return qual
+    if (previousTime !== null && time.getTime() - previousTime.getTime() > 30 * 60 * 1000) {
+      currentBlock = { matches: [] }
+      blocks.push(currentBlock)
+    }
+
+    const qual: Match = { matchNum, fieldId, red1, red2, blue1, blue2, time, round: 0, sitting: 0, status: MATCH_STATE.NOT_STARTED }
+    currentBlock.matches.push(qual)
   })
 
   const fieldNames = Object.keys(fieldDict)
 
-  return [matches, fieldNames]
-}
-
-export function blockParser (quals: QualMatch[]): QualBlock[] {
-  let currentBlock: QualBlock = { matches: [] }
-  const blocks: QualBlock[] = [currentBlock]
-
-  let previousTime: null | Date = null
-
-  for (const qual of quals) {
-    if (previousTime !== null && qual.time.getTime() - previousTime.getTime() > 30 * 60 * 1000) {
-      currentBlock = { matches: [] }
-      blocks.push(currentBlock)
-    }
-    currentBlock.matches.push(qual)
-    previousTime = qual.time
-  }
-
-  return blocks
+  return [blocks, fieldNames]
 }

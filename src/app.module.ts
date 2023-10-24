@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { SimpleModule } from './simple/simple.module'
 import { StorageModule } from './utils/storage/storage.module'
 import { DisplaysModule } from './features/devices/displays/displays.module'
+import { ScheduleModule } from '@nestjs/schedule'
 
 // @Module({
 //   imports: [
@@ -34,7 +35,8 @@ import { DisplaysModule } from './features/devices/displays/displays.module'
     ConfigModule.forRoot({ isGlobal: true }),
     SimpleModule,
     StorageModule,
-    DisplaysModule
+    DisplaysModule,
+    ScheduleModule.forRoot()
   ]
 })
 export class WithoutPigeonModule {}

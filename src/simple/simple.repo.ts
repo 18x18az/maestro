@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from '@/utils/prisma/prisma.service'
-import { Field, QualMatch } from './simple.interface'
+import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier } from './simple.interface'
 
 @Injectable()
 export class SimpleRepo {
@@ -78,60 +78,163 @@ export class SimpleRepo {
     }
   }
 
-  async getQuals (): Promise<QualMatch[]> {
-    const matches = await this.repo.simpleMatch.findMany({
-      select: {
-        number: true,
-        fieldId: true,
-        red1: true,
-        red2: true,
-        blue1: true,
-        blue2: true,
-        scheduled: true
-      },
-      orderBy: {
-        number: 'asc'
-      },
+  async updateMatchStatus (match: MatchIdentifier, status: MATCH_STATE): Promise<void> {
+    await this.repo.simpleMatch.update({
       where: {
-        round: 0
-      }
-    })
-
-    return matches.map(match => {
-      if (match.scheduled === null) {
-        throw new Error('Match has no scheduled time')
-      }
-      return {
-        matchNum: match.number,
-        fieldId: match.fieldId,
-        red1: match.red1,
-        red2: match.red2,
-        blue1: match.blue1,
-        blue2: match.blue2,
-        time: new Date(match.scheduled)
+        round_number_sitting: {
+          round: match.round,
+          number: match.match,
+          sitting: match.sitting
+        }
+      },
+      data: {
+        status
       }
     })
   }
 
   async reset (): Promise<void> {
     await this.repo.simpleMatch.deleteMany({})
+    await this.repo.simpleBlock.deleteMany({})
   }
 
-  async storeQuals (quals: QualMatch[]): Promise<void> {
-    for (const qual of quals) {
-      await this.repo.simpleMatch.create({
-        data: {
-          round: 0,
-          number: qual.matchNum,
-          sitting: 0,
-          fieldId: qual.fieldId,
-          red1: qual.red1,
-          red2: qual.red2,
-          blue1: qual.blue1,
-          blue2: qual.blue2,
-          scheduled: qual.time.toISOString()
+  async getInProgressBlock (): Promise<number | null> {
+    const block = await this.repo.simpleBlock.findFirst({
+      where: {
+        status: BLOCK_STATE.IN_PROGRESS
+      }
+    })
+
+    if (block === null) {
+      return null
+    }
+
+    return block.id
+  }
+
+  async getNextBlockId (): Promise<number | null> {
+    const inProgress = await this.repo.simpleBlock.findMany({
+      where: {
+        status: BLOCK_STATE.IN_PROGRESS
+      }
+    })
+    if (inProgress.length > 0) {
+      throw new BadRequestException('A qual block is already in progress')
+    }
+
+    const block = await this.repo.simpleBlock.findFirst({
+      where: {
+        status: BLOCK_STATE.NOT_STARTED
+      }
+    })
+
+    if (block === null) {
+      return null
+    }
+
+    await this.repo.simpleBlock.update({
+      where: {
+        id: block.id
+      },
+      data: {
+        status: BLOCK_STATE.IN_PROGRESS
+      }
+    })
+
+    return block.id
+  }
+
+  async getCurrentMatch (fieldId: number, blockId: number): Promise<Match | null> {
+    // find the first match with a status other than BLOCK_STATE.NOT_STARTED
+    const match = await this.repo.simpleMatch.findFirst({
+      where: {
+        fieldId,
+        blockId,
+        status: {
+          notIn: [MATCH_STATE.NOT_STARTED, MATCH_STATE.RESOLVED]
         }
+      },
+      orderBy: {
+        number: 'asc'
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    const time = match.scheduled === null ? undefined : new Date(match.scheduled)
+
+    return {
+      round: match.round,
+      matchNum: match.number,
+      sitting: match.sitting,
+      fieldId: match.fieldId,
+      red1: match.red1,
+      red2: match.red2,
+      blue1: match.blue1,
+      blue2: match.blue2,
+      time,
+      status: match.status as MATCH_STATE
+    }
+  }
+
+  async getNextMatch (fieldId: number, blockId: number): Promise<Match | null> {
+    // get the match with the lowest number and status BLOCK_STATE.NOT_STARTED for this block and field
+    const match = await this.repo.simpleMatch.findFirst({
+      where: {
+        fieldId,
+        blockId,
+        status: BLOCK_STATE.NOT_STARTED
+      },
+      orderBy: {
+        number: 'asc'
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    const time = match.scheduled === null ? undefined : new Date(match.scheduled)
+
+    return {
+      round: match.round,
+      matchNum: match.number,
+      sitting: match.sitting,
+      fieldId: match.fieldId,
+      red1: match.red1,
+      red2: match.red2,
+      blue1: match.blue1,
+      blue2: match.blue2,
+      time,
+      status: match.status as MATCH_STATE
+    }
+  }
+
+  async storeBlocks (blocks: MatchBlock[]): Promise<void> {
+    for (const block of blocks) {
+      const { id: blockId } = await this.repo.simpleBlock.create({
+        data: {}
       })
+
+      for (const match of block.matches) {
+        const scheduled = match.time === undefined ? null : match.time.toISOString()
+        await this.repo.simpleMatch.create({
+          data: {
+            blockId,
+            round: match.round,
+            number: match.matchNum,
+            sitting: match.sitting,
+            fieldId: match.fieldId,
+            red1: match.red1,
+            red2: match.red2,
+            blue1: match.blue1,
+            blue2: match.blue2,
+            scheduled
+          }
+        })
+      }
     }
   }
 }
