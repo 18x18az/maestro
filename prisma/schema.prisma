@@ -153,3 +153,23 @@ model User {
   role String @default("NONE")
   key String
 }
+
+model SimpleField {
+  id Int @id @unique @default(autoincrement())
+  name String
+  matches SimpleMatch[]
+}
+
+model SimpleMatch {
+  round Int
+  number Int
+  sitting Int
+  @@unique([round, number, sitting])
+  red1 String
+  red2 String
+  blue1 String
+  blue2 String
+  scheduled DateTime?
+  field SimpleField? @relation(fields: [fieldId], references: [id])
+  fieldId Int
+}
