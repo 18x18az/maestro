@@ -8,7 +8,7 @@ export function qualParser (file: string, fields: number[]): [MatchBlock[], stri
 
   let currentBlock: MatchBlock = { matches: [] }
   const blocks: MatchBlock[] = [currentBlock]
-  const previousTime: null | Date = null
+  let previousTime: null | Date = null
 
   lines.forEach(line => {
     const split = line.split(',')
@@ -44,6 +44,8 @@ export function qualParser (file: string, fields: number[]): [MatchBlock[], stri
       currentBlock = { matches: [] }
       blocks.push(currentBlock)
     }
+
+    previousTime = time
 
     const qual: Match = { matchNum, fieldId, red1, red2, blue1, blue2, time, round: 0, sitting: 0, status: MATCH_STATE.NOT_STARTED }
     currentBlock.matches.push(qual)

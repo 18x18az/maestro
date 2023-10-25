@@ -78,7 +78,9 @@ export class SimpleRepo {
     }
   }
 
-  async updateMatchStatus (match: MatchIdentifier, status: MATCH_STATE): Promise<void> {
+  async updateMatchStatus (match: MatchIdentifier | undefined, status: MATCH_STATE): Promise<void> {
+    if (match === undefined) throw new BadRequestException('No match')
+
     await this.repo.simpleMatch.update({
       where: {
         round_number_sitting: {
@@ -145,7 +147,6 @@ export class SimpleRepo {
   }
 
   async getCurrentMatch (fieldId: number, blockId: number): Promise<Match | null> {
-    // find the first match with a status other than BLOCK_STATE.NOT_STARTED
     const match = await this.repo.simpleMatch.findFirst({
       where: {
         fieldId,

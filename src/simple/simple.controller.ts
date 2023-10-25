@@ -3,6 +3,8 @@ import { IsUrl } from 'class-validator'
 import { SimpleService } from './simple.service'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Express } from 'express'
+import { MatchLifecycleService } from './match-lifecycle.service'
+import { TmService } from './tm-service'
 
 class TmBody {
   @IsUrl()
@@ -11,11 +13,15 @@ class TmBody {
 
 @Controller()
 export class SimpleController {
-  constructor (private readonly service: SimpleService) {}
+  constructor (
+    private readonly service: SimpleService,
+    private readonly lifecycle: MatchLifecycleService,
+    private readonly tm: TmService
+  ) {}
 
   @Post('tmIp')
   async getTmpIp (@Body() body: TmBody): Promise<void> {
-    await this.service.connectTm(body.addr)
+    await this.tm.connectTm(body.addr)
   }
 
   @Post('uploadMatches')
@@ -37,11 +43,11 @@ export class SimpleController {
 
   @Post('start')
   async start (): Promise<void> {
-    await this.service.startAuto()
+    await this.lifecycle.onAutoStarted()
   }
 
   @Post('resume')
   async resume (): Promise<void> {
-    await this.service.resumeMatch()
+    await this.lifecycle.onMatchResumed()
   }
 }

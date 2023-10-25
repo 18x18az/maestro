@@ -80,3 +80,9 @@ export enum MATCH_STATE {
   SCORING = 'SCORING',
   RESOLVED = 'RESOLVED'
 }
+
+export enum OBS_CONTROL {
+  ON_FIELD = 'ON_FIELD',
+  SCORE = 'SCORE',
+  CLEAN = 'CLEAN',
+}
