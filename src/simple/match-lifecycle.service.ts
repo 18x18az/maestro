@@ -5,6 +5,7 @@ import { FieldControlService } from './field-control.service'
 import { SimpleRepo } from './simple.repo'
 import { MatchService } from './match.service'
 import { ObsService } from './obs.service'
+import { ResultsService } from './results.service'
 
 @Injectable()
 export class MatchLifecycleService {
@@ -15,7 +16,8 @@ export class MatchLifecycleService {
     private readonly timer: TimerService,
     private readonly repo: SimpleRepo,
     private readonly match: MatchService,
-    private readonly obs: ObsService
+    private readonly obs: ObsService,
+    private readonly results: ResultsService
   ) {}
 
   async onAutoStarted (): Promise<void> {
@@ -52,6 +54,8 @@ export class MatchLifecycleService {
     this.logger.log(`Match ${match.match.round}-${match.match.match}-${match.match.sitting} concluded`)
 
     await this.repo.updateMatchStatus(match.match, MATCH_STATE.SCORING)
+
+    await this.results.publishResults()
 
     const handleMatchEnd = async (): Promise<void> => {
       await this.fieldControl.controlNextMatch()

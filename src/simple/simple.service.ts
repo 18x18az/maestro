@@ -5,12 +5,12 @@ import { SimplePublisher } from './simple.publisher'
 import { SimpleRepo } from './simple.repo'
 import { qualParser } from './qualParser'
 import { Cron } from '@nestjs/schedule'
-
 import { FieldControlService } from './field-control.service'
 import { MatchService } from './match.service'
 import { TmService } from './tm-service'
 import { StageService } from './stage.service'
 import { MatchLifecycleService } from './match-lifecycle.service'
+import { ResultsService } from './results.service'
 
 @Injectable()
 export class SimpleService {
@@ -24,7 +24,8 @@ export class SimpleService {
     private readonly match: MatchService,
     private readonly tm: TmService,
     private readonly stage: StageService,
-    private readonly lifecycle: MatchLifecycleService
+    private readonly lifecycle: MatchLifecycleService,
+    private readonly results: ResultsService
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
@@ -62,6 +63,8 @@ export class SimpleService {
       if (result === undefined) continue
 
       this.logger.log(`Match ${ident.round}-${ident.match}-${ident.sitting} on ${pendingField.name} has results`)
+
+      await this.results.update(result)
 
       await this.lifecycle.onMatchScored(pendingField)
     }

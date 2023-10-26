@@ -86,3 +86,8 @@ export enum OBS_CONTROL {
   SCORE = 'SCORE',
   CLEAN = 'CLEAN',
 }
+
+export interface ContextfulMatchResult extends MatchResult {
+  red: Alliance
+  blue: Alliance
+}

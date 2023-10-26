@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/utils/prisma/prisma.service'
-import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus } from './simple.interface'
+import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus, Alliance } from './simple.interface'
 
 @Injectable()
 export class SimpleRepo {
@@ -32,6 +32,31 @@ export class SimpleRepo {
     })
 
     return fields
+  }
+
+  async getMatchTeams (match: MatchIdentifier): Promise<{ red: Alliance, blue: Alliance }> {
+    const matchData = await this.repo.simpleMatch.findUnique({
+      where: {
+        round_number_sitting: {
+          round: match.round,
+          number: match.match,
+          sitting: match.sitting
+        }
+      }
+    })
+
+    if (matchData === null) throw new BadRequestException('No match')
+
+    return {
+      red: {
+        team1: matchData.red1,
+        team2: matchData.red2
+      },
+      blue: {
+        team1: matchData.blue1,
+        team2: matchData.blue2
+      }
+    }
   }
 
   async setFieldNames (fieldNames: string[]): Promise<void> {

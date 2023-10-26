@@ -13,10 +13,11 @@ import { MatchService } from './match.service'
 import { TmService } from './tm-service'
 import { StageService } from './stage.service'
 import { ObsService } from './obs.service'
+import { ResultsService } from './results.service'
 
 @Module({
   controllers: [SimpleController],
   imports: [StorageModule, HttpModule],
-  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService, ObsService]
+  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService, ObsService, ResultsService]
 })
 export class SimpleModule {}
