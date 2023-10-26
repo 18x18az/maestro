@@ -5,6 +5,7 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Express } from 'express'
 import { MatchLifecycleService } from './match-lifecycle.service'
 import { TmService } from './tm-service'
+import { FieldStatus } from './simple.interface'
 
 class TmBody {
   @IsUrl()
@@ -49,5 +50,10 @@ export class SimpleController {
   @Post('resume')
   async resume (): Promise<void> {
     await this.lifecycle.onMatchResumed()
+  }
+
+  @Post('replay')
+  async replay (@Body() status: FieldStatus): Promise<void> {
+    await this.lifecycle.onMatchReplayed(status)
   }
 }

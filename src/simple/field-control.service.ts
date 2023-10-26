@@ -104,6 +104,10 @@ export class FieldControlService {
     this.logger.log(`Queueing match ${match.round}-${match.matchNum}-${match.sitting} on ${fieldStatusToUpdate.name}`)
     const identifier: MatchIdentifier = { round: match.round, match: match.matchNum, sitting: match.sitting }
     await this.repo.updateMatchStatus(identifier, MATCH_STATE.ON_FIELD)
+    await this.publisher.publishFieldStatus(fieldStatusToUpdate)
+
+    setTimeout(() => { void this.controlNextMatch() }, 1000)
+
     await this.controlNextMatch()
     await this.publishFieldControl()
   }

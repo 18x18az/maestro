@@ -1,9 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/utils/prisma/prisma.service'
-import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier } from './simple.interface'
+import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus } from './simple.interface'
 
 @Injectable()
 export class SimpleRepo {
+  private readonly logger = new Logger(SimpleRepo.name)
+
   constructor (private readonly repo: PrismaService) {}
 
   async getFieldIds (): Promise<number[]> {
@@ -189,7 +191,7 @@ export class SimpleRepo {
         status: BLOCK_STATE.NOT_STARTED
       },
       orderBy: {
-        number: 'asc'
+        id: 'asc'
       }
     })
 
@@ -211,6 +213,56 @@ export class SimpleRepo {
       time,
       status: match.status as MATCH_STATE
     }
+  }
+
+  async getNextField (blockId: number): Promise<number> {
+    const allFields = await this.getFields()
+
+    const currentLastField = await this.repo.simpleMatch.findFirst({
+      where: {
+        blockId
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    })
+
+    if (currentLastField === null) {
+      return allFields[0].id
+    }
+
+    const currentLastIndex = allFields.findIndex(field => field.id === currentLastField.fieldId)
+    const nextIndex = (currentLastIndex + 1) % allFields.length
+    return allFields[nextIndex].id
+  }
+
+  async scheduleReplay (status: FieldStatus): Promise<void> {
+    const block = await this.getInProgressBlock()
+
+    const match = status.match
+    if (match === undefined) throw new BadRequestException('No match')
+
+    if (block === null) throw new BadRequestException('No block in progress')
+
+    const newSitting = match.sitting + 1
+    const fieldId = await this.getNextField(block)
+
+    this.logger.log(`Scheduling replay of match ${match.round}-${match.match}-${match.sitting} in block ${block} on ${fieldId}`)
+
+    await this.repo.simpleMatch.create({
+      data: {
+        blockId: block,
+        round: match.round,
+        number: match.match,
+        sitting: newSitting,
+        fieldId,
+        red1: status.redAlliance?.team1 ?? '',
+        red2: status.redAlliance?.team2 ?? '',
+        blue1: status.blueAlliance?.team1 ?? '',
+        blue2: status.blueAlliance?.team2 ?? '',
+        scheduled: null
+      }
+    })
   }
 
   async storeBlocks (blocks: MatchBlock[]): Promise<void> {

@@ -46,6 +46,8 @@ export class SimpleService {
 
   @Cron('*/10 * * * * *')
   async pollResults (): Promise<void> {
+    const stage = await this.stage.getStage()
+    if (stage === STAGE.WAITING_FOR_TEAMS || stage === STAGE.WAITING_FOR_MATCHES) return
     const pendingScoreFields = this.fieldControl.getPendingScoreFields()
 
     if (pendingScoreFields.length === 0) return

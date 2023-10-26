@@ -50,20 +50,33 @@ export class MatchLifecycleService {
     this.logger.log(`Match ${match.match.round}-${match.match.match}-${match.match.sitting} concluded`)
 
     await this.repo.updateMatchStatus(match.match, MATCH_STATE.SCORING)
+
+    const handleMatchEnd = async (): Promise<void> => {
+      await this.fieldControl.controlNextMatch()
+    }
+
+    // TODO this is an ugly hacky way of ensuring that it doesn't immediately go to the next match, do this better
+    setTimeout(() => {
+      void handleMatchEnd()
+    }, 5000)
+
     await this.fieldControl.updateFieldControl(FieldState.SCORING)
-    await this.fieldControl.controlNextMatch()
   }
 
   async onMatchReplayed (match: FieldStatus): Promise<void> {
     if (match.match === undefined) throw new BadRequestException('No match')
 
+    await this.repo.scheduleReplay(match)
+
     this.logger.log(`Match ${match.match.round}-${match.match.match}-${match.match.sitting} marked for a replay`)
 
-    // TODO
+    await this.onMatchResolved(match)
   }
 
   async onMatchScored (match: FieldStatus): Promise<void> {
     if (match.match === undefined) throw new BadRequestException('No match')
+
+    if (match.state !== FieldState.SCORING) throw new BadRequestException('Match not scoring')
 
     this.logger.log(`Match ${match.match.round}-${match.match.match}-${match.match.sitting} scored`)
 

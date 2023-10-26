@@ -167,6 +167,7 @@ model SimpleBlock {
 }
 
 model SimpleMatch {
+  id Int @id @unique @default(autoincrement())
   round Int
   number Int
   sitting Int

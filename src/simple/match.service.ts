@@ -1,17 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { SimpleRepo } from './simple.repo'
 import { FieldControlService } from './field-control.service'
 import { FieldState } from './simple.interface'
 
 @Injectable()
 export class MatchService {
+  private readonly logger = new Logger(MatchService.name)
+
   constructor (
     private readonly repo: SimpleRepo,
     private readonly fieldControl: FieldControlService
   ) {}
 
   async handleEmptyField (fieldId: number): Promise<void> {
-
+    this.logger.log(`Field ${fieldId} is empty`)
   }
 
   async queueField (fieldId: number): Promise<void> {
