@@ -58,7 +58,7 @@ export class SimpleService {
     for (const pendingField of pendingScoreFields) {
       const ident = pendingField.match
       if (ident === undefined) throw new Error('Field is pending but has no match')
-      const result = results.find(result => result.round === ident.round && result.match === ident.match && result.sitting === ident.sitting)
+      const result = results.find(result => result.round === ident.round && result.match === ident.match)
       if (result === undefined) continue
 
       this.logger.log(`Match ${ident.round}-${ident.match}-${ident.sitting} on ${pendingField.name} has results`)

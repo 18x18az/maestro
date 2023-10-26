@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { FieldState, FieldStatus, MATCH_STATE, Match, MatchIdentifier } from './simple.interface'
 import { SimplePublisher } from './simple.publisher'
 import { SimpleRepo } from './simple.repo'
+import { ObsService } from './obs.service'
 
 @Injectable()
 export class FieldControlService {
@@ -11,7 +12,8 @@ export class FieldControlService {
 
   constructor (
     private readonly publisher: SimplePublisher,
-    private readonly repo: SimpleRepo
+    private readonly repo: SimpleRepo,
+    private readonly obs: ObsService
   ) {}
 
   private async publishFieldControl (): Promise<void> {
@@ -33,6 +35,15 @@ export class FieldControlService {
     await this.publisher.publishFieldStatuses(this.fieldStatuses)
   }
 
+  private async publicFieldStatus (fieldId: number): Promise<void> {
+    const fieldStatus = this.fieldStatuses.find(fieldStatus => fieldStatus.id === fieldId)
+    if (fieldStatus === undefined) {
+      throw new BadRequestException('Field not found')
+    }
+    await this.publisher.publishFieldStatus(fieldStatus)
+    await this.publishFieldStatuses()
+  }
+
   async updateFieldControl (state: FieldState, time?: Date): Promise<void> {
     if (this.fieldControl === null) {
       throw new BadRequestException('No field control')
@@ -51,6 +62,7 @@ export class FieldControlService {
   }
 
   async startAuto (): Promise<FieldStatus> {
+    await this.obs.readyAudience()
     const currentMatch = this.fieldControl
 
     if (currentMatch === null) throw new BadRequestException('No match')
@@ -88,6 +100,33 @@ export class FieldControlService {
     return this.fieldStatuses.find(fieldStatus => fieldStatus.id === fieldId) ?? null
   }
 
+  async checkIfAllFieldsIdle (): Promise<void> {
+    const allFieldsIdle = this.fieldStatuses.every(fieldStatus => fieldStatus.state === FieldState.IDLE)
+
+    if (!allFieldsIdle) return
+
+    this.logger.log('All fields idle, block is complete')
+    await this.repo.markBlockComplete()
+  }
+
+  async markEmpty (fieldId: number): Promise<void> {
+    const fieldStatusToUpdate = this.getFieldStatus(fieldId)
+
+    if (fieldStatusToUpdate === null) {
+      throw new Error('Field not found to update')
+    }
+
+    fieldStatusToUpdate.state = FieldState.IDLE
+    fieldStatusToUpdate.match = undefined
+    fieldStatusToUpdate.redAlliance = undefined
+    fieldStatusToUpdate.blueAlliance = undefined
+    fieldStatusToUpdate.time = undefined
+
+    this.logger.log(`Marking ${fieldStatusToUpdate.name} as empty`)
+    await this.publicFieldStatus(fieldId)
+    await this.checkIfAllFieldsIdle()
+  }
+
   async putMatchOnField (fieldId: number, match: Match, status: FieldState): Promise<void> {
     const fieldStatusToUpdate = this.getFieldStatus(fieldId)
 
@@ -117,6 +156,10 @@ export class FieldControlService {
   }
 
   async controlNextMatch (): Promise<void> {
+    if (this.fieldControl !== null && [FieldState.AUTO, FieldState.PAUSED, FieldState.DRIVER].includes(this.fieldControl.state)) {
+      return
+    }
+
     const onDeckFields = this.fieldStatuses.filter(fieldStatus =>
       [FieldState.AUTO, FieldState.DRIVER, FieldState.ON_DECK, FieldState.PAUSED].includes(fieldStatus.state))
 
@@ -143,6 +186,7 @@ export class FieldControlService {
     this.fieldControl = nextMatch
     this.logger.log(`Field control is on ${nextMatch.name} with state ${nextMatch.state}`)
     await this.publisher.publishFieldControl(nextMatch)
+    await this.obs.readyMatch(nextMatch)
   }
 
   allFieldsIdle (): boolean {

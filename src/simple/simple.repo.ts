@@ -80,6 +80,19 @@ export class SimpleRepo {
     }
   }
 
+  async markBlockComplete (): Promise<void> {
+    const currentBlock = await this.getInProgressBlock()
+    if (currentBlock === null) throw new BadRequestException('No block in progress')
+    await this.repo.simpleBlock.update({
+      where: {
+        id: currentBlock
+      },
+      data: {
+        status: BLOCK_STATE.FINISHED
+      }
+    })
+  }
+
   async updateMatchStatus (match: MatchIdentifier | undefined, status: MATCH_STATE): Promise<void> {
     if (match === undefined) throw new BadRequestException('No match')
 

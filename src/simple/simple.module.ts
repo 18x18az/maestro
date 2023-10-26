@@ -12,10 +12,11 @@ import { FieldControlService } from './field-control.service'
 import { MatchService } from './match.service'
 import { TmService } from './tm-service'
 import { StageService } from './stage.service'
+import { ObsService } from './obs.service'
 
 @Module({
   controllers: [SimpleController],
   imports: [StorageModule, HttpModule],
-  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService]
+  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService, ObsService]
 })
 export class SimpleModule {}

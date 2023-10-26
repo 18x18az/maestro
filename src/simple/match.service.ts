@@ -14,6 +14,7 @@ export class MatchService {
 
   async handleEmptyField (fieldId: number): Promise<void> {
     this.logger.log(`Field ${fieldId} is empty`)
+    await this.fieldControl.markEmpty(fieldId)
   }
 
   async queueField (fieldId: number): Promise<void> {

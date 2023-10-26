@@ -4,6 +4,7 @@ import { TimerService } from './timer.service'
 import { FieldControlService } from './field-control.service'
 import { SimpleRepo } from './simple.repo'
 import { MatchService } from './match.service'
+import { ObsService } from './obs.service'
 
 @Injectable()
 export class MatchLifecycleService {
@@ -13,7 +14,8 @@ export class MatchLifecycleService {
     private readonly fieldControl: FieldControlService,
     private readonly timer: TimerService,
     private readonly repo: SimpleRepo,
-    private readonly match: MatchService
+    private readonly match: MatchService,
+    private readonly obs: ObsService
   ) {}
 
   async onAutoStarted (): Promise<void> {
@@ -54,6 +56,10 @@ export class MatchLifecycleService {
     const handleMatchEnd = async (): Promise<void> => {
       await this.fieldControl.controlNextMatch()
     }
+
+    setTimeout(() => {
+      void this.obs.triggerTransition()
+    }, 3000)
 
     // TODO this is an ugly hacky way of ensuring that it doesn't immediately go to the next match, do this better
     setTimeout(() => {
