@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/utils/prisma/prisma.service'
-import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus, Alliance } from './simple.interface'
+import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus, Alliance, ElimMatch } from './simple.interface'
 
 @Injectable()
 export class SimpleRepo {
@@ -32,6 +32,20 @@ export class SimpleRepo {
     })
 
     return fields
+  }
+
+  async checkMatchExists (match: MatchIdentifier): Promise<boolean> {
+    const matchData = await this.repo.simpleMatch.findUnique({
+      where: {
+        round_number_sitting: {
+          round: match.round,
+          number: match.match,
+          sitting: match.sitting
+        }
+      }
+    })
+
+    return matchData !== null
   }
 
   async getMatchTeams (match: MatchIdentifier): Promise<{ red: Alliance, blue: Alliance }> {
@@ -272,6 +286,31 @@ export class SimpleRepo {
     const currentLastIndex = allFields.findIndex(field => field.id === currentLastField.fieldId)
     const nextIndex = (currentLastIndex + 1) % allFields.length
     return allFields[nextIndex].id
+  }
+
+  async addElimMatch (match: ElimMatch): Promise<void> {
+    const block = await this.getInProgressBlock()
+
+    if (block === null) throw new BadRequestException('No block in progress')
+
+    const fieldId = await this.getNextField(block)
+
+    this.logger.log(`Adding elim match ${match.round}-${match.matchNum}-${match.sitting} in block ${block} on ${fieldId}`)
+
+    await this.repo.simpleMatch.create({
+      data: {
+        blockId: block,
+        round: match.round,
+        number: match.matchNum,
+        sitting: match.sitting,
+        fieldId,
+        red1: match.red1,
+        red2: match.red2,
+        blue1: match.blue1,
+        blue2: match.blue2,
+        scheduled: null
+      }
+    })
   }
 
   async scheduleReplay (status: FieldStatus): Promise<void> {

@@ -29,4 +29,9 @@ export class ResultsService {
     const context = await this.repo.getMatchTeams({ round: result.round, match: result.match, sitting: 0 })
     this.stagedResult = { ...result, ...context }
   }
+
+  async clearScore (): Promise<void> {
+    this.logger.log('Clearing match results')
+    await this.publisher.publishMatchResult(null)
+  }
 }

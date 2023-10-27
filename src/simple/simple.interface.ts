@@ -2,6 +2,8 @@ export enum STAGE {
   WAITING_FOR_TEAMS = 'WAITING_FOR_TEAMS',
   WAITING_FOR_MATCHES = 'WAITING_FOR_MATCHES',
   QUAL_MATCHES = 'QUAL_MATCHES',
+  WAITING_FOR_ELIMS = 'WAITING_FOR_ELIMS',
+  ELIMS = 'ELIMS',
 }
 
 export interface MatchIdentifier {
@@ -28,6 +30,16 @@ export interface Match {
   blue2: string
   time?: Date
   status: MATCH_STATE
+}
+
+export interface ElimMatch {
+  round: number
+  matchNum: number
+  sitting: number
+  red1: string
+  red2: string
+  blue1: string
+  blue2: string
 }
 
 export interface MatchBlock {
@@ -90,4 +102,9 @@ export enum OBS_CONTROL {
 export interface ContextfulMatchResult extends MatchResult {
   red: Alliance
   blue: Alliance
+}
+export enum DisplayState {
+  IDLE = 'IDLE',
+  RESULTS = 'RESULTS',
+  IN_MATCH = 'IN_MATCH'
 }

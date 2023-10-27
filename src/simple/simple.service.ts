@@ -1,6 +1,6 @@
 import { StorageService } from '@/utils/storage/storage.service'
 import { Injectable, Logger } from '@nestjs/common'
-import { MatchResult, STAGE, FieldState, MATCH_STATE } from './simple.interface'
+import { MatchResult, STAGE, FieldState, MATCH_STATE, ElimMatch, MatchBlock } from './simple.interface'
 import { SimplePublisher } from './simple.publisher'
 import { SimpleRepo } from './simple.repo'
 import { qualParser } from './qualParser'
@@ -45,18 +45,13 @@ export class SimpleService {
     await this.loadFields()
   }
 
-  @Cron('*/10 * * * * *')
-  async pollResults (): Promise<void> {
-    const stage = await this.stage.getStage()
-    if (stage === STAGE.WAITING_FOR_TEAMS || stage === STAGE.WAITING_FOR_MATCHES) return
+  private async handleMatchResults (results: MatchResult[]): Promise<void> {
     const pendingScoreFields = this.fieldControl.getPendingScoreFields()
 
     if (pendingScoreFields.length === 0) return
 
-    const results = await this.tm.getMatchResults()
-    if (results === null) return
-
     for (const pendingField of pendingScoreFields) {
+      console.log(pendingField)
       const ident = pendingField.match
       if (ident === undefined) throw new Error('Field is pending but has no match')
       const result = results.find(result => result.round === ident.round && result.match === ident.match)
@@ -67,6 +62,56 @@ export class SimpleService {
       await this.results.update(result)
 
       await this.lifecycle.onMatchScored(pendingField)
+    }
+  }
+
+  private async handleElimMatches (matches: ElimMatch[], existingElims: boolean): Promise<void> {
+    if (existingElims) {
+      for (const match of matches) {
+        const existing = await this.repo.checkMatchExists({ round: match.round, match: match.matchNum, sitting: match.sitting })
+        if (existing) continue
+        await this.repo.addElimMatch(match)
+      }
+    } else {
+      const newBlock: MatchBlock = { matches: [] }
+      const fields = await this.repo.getFields()
+      let fieldIndex = 0
+      for (const match of matches) {
+        const fieldId = fields[fieldIndex].id
+        newBlock.matches.push({
+          ...match,
+          fieldId,
+          status: MATCH_STATE.NOT_STARTED
+        })
+        fieldIndex = (fieldIndex + 1) % fields.length
+      }
+      await this.repo.storeBlocks([newBlock])
+    }
+  }
+
+  @Cron('*/10 * * * * *')
+  async pollResults (): Promise<void> {
+    const stage = await this.stage.getStage()
+    if (stage === STAGE.WAITING_FOR_TEAMS || stage === STAGE.WAITING_FOR_MATCHES) return
+
+    if (stage === STAGE.WAITING_FOR_ELIMS || stage === STAGE.ELIMS) {
+      const existingElims = stage !== STAGE.WAITING_FOR_ELIMS
+      const matches = await this.tm.getElimMatches()
+      if (matches !== null) {
+        await this.handleElimMatches(matches, existingElims)
+
+        if (!existingElims) {
+          this.logger.log('loading elim matches')
+          await this.stage.setStage(STAGE.ELIMS)
+        }
+      }
+    }
+
+    if (stage === STAGE.QUAL_MATCHES || stage === STAGE.ELIMS) {
+      const results = await this.tm.getMatchResults()
+      if (results !== null) {
+        await this.handleMatchResults(results)
+      }
     }
   }
 
@@ -134,20 +179,21 @@ export class SimpleService {
     const block = await this.repo.getNextBlockId()
 
     if (block === null) {
-      // TODO handle end of quals
+      this.logger.log('No more blocks, waiting for elims')
+      await this.stage.setStage(STAGE.WAITING_FOR_ELIMS)
       return
     }
 
-    const fieldIds = await this.repo.getFieldIds()
-    for (const fieldId of fieldIds) {
-      await this.match.queueField(fieldId)
+    const fields = await this.repo.getFields()
+    for (const field of fields) {
+      await this.match.queueField(field.id)
     }
   }
 
   async continue (): Promise<void> {
     const stage = await this.stage.getStage()
 
-    if (stage === STAGE.QUAL_MATCHES) {
+    if (stage === STAGE.QUAL_MATCHES || stage === STAGE.ELIMS) {
       if (this.fieldControl.allFieldsIdle()) {
         await this.startNextBlock()
       }

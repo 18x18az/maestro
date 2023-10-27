@@ -35,12 +35,19 @@ export function parseQualResults (data: string): MatchResult[] | null {
 
     const matchName = test.rawText
     // check if it starts with Q followed by a number, else return []
-    if (!matchName.startsWith('Q')) {
-      return []
-    }
-    const matchNumber = Number(matchName.slice(1))
-    if (isNaN(matchNumber)) {
-      return []
+
+    let round = 0
+
+    if (matchName.startsWith('R16')) { round = 1 } else if (matchName.startsWith('QF')) { round = 2 } else if (matchName.startsWith('SF')) { round = 3 } else if (matchName.startsWith('F')) { round = 4 }
+
+    let matchNumber: number
+    let sitting = 0
+
+    if (round === 0) {
+      matchNumber = Number(matchName.slice(1))
+    } else {
+      [matchNumber, sitting] = matchName.split(' ')[1].split('-').map(Number)
+      sitting--
     }
 
     const redScore = Number(cells[5].rawText)
@@ -50,7 +57,7 @@ export function parseQualResults (data: string): MatchResult[] | null {
       return []
     }
 
-    const matchResult: MatchResult = { round: 0, match: matchNumber, sitting: 0, redScore, blueScore }
+    const matchResult: MatchResult = { round, match: matchNumber, sitting, redScore, blueScore }
     return matchResult
   })
 

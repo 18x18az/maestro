@@ -1,6 +1,6 @@
 import { PublishService } from '@/utils/publish/publish.service'
 import { Injectable } from '@nestjs/common'
-import { ContextfulMatchResult, Field, FieldStatus, MatchBlock, STAGE, Team } from './simple.interface'
+import { ContextfulMatchResult, DisplayState, Field, FieldStatus, MatchBlock, STAGE, Team } from './simple.interface'
 
 @Injectable()
 export class SimplePublisher {
@@ -36,5 +36,9 @@ export class SimplePublisher {
 
   async publishMatchResult (result: ContextfulMatchResult | null): Promise<void> {
     await this.publisher.broadcast('matchResult', result)
+  }
+
+  async publishDisplayState (state: DisplayState): Promise<void> {
+    await this.publisher.broadcast('displayState', state)
   }
 }

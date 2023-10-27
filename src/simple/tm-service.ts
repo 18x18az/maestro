@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { MatchResult, STAGE } from './simple.interface'
+import { ElimMatch, MatchResult, STAGE } from './simple.interface'
 import { HttpService } from '@nestjs/axios'
 import { catchError, firstValueFrom } from 'rxjs'
 import { AxiosError } from 'axios'
@@ -8,6 +8,7 @@ import { StorageService } from '@/utils/storage/storage.service'
 import { teamParser } from './teamParser'
 import { SimplePublisher } from './simple.publisher'
 import { StageService } from './stage.service'
+import { parseElimMatches } from './matches.parser'
 
 @Injectable()
 export class TmService {
@@ -22,7 +23,7 @@ export class TmService {
     private readonly stage: StageService
   ) {}
 
-  async getMatchResults (): Promise<MatchResult[] | null> {
+  async getRawMatchData (): Promise<string | null> {
     if (this.tmAddr === null) {
       throw new Error('TM address not set')
     }
@@ -41,6 +42,23 @@ export class TmService {
       this.logger.warn(`TM at ${this.tmAddr} is not responding`)
       return null
     }
+
+    return data
+  }
+
+  async getElimMatches (): Promise<ElimMatch[] | null> {
+    const data = await this.getRawMatchData()
+
+    if (data === null) return null
+
+    const matches = parseElimMatches(data)
+    return matches
+  }
+
+  async getMatchResults (): Promise<MatchResult[] | null> {
+    const data = await this.getRawMatchData()
+
+    if (data === null) return null
 
     const results = parseQualResults(data)
     return results
