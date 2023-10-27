@@ -45,9 +45,12 @@ export function parseQualResults (data: string): MatchResult[] | null {
 
     if (round === 0) {
       matchNumber = Number(matchName.slice(1))
-    } else {
+    } else if (round !== 4) {
       [matchNumber, sitting] = matchName.split(' ')[1].split('-').map(Number)
       sitting--
+    } else {
+      matchNumber = Number(matchName.split(' ')[1])
+      sitting = 0
     }
 
     const redScore = Number(cells[5].rawText)
@@ -57,7 +60,7 @@ export function parseQualResults (data: string): MatchResult[] | null {
       return []
     }
 
-    const matchResult: MatchResult = { round, match: matchNumber, sitting, redScore, blueScore }
+    const matchResult: MatchResult = { round, match: matchNumber, sitting, replay: 0, redScore, blueScore }
     return matchResult
   })
 

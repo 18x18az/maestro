@@ -10,6 +10,7 @@ export interface MatchIdentifier {
   round: number
   match: number
   sitting: number
+  replay: number
 }
 
 export interface Team {
@@ -23,6 +24,7 @@ export interface Match {
   round: number
   matchNum: number
   sitting: number
+  replay: number
   fieldId: number
   red1: string
   red2: string

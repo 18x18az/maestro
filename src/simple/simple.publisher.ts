@@ -41,4 +41,8 @@ export class SimplePublisher {
   async publishDisplayState (state: DisplayState): Promise<void> {
     await this.publisher.broadcast('displayState', state)
   }
+
+  async publishTimeout (timeout: Date | null): Promise<void> {
+    await this.publisher.broadcast('timeout', timeout)
+  }
 }

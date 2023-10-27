@@ -51,10 +51,9 @@ export class SimpleService {
     if (pendingScoreFields.length === 0) return
 
     for (const pendingField of pendingScoreFields) {
-      console.log(pendingField)
       const ident = pendingField.match
       if (ident === undefined) throw new Error('Field is pending but has no match')
-      const result = results.find(result => result.round === ident.round && result.match === ident.match)
+      const result = results.find(result => result.round === ident.round && result.match === ident.match && result.sitting === ident.sitting)
       if (result === undefined) continue
 
       this.logger.log(`Match ${ident.round}-${ident.match}-${ident.sitting} on ${pendingField.name} has results`)
@@ -68,9 +67,13 @@ export class SimpleService {
   private async handleElimMatches (matches: ElimMatch[], existingElims: boolean): Promise<void> {
     if (existingElims) {
       for (const match of matches) {
-        const existing = await this.repo.checkMatchExists({ round: match.round, match: match.matchNum, sitting: match.sitting })
+        const existing = await this.repo.checkMatchExists({ round: match.round, match: match.matchNum, sitting: match.sitting, replay: 0 })
         if (existing) continue
-        await this.repo.addElimMatch(match)
+        const fieldCreatedOn = await this.repo.addElimMatch(match)
+        const status = this.fieldControl.getFieldStatus(fieldCreatedOn)
+        if (status !== null && status.state === FieldState.IDLE) {
+          await this.match.queueField(fieldCreatedOn)
+        }
       }
     } else {
       const newBlock: MatchBlock = { matches: [] }
@@ -80,6 +83,7 @@ export class SimpleService {
         const fieldId = fields[fieldIndex].id
         newBlock.matches.push({
           ...match,
+          replay: 0,
           fieldId,
           status: MATCH_STATE.NOT_STARTED
         })

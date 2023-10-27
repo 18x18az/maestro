@@ -47,7 +47,7 @@ export function qualParser (file: string, fields: number[]): [MatchBlock[], stri
 
     previousTime = time
 
-    const qual: Match = { matchNum, fieldId, red1, red2, blue1, blue2, time, round: 0, sitting: 0, status: MATCH_STATE.NOT_STARTED }
+    const qual: Match = { matchNum, fieldId, red1, red2, blue1, blue2, time, round: 0, sitting: 0, replay: 0, status: MATCH_STATE.NOT_STARTED }
     currentBlock.matches.push(qual)
   })
 

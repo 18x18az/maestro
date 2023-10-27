@@ -171,7 +171,8 @@ model SimpleMatch {
   round Int
   number Int
   sitting Int
-  @@unique([round, number, sitting])
+  replay Int
+  @@unique([round, number, sitting, replay])
   red1 String
   red2 String
   blue1 String

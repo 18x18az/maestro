@@ -26,7 +26,7 @@ export class ResultsService {
 
   async update (result: MatchResult): Promise<void> {
     this.logger.log(`Most recent match results are for ${result.round}-${result.match}`)
-    const context = await this.repo.getMatchTeams({ round: result.round, match: result.match, sitting: 0 })
+    const context = await this.repo.getMatchTeams({ round: result.round, match: result.match, sitting: result.sitting, replay: 0 })
     this.stagedResult = { ...result, ...context }
   }
 

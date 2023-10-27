@@ -14,10 +14,11 @@ import { TmService } from './tm-service'
 import { StageService } from './stage.service'
 import { ObsService } from './obs.service'
 import { ResultsService } from './results.service'
+import { TimeoutService } from './timeout.service'
 
 @Module({
   controllers: [SimpleController],
   imports: [StorageModule, HttpModule],
-  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService, ObsService, ResultsService]
+  providers: [SimpleService, SimplePublisher, PublishService, SimpleRepo, MatchLifecycleService, TimerService, FieldControlService, MatchService, TmService, StageService, ObsService, ResultsService, TimeoutService]
 })
 export class SimpleModule {}

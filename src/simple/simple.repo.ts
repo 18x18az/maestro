@@ -37,10 +37,11 @@ export class SimpleRepo {
   async checkMatchExists (match: MatchIdentifier): Promise<boolean> {
     const matchData = await this.repo.simpleMatch.findUnique({
       where: {
-        round_number_sitting: {
+        round_number_sitting_replay: {
           round: match.round,
           number: match.match,
-          sitting: match.sitting
+          sitting: match.sitting,
+          replay: match.replay
         }
       }
     })
@@ -51,10 +52,11 @@ export class SimpleRepo {
   async getMatchTeams (match: MatchIdentifier): Promise<{ red: Alliance, blue: Alliance }> {
     const matchData = await this.repo.simpleMatch.findUnique({
       where: {
-        round_number_sitting: {
+        round_number_sitting_replay: {
           round: match.round,
           number: match.match,
-          sitting: match.sitting
+          sitting: match.sitting,
+          replay: match.replay
         }
       }
     })
@@ -137,10 +139,11 @@ export class SimpleRepo {
 
     await this.repo.simpleMatch.update({
       where: {
-        round_number_sitting: {
+        round_number_sitting_replay: {
           round: match.round,
           number: match.match,
-          sitting: match.sitting
+          sitting: match.sitting,
+          replay: match.replay
         }
       },
       data: {
@@ -224,6 +227,7 @@ export class SimpleRepo {
       round: match.round,
       matchNum: match.number,
       sitting: match.sitting,
+      replay: match.replay,
       fieldId: match.fieldId,
       red1: match.red1,
       red2: match.red2,
@@ -240,7 +244,7 @@ export class SimpleRepo {
       where: {
         fieldId,
         blockId,
-        status: BLOCK_STATE.NOT_STARTED
+        status: MATCH_STATE.NOT_STARTED
       },
       orderBy: {
         id: 'asc'
@@ -258,6 +262,7 @@ export class SimpleRepo {
       matchNum: match.number,
       sitting: match.sitting,
       fieldId: match.fieldId,
+      replay: match.replay,
       red1: match.red1,
       red2: match.red2,
       blue1: match.blue1,
@@ -288,7 +293,7 @@ export class SimpleRepo {
     return allFields[nextIndex].id
   }
 
-  async addElimMatch (match: ElimMatch): Promise<void> {
+  async addElimMatch (match: ElimMatch): Promise<number> {
     const block = await this.getInProgressBlock()
 
     if (block === null) throw new BadRequestException('No block in progress')
@@ -303,6 +308,7 @@ export class SimpleRepo {
         round: match.round,
         number: match.matchNum,
         sitting: match.sitting,
+        replay: 0,
         fieldId,
         red1: match.red1,
         red2: match.red2,
@@ -311,17 +317,63 @@ export class SimpleRepo {
         scheduled: null
       }
     })
+
+    return fieldId
   }
 
-  async scheduleReplay (status: FieldStatus): Promise<void> {
+  async forceReplay (match: MatchIdentifier): Promise<void> {
+    let block = await this.getInProgressBlock()
+
+    if (block === null) {
+      const newBlock = await this.repo.simpleBlock.create({
+        data: {}
+      })
+      block = newBlock.id
+    }
+
+    const fieldId = await this.getNextField(block)
+
+    // get the highest sitting of this match
+    const existing = await this.repo.simpleMatch.findFirst({
+      where: {
+        round: match.round,
+        number: match.match
+      },
+      orderBy: {
+        sitting: 'desc'
+      }
+    })
+
+    if (existing === null) throw new BadRequestException('No match')
+
+    const { id, ...values } = existing
+
+    const newSitting = existing.sitting + 1
+    await this.repo.simpleMatch.create({
+      data: {
+        ...values,
+        sitting: newSitting,
+        fieldId,
+        status: MATCH_STATE.NOT_STARTED
+      }
+    })
+  }
+
+  async scheduleReplay (status: FieldStatus): Promise<number> {
     const block = await this.getInProgressBlock()
 
     const match = status.match
-    if (match === undefined) throw new BadRequestException('No match')
+    if (match === undefined) {
+      this.logger.warn('Attempted to replay a match with no match identifier')
+      throw new BadRequestException('No match')
+    }
 
-    if (block === null) throw new BadRequestException('No block in progress')
+    if (block === null) {
+      this.logger.warn('Attempted to replay a match with no block in progress')
+      throw new BadRequestException('No block in progress')
+    }
 
-    const newSitting = match.sitting + 1
+    const newReplay = match.replay + 1
     const fieldId = await this.getNextField(block)
 
     this.logger.log(`Scheduling replay of match ${match.round}-${match.match}-${match.sitting} in block ${block} on ${fieldId}`)
@@ -331,7 +383,8 @@ export class SimpleRepo {
         blockId: block,
         round: match.round,
         number: match.match,
-        sitting: newSitting,
+        sitting: match.sitting,
+        replay: newReplay,
         fieldId,
         red1: status.redAlliance?.team1 ?? '',
         red2: status.redAlliance?.team2 ?? '',
@@ -340,6 +393,8 @@ export class SimpleRepo {
         scheduled: null
       }
     })
+
+    return fieldId
   }
 
   async storeBlocks (blocks: MatchBlock[]): Promise<void> {
@@ -356,6 +411,7 @@ export class SimpleRepo {
             round: match.round,
             number: match.matchNum,
             sitting: match.sitting,
+            replay: match.replay,
             fieldId: match.fieldId,
             red1: match.red1,
             red2: match.red2,

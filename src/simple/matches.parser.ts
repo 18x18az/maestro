@@ -41,7 +41,15 @@ export function parseElimMatches (data: string): ElimMatch[] | null {
 
     const matchIdent = matchName.split(' ')[1]
 
-    const [matchNum, sitting] = matchIdent.split('-')
+    let matchNum: string
+    let sitting: string
+
+    if (round === 4) {
+      matchNum = matchIdent
+      sitting = '1'
+    } else {
+      [matchNum, sitting] = matchIdent.split('-')
+    }
 
     const red1 = cells[1].rawText
     const red2 = cells[2].rawText

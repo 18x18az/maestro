@@ -135,13 +135,13 @@ export class FieldControlService {
     }
 
     fieldStatusToUpdate.state = status
-    fieldStatusToUpdate.match = { round: match.round, match: match.matchNum, sitting: match.sitting }
+    fieldStatusToUpdate.match = { round: match.round, match: match.matchNum, sitting: match.sitting, replay: match.replay }
     fieldStatusToUpdate.redAlliance = { team1: match.red1, team2: match.red2 }
     fieldStatusToUpdate.blueAlliance = { team1: match.blue1, team2: match.blue2 }
     fieldStatusToUpdate.time = match.time
 
     this.logger.log(`Queueing match ${match.round}-${match.matchNum}-${match.sitting} on ${fieldStatusToUpdate.name}`)
-    const identifier: MatchIdentifier = { round: match.round, match: match.matchNum, sitting: match.sitting }
+    const identifier: MatchIdentifier = { round: match.round, match: match.matchNum, replay: match.replay, sitting: match.sitting }
     await this.repo.updateMatchStatus(identifier, MATCH_STATE.ON_FIELD)
     await this.publisher.publishFieldStatus(fieldStatusToUpdate)
 

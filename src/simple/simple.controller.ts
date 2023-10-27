@@ -5,9 +5,11 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Express } from 'express'
 import { MatchLifecycleService } from './match-lifecycle.service'
 import { TmService } from './tm-service'
-import { FieldStatus } from './simple.interface'
+import { FieldStatus, MatchIdentifier } from './simple.interface'
 import { ObsService } from './obs.service'
 import { ResultsService } from './results.service'
+import { TimeoutService } from './timeout.service'
+import { SimpleRepo } from './simple.repo'
 
 class TmBody {
   @IsUrl()
@@ -21,7 +23,9 @@ export class SimpleController {
     private readonly lifecycle: MatchLifecycleService,
     private readonly tm: TmService,
     private readonly obs: ObsService,
-    private readonly results: ResultsService
+    private readonly results: ResultsService,
+    private readonly timeout: TimeoutService,
+    private readonly repo: SimpleRepo
   ) {}
 
   @Post('tmIp')
@@ -74,5 +78,21 @@ export class SimpleController {
   @Post('pushScore')
   async pushScore (): Promise<void> {
     await this.results.publishResults()
+  }
+
+  @Post('timeout')
+  async callTimeout (): Promise<void> {
+    await this.timeout.callTimeout()
+  }
+
+  @Post('forceReplay')
+  async forceReplay (@Body() match: MatchIdentifier): Promise<void> {
+    console.log(match)
+    await this.repo.forceReplay(match)
+  }
+
+  @Post('endEarly')
+  async endEarly (): Promise<void> {
+    await this.lifecycle.endEarly()
   }
 }
