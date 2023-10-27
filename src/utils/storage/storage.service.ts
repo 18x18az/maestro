@@ -34,4 +34,8 @@ export class StorageService {
 
     return existing.value
   }
+
+  async clearEphemeral (): Promise<void> {
+    await this.prisma.genericEphemeral.deleteMany({})
+  }
 }

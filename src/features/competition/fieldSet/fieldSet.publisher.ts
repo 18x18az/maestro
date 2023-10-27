@@ -1,19 +1,14 @@
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { PublishService } from 'utils/publish/publish.service'
-import { FieldState } from './fieldSet.interfaces'
-
-function makeFieldSetTopic (uuid: string): string {
-  return `fieldSet/${uuid}`
-}
+import { QueuedMatch } from '../queueing'
 
 @Injectable()
 export class FieldSetPublisher {
   constructor (private readonly publisher: PublishService) {}
 
-  @Publisher('fieldSet/:uuid')
-  async publishFieldSet (uuid: string, @Payload({}) state: FieldState): Promise<void> {
-    const topic = makeFieldSetTopic(uuid)
-    await this.publisher.broadcast(topic, state)
+  @Publisher('currentMatch')
+  async publishCurrentMatch (@Payload({}) match: QueuedMatch): Promise<void> {
+    await this.publisher.broadcast('currentMatch', match)
   }
 }
