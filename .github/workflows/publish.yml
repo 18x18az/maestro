@@ -31,6 +31,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build the Docker image
+        run: |
+          if [ "$(cat package.json | jq -r '.version')" = "0.0.1" ]; then
+            echo "No change to API interface"
+            exit 0
+          fi
+          docker build . --tag ghcr.io/18x18az/maestro:"$(cat package.json | jq -r '.version')"
+          docker push ghcr.io/18x18az/maestro:"$(cat package.json | jq -r '.version')"
+
       - name: Generate API interface
         run: yarn generate
         

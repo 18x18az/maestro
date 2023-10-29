@@ -20,7 +20,7 @@ export class StageService {
 
   async getStage (): Promise<STAGE | null> {
     if (this.currentStage === null) {
-      const stage = await this.storage.getEphemeral('stage', '')
+      const stage = await this.storage.getEphemeral('stage', STAGE.WAITING_FOR_TEAMS)
       if (stage === '') return null
 
       this.currentStage = stage as STAGE

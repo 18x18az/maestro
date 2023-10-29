@@ -15,8 +15,8 @@ export class ObsService {
   }
 
   async connect (): Promise<void> {
-    await this.obs.connect('ws:/localhost:4455')
-    await this.setPreviewScene('Field 2')
+    await this.obs.connect('ws:/192.168.1.3:4455')
+    // await this.setPreviewScene('Field 2')
   }
 
   async setPreviewScene (sceneName: string): Promise<void> {
