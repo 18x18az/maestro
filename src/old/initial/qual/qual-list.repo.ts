@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PersistentRepo, RawBlock } from './persistent.repo'
 import { WorkingRepo } from './working.repo'
 import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockUpload, QualScheduleMatchUpload } from './qual-list.interface'
-import { QueuedMatch } from '@/features'
+import { QueuedMatch } from '@/old'
 
 @Injectable()
 export class QualListRepo {

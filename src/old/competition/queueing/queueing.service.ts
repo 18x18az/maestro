@@ -1,8 +1,9 @@
-import { MatchResolution, QualMatchBlockBroadcast } from '@/features/initial'
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { QueueingPublisher } from './queueing.publisher'
-import { FieldInfoBroadcast } from '@/features/devices/field'
 import { QueuedMatch } from './queueing.interface'
+import { FieldInfoBroadcast } from '@/old/devices/field'
+import { MatchResolution, QualMatchBlockBroadcast } from '@/old/initial'
 
 @Injectable()
 export class QueueingService {

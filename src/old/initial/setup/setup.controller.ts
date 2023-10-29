@@ -2,7 +2,7 @@ import { Body, Controller, Logger, Post } from '@nestjs/common'
 import { SetupService } from './setup.service'
 import { SetupConfig } from './setup.interface'
 import { EventPattern } from '@nestjs/microservices'
-import { EVENT_STAGE_KEY } from '@/features/stage'
+import { EVENT_STAGE_KEY } from '@/old/stage'
 
 enum STAGE {
   NONE = 'none',

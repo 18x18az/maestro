@@ -1,4 +1,5 @@
-import { FieldInfo } from '@/features/devices/field'
+
+import { FieldInfo } from '@/old/devices/field'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class SetupConfig {

@@ -5,7 +5,6 @@ import {
   NotFoundException
 } from '@nestjs/common'
 import { MatchScorePublisher } from './match-score.publisher'
-import { QualMatch } from '@/features'
 import { SavedElimMatch, SavedQualMatch, SavedScoreDatabase } from './match-saved.repo'
 import { WorkingScoreDatabase } from './match-working.repo'
 import { createQualMatch, hydrateQualMatch } from './utils'
@@ -14,6 +13,7 @@ import { MATCH_ALLIANCE, MATCH_ROUND } from './local.dto'
 import { GenericMatchParams, MatchScoreParams, SpecificPortionAllianceParams, SpecificPortionTeamParams } from './match-score.controller.dto'
 import { AllianceRawUpdate } from './alliance-raw.dto'
 import { AUTON_WINNER, MatchMetadataUpload } from './common-match.dto'
+import { QualMatch } from '@/old/initial'
 
 type GenericMatch = PublishedElimMatchScore | PublishedQualMatchScore
 

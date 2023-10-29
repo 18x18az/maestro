@@ -1,8 +1,8 @@
-import { QUAL_BLOCK_LIST_CHANNEL, QualMatchBlockBroadcast } from '@/features/initial'
 import { Controller, Post } from '@nestjs/common'
 import { EventPattern } from '@nestjs/microservices'
 import { QueueingService } from './queueing.service'
-import { FieldInfoBroadcast } from '@/features/devices/field'
+import { QUAL_BLOCK_LIST_CHANNEL, QualMatchBlockBroadcast } from '@/old/initial'
+import { FieldInfoBroadcast } from '@/old/devices/field'
 
 @Controller('queueing')
 export class QueueingController {

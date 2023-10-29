@@ -1,8 +1,9 @@
-import { PublicFieldService } from '@/features/devices/field'
+
 import { Injectable } from '@nestjs/common'
 import { SetupConfig } from './setup.interface'
 import { SetupPublisher } from './setup.publisher'
 import { StorageService } from '@/old_utils/storage/storage.service'
+import { PublicFieldService } from '@/old/devices/field'
 
 @Injectable()
 export class SetupService {

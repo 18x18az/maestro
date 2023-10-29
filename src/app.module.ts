@@ -1,12 +1,3 @@
-import { Module } from '@nestjs/common'
-import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
-import { BeaconService } from './old_utils/discovery'
-import { ConfigModule } from '@nestjs/config'
-import { SimpleModule } from './simple/simple.module'
-import { StorageModule } from './old_utils/storage/storage.module'
-import { ScheduleModule } from '@nestjs/schedule'
-import { DisplaysModule } from './old/devices/displays/displays.module'
-
 // @Module({
 //   imports: [
 //     ConfigModule.forRoot({ isGlobal: true }),
@@ -30,13 +21,38 @@ import { DisplaysModule } from './old/devices/displays/displays.module'
 // })
 // export class WithoutPigeonModule {}
 
+import { ConfigModule } from '@nestjs/config'
+import { StageModule } from '@/features'
+import { Module } from '@nestjs/common'
+import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
+
+// @Module({
+//   imports: [
+//     ConfigModule.forRoot({ isGlobal: true }),
+//     SimpleModule,
+//     StorageModule,
+//     DisplaysModule,
+//     ScheduleModule.forRoot()
+//   ]
+// })
+// export class WithoutPigeonModule {}
+
+// @Module({
+//   imports: [
+//     WithoutPigeonModule,
+//     PigeonModule.forRoot({
+//       transport: Transport.WS,
+//       port: 1883
+//     })
+//   ],
+//   providers: [BeaconService]
+// })
+// export class AppModule {}
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    SimpleModule,
-    StorageModule,
-    DisplaysModule,
-    ScheduleModule.forRoot()
+    StageModule
   ]
 })
 export class WithoutPigeonModule {}
@@ -48,7 +64,6 @@ export class WithoutPigeonModule {}
       transport: Transport.WS,
       port: 1883
     })
-  ],
-  providers: [BeaconService]
+  ]
 })
 export class AppModule {}

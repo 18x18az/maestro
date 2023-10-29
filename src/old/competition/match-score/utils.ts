@@ -1,5 +1,5 @@
+import { QualMatch } from '@/old/initial'
 import { AUTON_WINNER, AllianceRaw, ELEVATION, ElimMatchScoreAllianceMetadata, OUTCOME_METADATA, PublishedQualMatchScore, QualMatchScoreAllianceMetadata, QualMatchScoreTeamMetadata } from '.'
-import { QualMatch } from '@/features'
 import { SavedQualMatch, SavedQualMetadata } from './match-saved.repo'
 
 export function createEmptyRawAllianceScore (): AllianceRaw {

@@ -7,8 +7,8 @@ import {
 import { MatchScoreService } from './match-score.service'
 import { EventPattern } from '@nestjs/microservices'
 import { AUTON_WINNER, AllianceRawUpdate, MatchMetadataUpload } from '.'
-import { QUAL_MATCH_LIST_CHANNEL, QualMatch } from '@/features'
 import { GenericMatchParams, MatchScoreParams, SpecificPortionAllianceParams, SpecificPortionTeamParams } from './match-score.controller.dto'
+import { QUAL_MATCH_LIST_CHANNEL, QualMatch } from '@/old/initial'
 
 @Controller('matches')
 export class MatchScoreController {

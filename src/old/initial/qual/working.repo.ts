@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockMetadata } from './qual-list.interface'
-import { QueuedMatch } from '@/features/competition'
+import { QueuedMatch } from '@/old/competition'
 
 @Injectable()
 export class WorkingRepo {

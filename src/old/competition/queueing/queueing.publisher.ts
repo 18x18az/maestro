@@ -1,8 +1,8 @@
-import { QualMatchBlockBroadcast } from '@/features/initial'
 import { PublishService } from '@/old_utils/publish/publish.service'
 import { Payload, Publisher } from '@alecmmiller/nestjs-client-generator'
 import { Injectable } from '@nestjs/common'
 import { QueuedMatch } from './queueing.interface'
+import { QualMatchBlockBroadcast } from '@/old/initial'
 
 export const CURRENT_BLOCK_CHANNEL = 'currentBlock'
 export const QUEUED_MATCHES_CHANNEL = 'queuedMatches'
