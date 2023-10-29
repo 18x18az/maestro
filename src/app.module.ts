@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
-import { BeaconService } from './utils/discovery'
+import { BeaconService } from './old_utils/discovery'
 import { ConfigModule } from '@nestjs/config'
 import { SimpleModule } from './simple/simple.module'
-import { StorageModule } from './utils/storage/storage.module'
-import { DisplaysModule } from './features/devices/displays/displays.module'
+import { StorageModule } from './old_utils/storage/storage.module'
 import { ScheduleModule } from '@nestjs/schedule'
+import { DisplaysModule } from './old/devices/displays/displays.module'
 
 // @Module({
 //   imports: [

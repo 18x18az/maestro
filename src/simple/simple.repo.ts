@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '@/utils/prisma/prisma.service'
+import { PrismaService } from '@/old_utils/prisma/prisma.service'
 import { Field, MatchBlock, Match, BLOCK_STATE, MATCH_STATE, MatchIdentifier, FieldStatus, Alliance, ElimMatch } from './simple.interface'
 
 @Injectable()

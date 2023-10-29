@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { SimplePublisher } from './simple.publisher'
 import { STAGE } from './simple.interface'
-import { StorageService } from '@/utils/storage/storage.service'
+import { StorageService } from '@/old_utils/storage/storage.service'
 
 @Injectable()
 export class StageService {
