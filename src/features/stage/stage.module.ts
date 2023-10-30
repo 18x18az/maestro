@@ -1,9 +1,11 @@
 import { PublishModule, StorageModule } from '@/utils'
 import { Module } from '@nestjs/common'
-import { InternalService } from './stage.internal'
+import { StageInternal } from './stage.internal'
+import { StageController } from './stage.controller'
 
 @Module({
   imports: [StorageModule, PublishModule],
-  providers: [InternalService]
+  controllers: [StageController],
+  providers: [StageInternal]
 })
 export class StageModule {}

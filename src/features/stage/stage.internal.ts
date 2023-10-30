@@ -1,15 +1,15 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import { EventStage, STAGE_TOPIC } from './stage.interface'
-import { PublishService, StorageService } from '@/utils'
+import { PublishService, StorageService, TeamInformation } from '@/utils'
 
 const STORAGE_KEY = 'stage'
 
 const INITIAL_STAGE = EventStage.WAITING_FOR_TEAMS
 
 @Injectable()
-export class InternalService {
-  private readonly logger = new Logger(InternalService.name)
+export class StageInternal {
+  private readonly logger = new Logger(StageInternal.name)
 
   currentStage: EventStage
 
@@ -36,5 +36,11 @@ export class InternalService {
     this.currentStage = stage
     await this.storage.setEphemeral(STORAGE_KEY, stage)
     await this.publisher.broadcast(STAGE_TOPIC, { stage })
+  }
+
+  async receivedTeams (teams: TeamInformation[]): Promise<void> {
+    if (teams.length > 0 && this.currentStage === EventStage.WAITING_FOR_TEAMS) {
+      await this.setStage(EventStage.CHECKIN)
+    }
   }
 }

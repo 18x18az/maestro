@@ -25,6 +25,7 @@ import { ConfigModule } from '@nestjs/config'
 import { StageModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
+import { TmModule } from './utils'
 
 // @Module({
 //   imports: [
@@ -52,7 +53,8 @@ import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    StageModule
+    StageModule,
+    TmModule
   ]
 })
 export class WithoutPigeonModule {}
