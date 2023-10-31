@@ -1,1 +1,1 @@
-export * from './qual'
+// export * from './qual'

@@ -1,88 +1,88 @@
-import { Injectable } from '@nestjs/common'
-import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockMetadata } from './qual-list.interface'
-import { QueuedMatch } from '@/old/competition'
+// import { Injectable } from '@nestjs/common'
+// import { MatchResolution, QualMatch, QualMatchBlockBroadcast, QualMatchSitting, QualScheduleBlockMetadata } from './qual-list.interface'
+// import { QueuedMatch } from '@/old/competition'
 
-@Injectable()
-export class WorkingRepo {
-  private qualMatches: QualMatch[] = []
-  private readonly qualBlocks: Map<string, QualMatchBlockBroadcast> = new Map()
+// @Injectable()
+// export class WorkingRepo {
+//   private qualMatches: QualMatch[] = []
+//   private readonly qualBlocks: Map<string, QualMatchBlockBroadcast> = new Map()
 
-  hydrateQuals (quals: QualMatch[]): void {
-    if (this.qualMatches.length !== 0) {
-      throw new Error('Quals already hydrated')
-    }
-    this.qualMatches = quals
-  }
+//   hydrateQuals (quals: QualMatch[]): void {
+//     if (this.qualMatches.length !== 0) {
+//       throw new Error('Quals already hydrated')
+//     }
+//     this.qualMatches = quals
+//   }
 
-  addQual (qual: QualMatch): void {
-    this.qualMatches.push(qual)
-  }
+//   addQual (qual: QualMatch): void {
+//     this.qualMatches.push(qual)
+//   }
 
-  addBlock (block: QualScheduleBlockMetadata): void {
-    const fullBlock: QualMatchBlockBroadcast = {
-      ...block, matches: []
-    }
-    this.qualBlocks.set(block.id.toString(), fullBlock)
-  }
+//   addBlock (block: QualScheduleBlockMetadata): void {
+//     const fullBlock: QualMatchBlockBroadcast = {
+//       ...block, matches: []
+//     }
+//     this.qualBlocks.set(block.id.toString(), fullBlock)
+//   }
 
-  addMatchToBlock (blockId: number, match: QualMatchSitting): void {
-    const block = this.qualBlocks.get(blockId.toString())
-    if (block === undefined) {
-      throw new Error('Block not found')
-    }
-    block.matches.push(match)
-  }
+//   addMatchToBlock (blockId: number, match: QualMatchSitting): void {
+//     const block = this.qualBlocks.get(blockId.toString())
+//     if (block === undefined) {
+//       throw new Error('Block not found')
+//     }
+//     block.matches.push(match)
+//   }
 
-  getBlock (blockId: number): QualMatchBlockBroadcast {
-    const block = this.qualBlocks.get(blockId.toString())
-    if (block === undefined) {
-      throw new Error('Block not found')
-    }
-    return block
-  }
+//   getBlock (blockId: number): QualMatchBlockBroadcast {
+//     const block = this.qualBlocks.get(blockId.toString())
+//     if (block === undefined) {
+//       throw new Error('Block not found')
+//     }
+//     return block
+//   }
 
-  getBlocks (): QualMatchBlockBroadcast[] {
-    return Array.from(this.qualBlocks.values())
-  }
+//   getBlocks (): QualMatchBlockBroadcast[] {
+//     return Array.from(this.qualBlocks.values())
+//   }
 
-  getMatch (matchId: number): QualMatch {
-    const match = this.qualMatches.find(match => match.id === matchId)
-    if (match === undefined) {
-      throw new Error('Match not found')
-    }
-    return match
-  }
+//   getMatch (matchId: number): QualMatch {
+//     const match = this.qualMatches.find(match => match.id === matchId)
+//     if (match === undefined) {
+//       throw new Error('Match not found')
+//     }
+//     return match
+//   }
 
-  getQuals (): QualMatch[] {
-    return this.qualMatches
-  }
+//   getQuals (): QualMatch[] {
+//     return this.qualMatches
+//   }
 
-  getPreviousNumber (matchId: number): number {
-    // find the number of matches in all qual blocks with this match ID, return 0 if zero
-    const allPrevious = Object.values(this.qualBlocks).flatMap(block => block.matches) as QualMatch[]
-    const matches = allPrevious.filter(match => match.id === matchId).length
-    return matches
-  }
+//   getPreviousNumber (matchId: number): number {
+//     // find the number of matches in all qual blocks with this match ID, return 0 if zero
+//     const allPrevious = Object.values(this.qualBlocks).flatMap(block => block.matches) as QualMatch[]
+//     const matches = allPrevious.filter(match => match.id === matchId).length
+//     return matches
+//   }
 
-  getFinalMatchId (blockId: number): number | null {
-    const block = this.getBlock(blockId)
-    if (block.matches.length === 0) {
-      return null
-    }
-    return block.matches[block.matches.length - 1].sittingId
-  }
+//   getFinalMatchId (blockId: number): number | null {
+//     const block = this.getBlock(blockId)
+//     if (block.matches.length === 0) {
+//       return null
+//     }
+//     return block.matches[block.matches.length - 1].sittingId
+//   }
 
-  markSittingResolution (match: QueuedMatch, resolution: MatchResolution): void {
-    const block = this.getBlock(match.blockId)
-    const sitting = block.matches.find(sitting => sitting.sittingId === match.sittingId)
+//   markSittingResolution (match: QueuedMatch, resolution: MatchResolution): void {
+//     const block = this.getBlock(match.blockId)
+//     const sitting = block.matches.find(sitting => sitting.sittingId === match.sittingId)
 
-    if (sitting === undefined) throw new Error('Sitting not found')
+//     if (sitting === undefined) throw new Error('Sitting not found')
 
-    sitting.resolution = resolution
-  }
+//     sitting.resolution = resolution
+//   }
 
-  reset (): void {
-    this.qualMatches = []
-    this.qualBlocks.clear()
-  }
-}
+//   reset (): void {
+//     this.qualMatches = []
+//     this.qualBlocks.clear()
+//   }
+// }

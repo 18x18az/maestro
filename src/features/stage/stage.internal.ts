@@ -1,7 +1,8 @@
 
 import { Injectable, Logger } from '@nestjs/common'
-import { EventStage, STAGE_TOPIC } from './stage.interface'
-import { PublishService, StorageService, TeamInformation } from '@/utils'
+import { EventStage } from './stage.interface'
+import { StorageService, TeamInformation } from '@/utils'
+import { StagePublisher } from './stage.publisher'
 
 const STORAGE_KEY = 'stage'
 
@@ -15,7 +16,7 @@ export class StageInternal {
 
   constructor (
     private readonly storage: StorageService,
-    private readonly publisher: PublishService
+    private readonly publisher: StagePublisher
   ) { }
 
   async onApplicationBootstrap (): Promise<void> {
@@ -28,19 +29,33 @@ export class StageInternal {
       this.logger.warn(`Invalid stage ${loaded} loaded from storage, defaulting to WAITING_FOR_TEAMS`)
       this.currentStage = INITIAL_STAGE
     }
-    await this.publisher.broadcast(STAGE_TOPIC, { stage: this.currentStage })
+    await this.publisher.publishStage(this.currentStage)
+  }
+
+  getStage (): EventStage {
+    return this.currentStage
   }
 
   async setStage (stage: EventStage): Promise<void> {
     this.logger.log(`Stage changed to ${stage}`)
     this.currentStage = stage
     await this.storage.setEphemeral(STORAGE_KEY, stage)
-    await this.publisher.broadcast(STAGE_TOPIC, { stage })
+    await this.publisher.publishStage(stage)
   }
 
   async receivedTeams (teams: TeamInformation[]): Promise<void> {
     if (teams.length > 0 && this.currentStage === EventStage.WAITING_FOR_TEAMS) {
       await this.setStage(EventStage.CHECKIN)
     }
+  }
+
+  async receivedQuals (): Promise<void> {
+    if (this.currentStage === EventStage.CHECKIN) {
+      await this.setStage(EventStage.QUALIFICATIONS)
+    }
+  }
+
+  async reset (): Promise<void> {
+    await this.setStage(EventStage.WAITING_FOR_TEAMS)
   }
 }
