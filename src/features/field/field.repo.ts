@@ -25,6 +25,20 @@ export class FieldRepo {
     }))
   }
 
+  async getCompetitionFieldName (fieldId: number): Promise<string> {
+    const field = await this.repo.field.findUnique({
+      where: {
+        id: fieldId
+      }
+    })
+
+    if (field === null) {
+      throw new Error(`Field ${fieldId} not found`)
+    }
+
+    return field.name
+  }
+
   async initializeCompetitionFields (fields: string[]): Promise<void> {
     const existingFields = await this.repo.field.count({
       where: {

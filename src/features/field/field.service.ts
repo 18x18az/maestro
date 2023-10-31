@@ -16,4 +16,8 @@ export class FieldService {
   async getCompetitionFields (): Promise<Field[]> {
     return await this.repo.getCompetitionFields()
   }
+
+  async getCompetitionFieldName (fieldId: number): Promise<string> {
+    return await this.repo.getCompetitionFieldName(fieldId)
+  }
 }

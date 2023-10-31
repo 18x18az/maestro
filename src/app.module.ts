@@ -22,7 +22,7 @@
 // export class WithoutPigeonModule {}
 
 import { ConfigModule } from '@nestjs/config'
-import { MatchModule } from '@/features'
+import { FieldControlModule, MatchModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { TmModule } from './utils'
@@ -54,7 +54,8 @@ import { TmModule } from './utils'
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TmModule,
-    MatchModule
+    MatchModule,
+    FieldControlModule
   ]
 })
 export class WithoutPigeonModule {}
