@@ -51,6 +51,17 @@ export class MatchRepo {
     return id
   }
 
+  async setStatus (replayId: number, status: ReplayStatus): Promise<void> {
+    await this.prisma.scheduledMatch.update({
+      where: {
+        id: replayId
+      },
+      data: {
+        status
+      }
+    })
+  }
+
   async createScheduledMatch (match: CreateScheduledMatchDto): Promise<number> {
     const { id } = await this.prisma.scheduledMatch.create({
       data: {
@@ -64,6 +75,87 @@ export class MatchRepo {
     })
 
     return id
+  }
+
+  async getCurrentBlock (): Promise<MatchBlock | null> {
+    const blockId = await this.prisma.block.findFirst({
+      where: {
+        status: BlockStatus.IN_PROGRESS
+      },
+      select: {
+        id: true
+      }
+    })
+
+    if (blockId === null) {
+      return null
+    }
+
+    return await this.getBlock(blockId.id)
+  }
+
+  async cueNextBlock (): Promise<MatchBlock | null> {
+    const blockId = await this.prisma.block.findFirst({
+      where: {
+        status: BlockStatus.NOT_STARTED
+      },
+      orderBy: {
+        id: 'asc'
+      },
+      select: {
+        id: true
+      }
+    })
+
+    if (blockId === null) {
+      return null
+    }
+
+    await this.prisma.block.update({
+      where: {
+        id: blockId.id
+      },
+      data: {
+        status: BlockStatus.IN_PROGRESS
+      }
+    })
+
+    return await this.getBlock(blockId.id)
+  }
+
+  async getBlock (blockId: number): Promise<MatchBlock | null> {
+    const block = await this.prisma.block.findUnique({
+      where: {
+        id: blockId
+      },
+      include: {
+        scheduledMatches: {
+          include: {
+            match: true,
+            field: true
+          }
+        }
+      }
+    })
+
+    if (block === null) {
+      return null
+    }
+
+    return {
+      id: block.id,
+      status: block.status as BlockStatus,
+      matches: block.scheduledMatches.map(scheduledMatch => ({
+        ...parseMatch(scheduledMatch.match),
+        matchId: scheduledMatch.matchId,
+        replayId: scheduledMatch.id,
+        fieldName: scheduledMatch.field.name,
+        fieldId: scheduledMatch.fieldId,
+        time: scheduledMatch.time ?? undefined,
+        replay: scheduledMatch.replay,
+        status: scheduledMatch.status as ReplayStatus
+      }))
+    }
   }
 
   async createMatch (match: CreateMatchDto): Promise<number> {
@@ -105,38 +197,23 @@ export class MatchRepo {
   }
 
   async getQualBlocks (): Promise<MatchBlock[]> {
-    const blocks = await this.prisma.block.findMany({
+    const blockIds = await this.prisma.block.findMany({
       where: {
-        scheduledMatches: {
-          some: {
-            match: {
-              round: Round.QUAL
-            }
-          }
-        }
+        status: BlockStatus.IN_PROGRESS
       },
-      include: {
-        scheduledMatches: {
-          include: {
-            match: true,
-            field: true
-          }
-        }
+      select: {
+        id: true
       }
     })
 
-    return blocks.map(block => ({
-      id: block.id,
-      status: block.status as BlockStatus,
-      matches: block.scheduledMatches.map(scheduledMatch => ({
-        ...parseMatch(scheduledMatch.match),
-        matchId: scheduledMatch.matchId,
-        fieldName: scheduledMatch.field.name,
-        fieldId: scheduledMatch.fieldId,
-        time: scheduledMatch.time ?? undefined,
-        replay: scheduledMatch.replay,
-        status: scheduledMatch.status as ReplayStatus
-      }))
-    }))
+    const blocks: MatchBlock[] = []
+    for (const blockId of blockIds) {
+      const block = await this.getBlock(blockId.id)
+      if (block !== null) {
+        blocks.push(block)
+      }
+    }
+
+    return blocks
   }
 }

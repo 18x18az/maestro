@@ -7,11 +7,12 @@ import { PrismaModule, PublishModule } from '@/utils'
 import { MatchRepo } from './match.repo'
 import { MatchInternal } from './match.internal'
 import { MatchPublisher } from './match.publisher'
+import { MatchService } from './match.service'
 
 @Module({
   imports: [StageModule, FieldModule, PrismaModule, PublishModule],
   controllers: [MatchController],
-  providers: [QualService, MatchRepo, MatchInternal, MatchPublisher],
-  exports: []
+  providers: [QualService, MatchRepo, MatchInternal, MatchPublisher, MatchService],
+  exports: [MatchService]
 })
 export class MatchModule {}

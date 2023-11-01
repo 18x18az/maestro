@@ -1,32 +1,51 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { EventStage } from '../stage'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { EventStage, StageService } from '../stage'
 import { FieldStatus, FieldState } from './field-control.interface'
-import { FieldService } from '../field/field.service'
+import { FieldService } from '../field'
 import { FieldControlPublisher } from './field-control.publisher'
+import { MatchBlock, MatchService, ReplayStatus } from '../match'
 
 @Injectable()
 export class FieldControlInternal {
   private readonly logger: Logger = new Logger(FieldControlInternal.name)
 
   private fields: FieldStatus[] = []
-  private readonly currentField: FieldStatus | null = null
+  private currentField: FieldStatus | null = null
 
   constructor (
     private readonly fieldInfo: FieldService,
-    private readonly publisher: FieldControlPublisher
+    private readonly publisher: FieldControlPublisher,
+    private readonly matches: MatchService,
+    private readonly stage: StageService
   ) {}
+
+  async onApplicationBootstrap (): Promise<void> {
+    const stage = this.stage.getStage()
+
+    if (stage === EventStage.QUALIFICATIONS) {
+      await this.initializeFields()
+    }
+  }
+
+  private async initializeFields (): Promise<void> {
+    const fields = await this.fieldInfo.getCompetitionFields()
+
+    this.logger.log(`Initializing ${fields.length} fields`)
+
+    this.fields = fields.map(field => ({
+      field,
+      state: FieldState.IDLE,
+      match: null
+    }))
+
+    await this.updateAllFields()
+  }
 
   async handleStage (stage: EventStage): Promise<void> {
     if (stage === EventStage.QUALIFICATIONS) {
-      const fields = await this.fieldInfo.getCompetitionFields()
-
-      this.fields = fields.map(field => ({
-        field,
-        state: FieldState.IDLE,
-        match: null
-      }))
-
-      await this.updateAllFields()
+      if (this.fields.length === 0) {
+        await this.initializeFields()
+      }
     }
   }
 
@@ -36,5 +55,72 @@ export class FieldControlInternal {
     }
     await this.publisher.publishFieldStatuses(this.fields)
     await this.publisher.publishFieldControl(this.currentField)
+  }
+
+  async updateField (field: FieldStatus): Promise<void> {
+    await this.publisher.publishFieldStatus(field)
+    await this.publisher.publishFieldStatuses(this.fields)
+  }
+
+  async cueNextBlock (): Promise<void> {
+    if (await this.matches.isInBlock()) {
+      this.logger.warn('Tried to cue block while block was in progress')
+      throw new BadRequestException('Cannot cue next block while in a match')
+    }
+
+    this.logger.log('Cueing next block')
+    const areMoreBlocks = await this.matches.cueNextBlock()
+    // TODO handle false
+    if (!areMoreBlocks) {
+      console.warn('No more blocks to cue, handle this')
+    }
+  }
+
+  async updateFieldControl (): Promise<void> {
+    if (this.currentField !== null) {
+      return
+    }
+
+    // find the field that is on deck with the lowest match id
+    const onDeck = this.fields.filter(field => (field.state === FieldState.ON_DECK && field.match !== null))
+    if (onDeck.length === null) {
+      return
+    }
+
+    // Explicitly don't check for null because typescript doesn't know that the filter above removes nulls
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const field = onDeck.reduce((a, b) => a.match!.id < b.match!.id ? a : b)
+
+    this.logger.log(`Updating field control to ${field.field.id}`)
+    this.currentField = field
+    await this.publisher.publishFieldControl(field)
+  }
+
+  async handleCurrentBlockChange (block: MatchBlock | null): Promise<void> {
+    if (block === null) {
+      // TODO
+      return
+    }
+
+    for (const field of this.fields) {
+      if (field.match === null) {
+        const match = block.matches.find(match => match.status !== ReplayStatus.RESOLVED && match.fieldId === field.field.id)
+        if (match !== undefined) {
+          this.logger.log(`Assigning match ${match.id} to field ${field.field.id}`)
+          if (match.status === ReplayStatus.NOT_STARTED) {
+            await this.matches.markOnDeck(match.replayId)
+            field.state = FieldState.ON_DECK
+          } else if (match.status === ReplayStatus.ON_DECK) {
+            field.state = FieldState.ON_DECK
+          } else if (match.status === ReplayStatus.AWAITING_SCORES) {
+            field.state = FieldState.SCORING
+          }
+          field.match = match
+          await this.updateField(field)
+        }
+      }
+    }
+
+    await this.updateFieldControl()
   }
 }

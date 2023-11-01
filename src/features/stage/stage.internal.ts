@@ -19,16 +19,12 @@ export class StageInternal {
     private readonly publisher: StagePublisher
   ) { }
 
+  async onModuleInit (): Promise<void> {
+    this.currentStage = await this.storage.getEphemeral(STORAGE_KEY, INITIAL_STAGE) as EventStage
+    this.logger.log(`Stage initialized to ${this.currentStage}`)
+  }
+
   async onApplicationBootstrap (): Promise<void> {
-    const loaded = await this.storage.getEphemeral(STORAGE_KEY, INITIAL_STAGE)
-    // check if loaded is a valid stage
-    if (loaded in EventStage) {
-      this.logger.log(`Loaded in stage ${loaded}`)
-      this.currentStage = loaded as EventStage
-    } else {
-      this.logger.warn(`Invalid stage ${loaded} loaded from storage, defaulting to WAITING_FOR_TEAMS`)
-      this.currentStage = INITIAL_STAGE
-    }
     await this.publisher.publishStage(this.currentStage)
   }
 

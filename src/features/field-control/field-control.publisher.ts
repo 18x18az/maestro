@@ -15,10 +15,10 @@ export class FieldControlPublisher {
   }
 
   async publishFieldStatus (state: FieldStatus): Promise<void> {
-    await this.publisher.broadcast(`${FIELD_STATUS_TOPIC}/${state.field.id}`, { state })
+    await this.publisher.broadcast(`${FIELD_STATUS_TOPIC}/${state.field.id}`, state)
   }
 
   async publishFieldControl (state: FieldStatus | null): Promise<void> {
-    await this.publisher.broadcast(FIELD_CONTROL_TOPIC, { state })
+    await this.publisher.broadcast(FIELD_CONTROL_TOPIC, state)
   }
 }

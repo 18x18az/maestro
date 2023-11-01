@@ -8,6 +8,7 @@ export enum Round {
 
 export const QUAL_LIST_TOPIC = 'quals'
 export const QUAL_BLOCK_TOPIC = 'qualblocks'
+export const CURRENT_BLOCK_TOPIC = 'currentblock'
 
 export interface Alliance {
   team1: string
@@ -31,7 +32,7 @@ export enum ReplayStatus {
 }
 
 export interface ScheduledMatch extends Match {
-  id: number
+  replayId: number
   fieldId: number
   fieldName: string
   replay: number
