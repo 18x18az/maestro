@@ -4,6 +4,7 @@ import { FieldStatus, FieldState } from './field-control.interface'
 import { FieldService } from '../field'
 import { FieldControlPublisher } from './field-control.publisher'
 import { MatchBlock, MatchService, ReplayStatus } from '../match'
+import { makeReplayName } from '@/utils/string/match-name'
 
 @Injectable()
 export class FieldControlInternal {
@@ -43,7 +44,11 @@ export class FieldControlInternal {
   }
 
   async handleStage (stage: EventStage): Promise<void> {
-    if (stage === EventStage.QUALIFICATIONS) {
+    if (stage === EventStage.WAITING_FOR_TEAMS) {
+      this.fields = []
+      this.currentField = null
+      this.timer = null
+    } else if (stage === EventStage.QUALIFICATIONS) {
       if (this.fields.length === 0) {
         await this.initializeFields()
       }
@@ -96,7 +101,7 @@ export class FieldControlInternal {
     this.currentField.match.time = endTime.toISOString()
     this.currentField.state = FieldState.AUTO
 
-    this.logger.log('Starting match')
+    this.logger.log(`Starting match ${makeReplayName(this.currentField.match)}`)
     await this.updateFieldControl()
 
     const timeToEnd = endTime.getTime() - Date.now()
@@ -125,7 +130,7 @@ export class FieldControlInternal {
     this.currentField.match.time = endTime.toISOString()
     this.currentField.state = FieldState.DRIVER
 
-    this.logger.log('Resuming match')
+    this.logger.log(`Resuming match ${makeReplayName(this.currentField.match)}`)
     await this.updateFieldControl()
 
     const timeToEnd = endTime.getTime() - Date.now()
@@ -155,7 +160,7 @@ export class FieldControlInternal {
       throw new BadRequestException('Cannot end early without a match in progress')
     }
 
-    this.logger.log('Ending early')
+    this.logger.log(`Ending match ${makeReplayName(this.currentField.match)} early`)
     if (this.currentField.state === FieldState.AUTO) {
       await this.endAuto()
     } else {
@@ -180,7 +185,7 @@ export class FieldControlInternal {
       this.logger.warn('Tried to end auto without a match')
       throw new BadRequestException('Cannot end auto without a match')
     }
-    this.logger.log('Auto concluded')
+    this.logger.log(`Auto concluded for match ${makeReplayName(this.currentField.match)}`)
     this.currentField.state = FieldState.PAUSED
     this.currentField.match.time = undefined
     await this.updateFieldControl()
@@ -208,6 +213,8 @@ export class FieldControlInternal {
     this.currentField.match.time = undefined
     await this.updateFieldControl()
     await this.matches.markPlayed(this.currentField.match.replayId)
+    this.currentField = null
+    await this.queueFieldControl()
   }
 
   async cueNextBlock (): Promise<void> {
@@ -239,7 +246,7 @@ export class FieldControlInternal {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const field = onDeck.reduce((a, b) => a.match!.id < b.match!.id ? a : b)
 
-    this.logger.log(`Updating field control to ${field.field.id}`)
+    this.logger.log(`Updating field control to ${field.field.name}`)
     this.currentField = field
     await this.publisher.publishFieldControl(field)
   }
@@ -254,7 +261,7 @@ export class FieldControlInternal {
       if (field.match === null) {
         const match = block.matches.find(match => match.status !== ReplayStatus.RESOLVED && match.fieldId === field.field.id)
         if (match !== undefined) {
-          this.logger.log(`Assigning match ${match.id} to field ${field.field.id}`)
+          this.logger.log(`Assigning match ${makeReplayName(match)} to field ${field.field.id}`)
           if (match.status === ReplayStatus.NOT_STARTED) {
             await this.matches.markOnDeck(match.replayId)
             field.state = FieldState.ON_DECK
