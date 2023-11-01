@@ -94,6 +94,30 @@ export class MatchRepo {
     return await this.getBlock(blockId.id)
   }
 
+  async endCurrentBlock (): Promise<void> {
+    const blockId = await this.prisma.block.findFirst({
+      where: {
+        status: BlockStatus.IN_PROGRESS
+      },
+      select: {
+        id: true
+      }
+    })
+
+    if (blockId === null) {
+      return
+    }
+
+    await this.prisma.block.update({
+      where: {
+        id: blockId.id
+      },
+      data: {
+        status: BlockStatus.FINISHED
+      }
+    })
+  }
+
   async cueNextBlock (): Promise<MatchBlock | null> {
     const blockId = await this.prisma.block.findFirst({
       where: {

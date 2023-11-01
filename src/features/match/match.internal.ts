@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
 import { EventStage, StageService } from '../stage'
-import { MatchBlock } from './match.interface'
+import { MatchBlock, ReplayStatus } from './match.interface'
 
 @Injectable()
 export class MatchInternal {
@@ -49,5 +49,19 @@ export class MatchInternal {
 
   async updateCurrentBlock (block: MatchBlock | null): Promise<void> {
     await this.publisher.publishCurrentBlock(block)
+  }
+
+  async refreshCurrentBlock (): Promise<void> {
+    let currentBlock = await this.repo.getCurrentBlock()
+
+    // check if there are any matches in the current block that are not resolved
+
+    if (currentBlock !== null && !currentBlock.matches.some((match) => match.status !== ReplayStatus.RESOLVED)) {
+      this.logger.log('Current block is resolved, ending')
+      await this.repo.endCurrentBlock()
+      currentBlock = null
+    }
+
+    await this.publisher.publishCurrentBlock(currentBlock)
   }
 }

@@ -35,10 +35,18 @@ export class MatchService {
   async markOnDeck (replayId: number): Promise<void> {
     this.logger.log(`Marking replay ${replayId} as on deck`)
     await this.repo.setStatus(replayId, ReplayStatus.ON_DECK)
+    await this.service.refreshCurrentBlock()
   }
 
   async markPlayed (replayId: number): Promise<void> {
     this.logger.log(`Marking replay ${replayId} as played`)
     await this.repo.setStatus(replayId, ReplayStatus.AWAITING_SCORES)
+    await this.service.refreshCurrentBlock()
+  }
+
+  async markScored (replayId: number): Promise<void> {
+    this.logger.log(`Marking replay ${replayId} as scored`)
+    await this.repo.setStatus(replayId, ReplayStatus.RESOLVED)
+    await this.service.refreshCurrentBlock()
   }
 }

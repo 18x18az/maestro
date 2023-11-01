@@ -5,6 +5,7 @@ import { FieldService } from '../field'
 import { FieldControlPublisher } from './field-control.publisher'
 import { MatchBlock, MatchService, ReplayStatus } from '../match'
 import { makeReplayName } from '@/utils/string/match-name'
+import { MatchResult } from '@/utils'
 
 @Injectable()
 export class FieldControlInternal {
@@ -41,6 +42,33 @@ export class FieldControlInternal {
     }))
 
     await this.updateAllFields()
+  }
+
+  async handleMatchResults (results: MatchResult[]): Promise<void> {
+    // go through all the fields and see if they're awaiting scores, if so check if any of the results match
+    for (const field of this.fields) {
+      if (field.state !== FieldState.SCORING) {
+        continue
+      }
+
+      if (field.match === null) {
+        continue
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const result = results.find(result => result.identifier.matchNum === field.match!.matchNum && result.identifier.round === field.match!.round && result.identifier.sitting === field.match!.sitting)
+
+      if (result === undefined) {
+        continue
+      }
+
+      this.logger.log(`Match ${makeReplayName(field.match)} scored`)
+      const id = field.match.replayId
+      field.match = null
+      field.state = FieldState.IDLE
+      await this.updateField(field)
+      await this.matches.markScored(id)
+    }
   }
 
   async handleStage (stage: EventStage): Promise<void> {
@@ -238,7 +266,7 @@ export class FieldControlInternal {
 
     // find the field that is on deck with the lowest match id
     const onDeck = this.fields.filter(field => (field.state === FieldState.ON_DECK && field.match !== null))
-    if (onDeck.length === null) {
+    if (onDeck.length === 0) {
       return
     }
 

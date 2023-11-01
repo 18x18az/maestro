@@ -15,11 +15,14 @@ export interface Alliance {
   team2: string
 }
 
-export interface Match {
-  id: number
+export interface MatchIdentifier {
   round: Round
   matchNum: number
   sitting: number
+}
+
+export interface Match extends MatchIdentifier {
+  id: number
   red: Alliance
   blue: Alliance
 }

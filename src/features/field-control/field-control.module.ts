@@ -6,10 +6,12 @@ import { FieldControlPublisher } from './field-control.publisher'
 import { PublishModule } from '@/utils'
 import { MatchModule } from '../match'
 import { StageModule } from '../stage'
+import { FieldControlService } from './field-control.service'
 
 @Module({
   imports: [FieldModule, PublishModule, MatchModule, StageModule],
   controllers: [FieldControlController],
-  providers: [FieldControlInternal, FieldControlPublisher]
+  providers: [FieldControlInternal, FieldControlPublisher, FieldControlService],
+  exports: [FieldControlService]
 })
 export class FieldControlModule {}

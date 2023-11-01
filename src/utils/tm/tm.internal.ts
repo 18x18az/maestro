@@ -21,7 +21,7 @@ export class TmInternal {
     private readonly publisher: TmPublisher
   ) { }
 
-  async onApplicationBootstrap (): Promise<void> {
+  async onModuleInit (): Promise<void> {
     const loaded = await this.storage.getEphemeral(STORAGE_KEY, '')
 
     if (loaded === '') {
@@ -99,7 +99,7 @@ export class TmInternal {
     return page
   }
 
-  private async getTableData (resource: string): Promise<HTMLElement[] | null> {
+  async getTableData (resource: string): Promise<HTMLElement[] | null> {
     const page = await this.getData(resource)
 
     if (page === null) {
