@@ -36,4 +36,9 @@ export class MatchService {
     this.logger.log(`Marking replay ${replayId} as on deck`)
     await this.repo.setStatus(replayId, ReplayStatus.ON_DECK)
   }
+
+  async markPlayed (replayId: number): Promise<void> {
+    this.logger.log(`Marking replay ${replayId} as played`)
+    await this.repo.setStatus(replayId, ReplayStatus.AWAITING_SCORES)
+  }
 }

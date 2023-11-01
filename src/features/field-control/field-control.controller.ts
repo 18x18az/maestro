@@ -22,4 +22,19 @@ export class FieldControlController {
   async handleCurrentBlockChange (block: MatchBlock | null): Promise<void> {
     await this.service.handleCurrentBlockChange(block)
   }
+
+  @Post('start')
+  async startMatch (): Promise<void> {
+    await this.service.startMatch()
+  }
+
+  @Post('resume')
+  async resumeMatch (): Promise<void> {
+    await this.service.resumeMatch()
+  }
+
+  @Post('endEarly')
+  async endEarly (): Promise<void> {
+    await this.service.endEarly()
+  }
 }

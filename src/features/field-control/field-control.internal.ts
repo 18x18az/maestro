@@ -11,6 +11,7 @@ export class FieldControlInternal {
 
   private fields: FieldStatus[] = []
   private currentField: FieldStatus | null = null
+  private timer: NodeJS.Timeout | null = null
 
   constructor (
     private readonly fieldInfo: FieldService,
@@ -62,6 +63,153 @@ export class FieldControlInternal {
     await this.publisher.publishFieldStatuses(this.fields)
   }
 
+  async updateFieldControl (): Promise<void> {
+    const status = this.currentField
+    if (status !== null) {
+      const field = this.fields.find(field => field.field.id === status.field.id)
+      if (field !== undefined) {
+        field.state = status.state
+        field.match = status.match
+        await this.updateField(field)
+      }
+    }
+    await this.publisher.publishFieldControl(status)
+  }
+
+  async startMatch (): Promise<void> {
+    if (this.currentField === null) {
+      this.logger.warn('Tried to start match without a field')
+      throw new BadRequestException('Cannot start match without a field')
+    }
+    if (this.currentField.state !== FieldState.ON_DECK) {
+      this.logger.warn('Tried to start match without a match on deck')
+      throw new BadRequestException('Cannot start match without a match on deck')
+    }
+    if (this.currentField.match === null) {
+      this.logger.warn('Tried to start match without a match')
+      throw new BadRequestException('Cannot start match without a match')
+    }
+    // end in 15 seconds
+    const endTime = new Date()
+    endTime.setSeconds(endTime.getSeconds() + 15)
+
+    this.currentField.match.time = endTime.toISOString()
+    this.currentField.state = FieldState.AUTO
+
+    this.logger.log('Starting match')
+    await this.updateFieldControl()
+
+    const timeToEnd = endTime.getTime() - Date.now()
+    this.timer = setTimeout(() => {
+      void this.endAuto()
+    }, timeToEnd)
+  }
+
+  async resumeMatch (): Promise<void> {
+    if (this.currentField === null) {
+      this.logger.warn('Tried to resume match without a field')
+      throw new BadRequestException('Cannot resume match without a field')
+    }
+    if (this.currentField.state !== FieldState.PAUSED) {
+      this.logger.warn('Tried to resume match without a match paused')
+      throw new BadRequestException('Cannot resume match without a match paused')
+    }
+    if (this.currentField.match === null) {
+      this.logger.warn('Tried to resume match without a match')
+      throw new BadRequestException('Cannot resume match without a match')
+    }
+    // end in 105 seconds
+    const endTime = new Date()
+    endTime.setSeconds(endTime.getSeconds() + 105)
+
+    this.currentField.match.time = endTime.toISOString()
+    this.currentField.state = FieldState.DRIVER
+
+    this.logger.log('Resuming match')
+    await this.updateFieldControl()
+
+    const timeToEnd = endTime.getTime() - Date.now()
+    this.timer = setTimeout(() => {
+      void this.endDriver()
+    }, timeToEnd)
+  }
+
+  async endEarly (): Promise<void> {
+    if (this.timer !== null) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+
+    if (this.currentField === null) {
+      this.logger.warn('Tried to end early without a field')
+      throw new BadRequestException('Cannot end early without a field')
+    }
+
+    if (this.currentField.match === null) {
+      this.logger.warn('Tried to end early without a match')
+      throw new BadRequestException('Cannot end early without a match')
+    }
+
+    if (this.currentField.state !== FieldState.AUTO && this.currentField.state !== FieldState.DRIVER) {
+      this.logger.warn('Tried to end early without a match in progress')
+      throw new BadRequestException('Cannot end early without a match in progress')
+    }
+
+    this.logger.log('Ending early')
+    if (this.currentField.state === FieldState.AUTO) {
+      await this.endAuto()
+    } else {
+      await this.endDriver()
+    }
+  }
+
+  async endAuto (): Promise<void> {
+    if (this.timer !== null) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+    if (this.currentField === null) {
+      this.logger.warn('Tried to end auto without a field')
+      throw new BadRequestException('Cannot end auto without a field')
+    }
+    if (this.currentField.state !== FieldState.AUTO) {
+      this.logger.warn('Tried to end auto without a match in auto')
+      throw new BadRequestException('Cannot end auto without a match in auto')
+    }
+    if (this.currentField.match === null) {
+      this.logger.warn('Tried to end auto without a match')
+      throw new BadRequestException('Cannot end auto without a match')
+    }
+    this.logger.log('Auto concluded')
+    this.currentField.state = FieldState.PAUSED
+    this.currentField.match.time = undefined
+    await this.updateFieldControl()
+  }
+
+  async endDriver (): Promise<void> {
+    if (this.timer !== null) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+    if (this.currentField === null) {
+      this.logger.warn('Tried to end driver without a field')
+      throw new BadRequestException('Cannot end driver without a field')
+    }
+    if (this.currentField.state !== FieldState.DRIVER) {
+      this.logger.warn('Tried to end driver without a match in driver')
+      throw new BadRequestException('Cannot end driver without a match in driver')
+    }
+    if (this.currentField.match === null) {
+      this.logger.warn('Tried to end driver without a match')
+      throw new BadRequestException('Cannot end driver without a match')
+    }
+    this.logger.log('Driver concluded')
+    this.currentField.state = FieldState.SCORING
+    this.currentField.match.time = undefined
+    await this.updateFieldControl()
+    await this.matches.markPlayed(this.currentField.match.replayId)
+  }
+
   async cueNextBlock (): Promise<void> {
     if (await this.matches.isInBlock()) {
       this.logger.warn('Tried to cue block while block was in progress')
@@ -76,7 +224,7 @@ export class FieldControlInternal {
     }
   }
 
-  async updateFieldControl (): Promise<void> {
+  async queueFieldControl (): Promise<void> {
     if (this.currentField !== null) {
       return
     }
@@ -121,6 +269,6 @@ export class FieldControlInternal {
       }
     }
 
-    await this.updateFieldControl()
+    await this.queueFieldControl()
   }
 }
