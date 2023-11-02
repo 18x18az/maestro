@@ -123,7 +123,7 @@ export class FieldControlInternal {
       this.logger.warn('Tried to start match without a field')
       throw new BadRequestException('Cannot start match without a field')
     }
-    if (this.currentField.state !== FieldState.ON_DECK) {
+    if (this.currentField.state !== FieldState.ON_DECK && this.currentField.state !== FieldState.PAUSED) {
       this.logger.warn('Tried to start match without a match on deck')
       throw new BadRequestException('Cannot start match without a match on deck')
     }
@@ -310,7 +310,19 @@ export class FieldControlInternal {
       return
     }
 
+    this.logger.log(`Handling change to block ${block.id}`)
+
     for (const field of this.fields) {
+      if (field.match !== null && field.state === FieldState.SCORING) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const match = block.matches.find(match => match.replayId === field.match!.replayId)
+        if (match === undefined || match.status === ReplayStatus.RESOLVED) {
+          this.logger.log(`Match ${makeReplayName(field.match)} is no longer awaiting scores, clearing field ${field.field.id}`)
+          field.match = null
+          field.state = FieldState.IDLE
+        }
+      }
+
       if (field.match === null) {
         const match = block.matches.find(match => match.status !== ReplayStatus.RESOLVED && match.fieldId === field.field.id)
         if (match !== undefined) {

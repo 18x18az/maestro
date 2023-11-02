@@ -26,6 +26,7 @@ import { FieldControlModule, MatchModule, ResultsModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
+import { BeaconService } from './utils'
 
 // @Module({
 //   imports: [
@@ -68,6 +69,7 @@ export class WithoutPigeonModule {}
       port: 1883
     }),
     ScheduleModule.forRoot()
-  ]
+  ],
+  providers: [BeaconService]
 })
 export class AppModule {}

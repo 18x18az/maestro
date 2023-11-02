@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { MatchRepo } from './match.repo'
+import { CreateScheduledMatchDto, MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
 import { EventStage, StageService } from '../stage'
-import { MatchBlock, ReplayStatus } from './match.interface'
+import { MatchBlock, MatchIdentifier, ReplayStatus } from './match.interface'
+import { makeMatchName } from '@/utils/string/match-name'
+import { FieldService } from '../field'
 
 @Injectable()
 export class MatchInternal {
@@ -11,7 +13,8 @@ export class MatchInternal {
   constructor (
     private readonly repo: MatchRepo,
     private readonly publisher: MatchPublisher,
-    private readonly stage: StageService
+    private readonly stage: StageService,
+    private readonly fields: FieldService
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
@@ -61,7 +64,44 @@ export class MatchInternal {
       await this.repo.endCurrentBlock()
       currentBlock = null
     }
-
     await this.publisher.publishCurrentBlock(currentBlock)
+  }
+
+  async replayMatch (match: MatchIdentifier): Promise<void> {
+    this.logger.log(`Scheduling replay for match ${makeMatchName(match)}`)
+    const currentBlock = await this.repo.getCurrentBlock()
+    if (currentBlock === null) {
+      throw new Error('No current block')
+    }
+    const lastMatchFieldId = await this.repo.getFieldOfLastMatchOfBlock(currentBlock.id)
+    if (lastMatchFieldId === null) {
+      throw new Error('No last match field')
+    }
+    const allFields = await this.fields.getCompetitionFields()
+    const indexOfLastMatchField = allFields.findIndex((field) => field.id === lastMatchFieldId)
+    const nextFieldIndex = (indexOfLastMatchField + 1) % allFields.length
+    const nextField = allFields[nextFieldIndex]
+
+    const associatedMatch = await this.repo.getMatchByIdentifier(match)
+    if (associatedMatch === null) {
+      throw new Error('No associated match')
+    }
+
+    const lastReplay = await this.repo.getLastReplay(associatedMatch.id)
+
+    if (lastReplay === null) {
+      throw new Error('No last replay')
+    }
+
+    const scheduledMatch: CreateScheduledMatchDto = {
+      blockId: currentBlock.id,
+      fieldId: nextField.id,
+      matchId: associatedMatch.id,
+      replay: lastReplay.replay + 1
+    }
+    await this.repo.setStatus(lastReplay.id, ReplayStatus.RESOLVED)
+    await this.repo.createScheduledMatch(scheduledMatch)
+
+    await this.refreshCurrentBlock()
   }
 }

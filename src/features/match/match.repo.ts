@@ -1,7 +1,7 @@
 import { PrismaService } from '@/utils'
 import { Injectable } from '@nestjs/common'
-import { Round, Alliance, Match, MatchBlock, ReplayStatus, BlockStatus } from './match.interface'
-import { Match as PrismaMatch } from '@prisma/client'
+import { Round, Alliance, Match, MatchBlock, ReplayStatus, BlockStatus, MatchIdentifier } from './match.interface'
+import { Match as PrismaMatch, ScheduledMatch } from '@prisma/client'
 
 export interface CreateMatchDto {
   round: Round
@@ -239,5 +239,60 @@ export class MatchRepo {
     }
 
     return blocks
+  }
+
+  async getFieldOfLastMatchOfBlock (blockId: number): Promise<Number | null> {
+    const match = await this.prisma.scheduledMatch.findFirst({
+      where: {
+        blockId
+      },
+      orderBy: {
+        matchId: 'desc'
+      },
+      select: {
+        fieldId: true
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return match.fieldId
+  }
+
+  async getMatchByIdentifier (ident: MatchIdentifier): Promise<Match | null> {
+    const match = await this.prisma.match.findUnique({
+      where: {
+        round_number_sitting: {
+          round: ident.round,
+          number: ident.matchNum,
+          sitting: ident.sitting
+        }
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return parseMatch(match)
+  }
+
+  async getLastReplay (matchId: number): Promise<ScheduledMatch | null> {
+    const match = await this.prisma.scheduledMatch.findFirst({
+      where: {
+        matchId
+      },
+      orderBy: {
+        replay: 'desc'
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return match
   }
 }

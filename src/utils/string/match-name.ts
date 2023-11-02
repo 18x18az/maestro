@@ -1,6 +1,6 @@
-import { Match, Round, ScheduledMatch } from '@/features'
+import { MatchIdentifier, Round, ScheduledMatch } from '@/features'
 
-export function makeMatchName (match: Match): string {
+export function makeMatchName (match: MatchIdentifier): string {
   let preamble = 'Q'
   if (match.round === Round.Ro16) {
     preamble = 'Ro16'
