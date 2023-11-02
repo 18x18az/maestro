@@ -7,9 +7,10 @@ import { PublishModule } from '@/utils'
 import { MatchModule } from '../match'
 import { StageModule } from '../stage'
 import { FieldControlService } from './field-control.service'
+import { StreamModule } from '../stream'
 
 @Module({
-  imports: [FieldModule, PublishModule, MatchModule, StageModule],
+  imports: [FieldModule, PublishModule, MatchModule, StageModule, StreamModule],
   controllers: [FieldControlController],
   providers: [FieldControlInternal, FieldControlPublisher, FieldControlService],
   exports: [FieldControlService]

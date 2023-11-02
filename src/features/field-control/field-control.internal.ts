@@ -6,6 +6,7 @@ import { FieldControlPublisher } from './field-control.publisher'
 import { MatchBlock, MatchService, ReplayStatus } from '../match'
 import { makeReplayName } from '@/utils/string/match-name'
 import { MatchResult } from '@/utils'
+import { DisplayedResults, FieldDisplayService, ResultsDisplayService } from '../stream'
 
 @Injectable()
 export class FieldControlInternal {
@@ -19,7 +20,9 @@ export class FieldControlInternal {
     private readonly fieldInfo: FieldService,
     private readonly publisher: FieldControlPublisher,
     private readonly matches: MatchService,
-    private readonly stage: StageService
+    private readonly stage: StageService,
+    private readonly results: ResultsDisplayService,
+    private readonly display: FieldDisplayService
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
@@ -63,6 +66,12 @@ export class FieldControlInternal {
       }
 
       this.logger.log(`Match ${makeReplayName(field.match)} scored`)
+      const displayResults: DisplayedResults = {
+        match: field.match,
+        redScore: result.redScore,
+        blueScore: result.blueScore
+      }
+      this.results.setStagedResults(displayResults)
       const id = field.match.replayId
       field.match = null
       field.state = FieldState.IDLE
@@ -136,6 +145,8 @@ export class FieldControlInternal {
     this.timer = setTimeout(() => {
       void this.endAuto()
     }, timeToEnd)
+
+    await this.display.readyScore(this.currentField.field.id)
   }
 
   async resumeMatch (): Promise<void> {
@@ -240,9 +251,22 @@ export class FieldControlInternal {
     this.currentField.state = FieldState.SCORING
     this.currentField.match.time = undefined
     await this.updateFieldControl()
-    await this.matches.markPlayed(this.currentField.match.replayId)
-    this.currentField = null
-    await this.queueFieldControl()
+    await this.results.publishStagedResults()
+
+    setTimeout(() => {
+      void this.display.cut()
+    }, 3000)
+
+    const finishMatch = async (): Promise<void> => {
+      if (this.currentField === null || this.currentField.match === null) return
+      await this.matches.markPlayed(this.currentField.match.replayId)
+      this.currentField = null
+      await this.queueFieldControl()
+    }
+
+    setTimeout(() => {
+      void finishMatch()
+    }, 5000)
   }
 
   async cueNextBlock (): Promise<void> {
@@ -277,6 +301,7 @@ export class FieldControlInternal {
     this.logger.log(`Updating field control to ${field.field.name}`)
     this.currentField = field
     await this.publisher.publishFieldControl(field)
+    await this.display.previewMatchOnField(field.field.id)
   }
 
   async handleCurrentBlockChange (block: MatchBlock | null): Promise<void> {
