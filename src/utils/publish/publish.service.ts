@@ -1,13 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { PigeonService } from '@alecmmiller/pigeon-mqtt-nest'
-import { makeString } from '../string2json'
 
 @Injectable()
 export class PublishService {
-  constructor (@Inject(PigeonService) private readonly pigeonService: PigeonService) {}
+  constructor (private readonly pigeonService: PigeonService) {}
 
-  async broadcast (topic: string, payload: any): Promise<void> {
-    const encoded = makeString(payload)
+  async broadcast (topic: string, payload: object | null): Promise<void> {
+    const encoded = JSON.stringify(payload)
     await this.pigeonService.publish({ topic, payload: encoded, cmd: 'publish', retain: true, qos: 2 })
   }
 }

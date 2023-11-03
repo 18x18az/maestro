@@ -1,14 +1,14 @@
+import { PublishModule, StorageModule } from '@/utils'
 import { Module } from '@nestjs/common'
+import { StageInternal } from './stage.internal'
 import { StageController } from './stage.controller'
 import { StageService } from './stage.service'
-import { StorageModule } from '../../utils/storage/storage.module'
-import { PublishModule } from '../../utils/publish/publish.module'
 import { StagePublisher } from './stage.publisher'
-import { ResetRepo } from './reset.repo'
 
 @Module({
   imports: [StorageModule, PublishModule],
   controllers: [StageController],
-  providers: [StageService, StagePublisher, ResetRepo]
+  providers: [StageInternal, StageService, StagePublisher],
+  exports: [StageService]
 })
 export class StageModule {}

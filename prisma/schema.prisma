@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,167 +17,53 @@ model GenericPersistent {
   value String
 }
 
-model Division {
-  id Int @id @default(autoincrement())
-  name String
-}
-
-model Team {
-  number        String              @unique
-  name          String
-  city          String
-  state         String
-  country       String
-  ageGroup      String
-  checkIn       CheckIn?
-  checkedPoints CheckedInspection[]
-  team1 Alliance[] @relation(name: "team1")
-  team2 Alliance[] @relation(name: "team2")
-}
-
-model Alliance {
-  id Int @id @default(autoincrement())
-
-  team1 Team @relation(fields: [team1Number], references: [number], name: "team1")
-  team1Number String
-  team2 Team? @relation(fields: [team1Number], references: [number], name: "team2")
-  team2Number String?
-
-  red Match[] @relation(name: "red")
-  blue Match[] @relation(name: "blue")
-}
-
-model MatchBlock {
-  id Int @id @default(autoincrement())
-  start String
-
-  firstMatch ScheduledMatch? @relation(fields: [firstMatchId], references: [id])
-  firstMatchId Int? @unique
-
-  cycleTime Int
-}
-
-model Match {
-  id Int @id @default(autoincrement())
-
-  red Alliance @relation(fields: [redId], references: [id], name: "red")
-  redId Int
-
-  blue Alliance @relation(fields: [blueId], references: [id], name: "blue")
-  blueId Int
-
-  round String
-  number Int
-
-  scheduled ScheduledMatch[]
-}
-
-model ScheduledMatch {
-  id Int @id @default(autoincrement())
-
-  match Match @relation(fields: [matchId], references: [id])
-  matchId Int
-
-  nextMatch ScheduledMatch? @relation(fields: [nextMatchId], references: [id], name: "link")
-  nextMatchId Int? @unique
-  previousMatch ScheduledMatch? @relation(name: "link") 
-
-  block MatchBlock?
-
-  resolution String
-
-  field Field @relation(fields: [fieldId], references: [id])
-  fieldId Int
-}
-
-model CheckIn {
-  team       Team   @relation(fields: [teamNumber], references: [number])
-  teamNumber String @unique
-  status     String
-}
-
-model InspectionGroup {
-  name     String               @unique
-  criteria InspectionCriteria[]
-}
-
-model InspectionCriteria {
-  id        Int                 @id @default(autoincrement())
-  group     InspectionGroup     @relation(fields: [groupName], references: [name])
-  groupName String
-  text      String              @unique
-  met       CheckedInspection[]
-  program   String?
-}
-
-model CheckedInspection {
-  team       Team               @relation(fields: [teamNumber], references: [number])
-  teamNumber String
-  criteria   InspectionCriteria @relation(fields: [criteriaId], references: [id])
-  criteriaId Int
-
-  @@unique([teamNumber, criteriaId])
-}
-
 model Display {
-  uuid    String  @unique
-  field SimpleField? @relation(fields: [fieldId], references: [id])
+  uuid    String @unique
   fieldId Int?
   name    String
+  field   Field? @relation(fields: [fieldId], references: [id])
 }
 
 model Field {
-  id  Int @id @default(autoincrement())
-  name String
+  id            Int              @id @unique @default(autoincrement())
+  name          String
   isCompetition Int
-  matches ScheduledMatch[]
+  isEnabled     Int
+  displays      Display[]
+  matches       ScheduledMatch[]
 }
 
-model MatchScore {
-  scoreId     Int      @id @unique @default(autoincrement())
-  matchId     Int      
-  redScore    String
-  blueScore   String
-  metadata    String
-  autonWinner String
-  timeSaved   DateTime @default(now())
+model Block {
+  id               Int              @id @unique @default(autoincrement())
+  status           String           @default("NOT_STARTED")
+  scheduledMatches ScheduledMatch[]
 }
 
-model User {
-  userId Int @id @unique @default(autoincrement())
-  name String @unique @default(cuid())
-  role String @default("NONE")
-  key String
+model Match {
+  id        Int              @id @unique @default(autoincrement())
+  round     String
+  number    Int
+  sitting   Int
+  red1      String
+  red2      String
+  blue1     String
+  blue2     String
+  scheduled ScheduledMatch[]
+
+  @@unique([round, number, sitting])
 }
 
-model SimpleField {
-  id Int @id @unique @default(autoincrement())
-  name String
-  matches SimpleMatch[]
-  displays Display[]
-}
-
-model SimpleBlock {
-  id Int @id @unique @default(autoincrement())
-  matches SimpleMatch[]
-  status String @default("NOT_STARTED")
-}
-
-model SimpleMatch {
-  id Int @id @unique @default(autoincrement())
-  round Int
-  number Int
-  sitting Int
-  replay Int
-  @@unique([round, number, sitting, replay])
-  red1 String
-  red2 String
-  blue1 String
-  blue2 String
-  scheduled DateTime?
-  field SimpleField? @relation(fields: [fieldId], references: [id])
-  fieldId Int
-  block SimpleBlock @relation(fields: [blockId], references: [id])
+model ScheduledMatch {
+  id      Int     @id @unique @default(autoincrement())
   blockId Int
-  status String @default("NOT_STARTED")
+  replay  Int     @default(0)
+  matchId Int
+  fieldId Int
+  time    String?
+  status  String
+  field   Field   @relation(fields: [fieldId], references: [id])
+  match   Match   @relation(fields: [matchId], references: [id])
+  block   Block   @relation(fields: [blockId], references: [id])
+
+  @@unique([matchId, replay])
 }

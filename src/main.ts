@@ -14,10 +14,10 @@ async function bootstrap (): Promise<void> {
       url: 'ws://localhost:1883'
     }
   })
-  await app.startAllMicroservices()
   app.useGlobalPipes(new ValidationPipe({ transform: true }))
   app.use(helmet({ crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false }))
   await app.listen(2000)
+  await app.startAllMicroservices()
 }
 
 void bootstrap()

@@ -1,4 +1,4 @@
-import { PublishService } from '@/utils/publish/publish.service'
+import { PublishService } from '@/old_utils/publish/publish.service'
 import { Injectable } from '@nestjs/common'
 import { ContextfulMatchResult, DisplayState, Field, FieldStatus, MatchBlock, STAGE, Team } from './simple.interface'
 

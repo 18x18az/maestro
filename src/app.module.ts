@@ -1,12 +1,3 @@
-import { Module } from '@nestjs/common'
-import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
-import { BeaconService } from './utils/discovery'
-import { ConfigModule } from '@nestjs/config'
-import { SimpleModule } from './simple/simple.module'
-import { StorageModule } from './utils/storage/storage.module'
-import { DisplaysModule } from './features/devices/displays/displays.module'
-import { ScheduleModule } from '@nestjs/schedule'
-
 // @Module({
 //   imports: [
 //     ConfigModule.forRoot({ isGlobal: true }),
@@ -30,13 +21,44 @@ import { ScheduleModule } from '@nestjs/schedule'
 // })
 // export class WithoutPigeonModule {}
 
+import { ConfigModule } from '@nestjs/config'
+import { AllianceSelectionModule, DisplayModule, FieldControlModule, MatchModule, ResultsModule } from '@/features'
+import { Module } from '@nestjs/common'
+import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
+import { ScheduleModule } from '@nestjs/schedule'
+import { BeaconService } from './utils'
+
+// @Module({
+//   imports: [
+//     ConfigModule.forRoot({ isGlobal: true }),
+//     SimpleModule,
+//     StorageModule,
+//     DisplaysModule,
+//     ScheduleModule.forRoot()
+//   ]
+// })
+// export class WithoutPigeonModule {}
+
+// @Module({
+//   imports: [
+//     WithoutPigeonModule,
+//     PigeonModule.forRoot({
+//       transport: Transport.WS,
+//       port: 1883
+//     })
+//   ],
+//   providers: [BeaconService]
+// })
+// export class AppModule {}
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    SimpleModule,
-    StorageModule,
-    DisplaysModule,
-    ScheduleModule.forRoot()
+    MatchModule,
+    FieldControlModule,
+    ResultsModule,
+    AllianceSelectionModule,
+    DisplayModule
   ]
 })
 export class WithoutPigeonModule {}
@@ -47,7 +69,8 @@ export class WithoutPigeonModule {}
     PigeonModule.forRoot({
       transport: Transport.WS,
       port: 1883
-    })
+    }),
+    ScheduleModule.forRoot()
   ],
   providers: [BeaconService]
 })
