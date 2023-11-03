@@ -8,11 +8,12 @@ import { MatchModule } from '../match'
 import { StageModule } from '../stage'
 import { FieldControlService } from './field-control.service'
 import { StreamModule } from '../stream'
+import { TimeoutService } from './timeout.service'
 
 @Module({
   imports: [FieldModule, PublishModule, MatchModule, StageModule, StreamModule],
   controllers: [FieldControlController],
-  providers: [FieldControlInternal, FieldControlPublisher, FieldControlService],
+  providers: [FieldControlInternal, FieldControlPublisher, FieldControlService, TimeoutService],
   exports: [FieldControlService]
 })
 export class FieldControlModule {}

@@ -32,6 +32,16 @@ export class MatchInternal {
         this.logger.log('No stored in progress block')
         await this.publisher.publishCurrentBlock(null)
       }
+    } else if (stage === EventStage.ELIMS) {
+      this.logger.log('Publishing stored elims')
+
+      const currentBlock = await this.repo.getCurrentBlock()
+      if (currentBlock !== null) {
+        this.logger.log('Publishing stored in progress block')
+        await this.publisher.publishCurrentBlock(currentBlock)
+      } else {
+        this.logger.error('No stored in progress block for elims')
+      }
     }
   }
 
