@@ -16,4 +16,8 @@ export class ResultsDisplayService {
     await this.publisher.publishStagedResults(this.stagedResults)
     this.stagedResults = null
   }
+
+  async clearResults (): Promise<void> {
+    await this.publisher.publishStagedResults(null)
+  }
 }
