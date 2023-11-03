@@ -54,4 +54,11 @@ export class StageInternal {
   async reset (): Promise<void> {
     await this.setStage(EventStage.WAITING_FOR_TEAMS)
   }
+
+  async advanceStage (): Promise<void> {
+    if (this.currentStage === EventStage.QUALIFICATIONS) {
+      this.logger.log('Advancing to alliance selection')
+      await this.setStage(EventStage.ALLIANCE_SELECTION)
+    }
+  }
 }

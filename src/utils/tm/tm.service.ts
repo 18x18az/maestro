@@ -9,6 +9,24 @@ export class TmService {
     private readonly service: TmInternal
   ) { }
 
+  async getRankings (): Promise<string[]> {
+    const rawRankings = await this.service.getTableData('division1/rankings')
+
+    if (rawRankings === null) {
+      return []
+    }
+
+    return rawRankings.flatMap((row) => {
+      const cells = row.querySelectorAll('td')
+      if (cells[0] === undefined) {
+        return []
+      }
+
+      const team = cells[1].rawText
+      return team
+    })
+  }
+
   async getMatchResults (): Promise<TmReturn> {
     const rawMatches = await this.service.getTableData('division1/matches')
 

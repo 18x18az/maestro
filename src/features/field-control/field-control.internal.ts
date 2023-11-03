@@ -277,9 +277,9 @@ export class FieldControlInternal {
 
     this.logger.log('Cueing next block')
     const areMoreBlocks = await this.matches.cueNextBlock()
-    // TODO handle false
+
     if (!areMoreBlocks) {
-      console.warn('No more blocks to cue, handle this')
+      await this.stage.advanceStage()
     }
   }
 

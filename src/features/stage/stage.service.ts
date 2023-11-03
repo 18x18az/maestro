@@ -11,4 +11,8 @@ export class StageService {
   getStage (): EventStage {
     return this.service.getStage()
   }
+
+  async advanceStage (): Promise<void> {
+    await this.service.advanceStage()
+  }
 }
