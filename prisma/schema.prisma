@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,29 +18,29 @@ model GenericPersistent {
 }
 
 model Display {
-  uuid    String       @unique
-  field   Field? @relation(fields: [fieldId], references: [id])
+  uuid    String @unique
   fieldId Int?
   name    String
+  field   Field? @relation(fields: [fieldId], references: [id])
 }
 
 model Field {
-  id       Int                 @id @unique @default(autoincrement())
-  name     String
-  displays Display[]
-  matches  ScheduledMatch[]
+  id            Int              @id @unique @default(autoincrement())
+  name          String
   isCompetition Int
-  isEnabled Int
+  isEnabled     Int
+  displays      Display[]
+  matches       ScheduledMatch[]
 }
 
 model Block {
-  id               Int                 @id @unique @default(autoincrement())
-  status           String              @default("NOT_STARTED")
+  id               Int              @id @unique @default(autoincrement())
+  status           String           @default("NOT_STARTED")
   scheduledMatches ScheduledMatch[]
 }
 
 model Match {
-  id        Int                 @id @unique @default(autoincrement())
+  id        Int              @id @unique @default(autoincrement())
   round     String
   number    Int
   sitting   Int
@@ -57,16 +54,16 @@ model Match {
 }
 
 model ScheduledMatch {
-  id      Int         @id @unique @default(autoincrement())
-  block   Block @relation(fields: [blockId], references: [id])
+  id      Int     @id @unique @default(autoincrement())
   blockId Int
-  replay  Int         @default(0)
-  match   Match @relation(fields: [matchId], references: [id])
+  replay  Int     @default(0)
   matchId Int
-  field   Field @relation(fields: [fieldId], references: [id])
   fieldId Int
   time    String?
-  status String
+  status  String
+  field   Field   @relation(fields: [fieldId], references: [id])
+  match   Match   @relation(fields: [matchId], references: [id])
+  block   Block   @relation(fields: [blockId], references: [id])
 
   @@unique([matchId, replay])
 }

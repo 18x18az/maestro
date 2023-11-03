@@ -59,6 +59,9 @@ export class StageInternal {
     if (this.currentStage === EventStage.QUALIFICATIONS) {
       this.logger.log('Advancing to alliance selection')
       await this.setStage(EventStage.ALLIANCE_SELECTION)
+    } else if (this.currentStage === EventStage.ALLIANCE_SELECTION) {
+      this.logger.log('Advancing to elims')
+      await this.setStage(EventStage.ELIMS)
     }
   }
 }

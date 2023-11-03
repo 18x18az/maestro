@@ -2,6 +2,8 @@ import { ElimsMatch, MatchResult, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { FieldControlService } from '../field-control'
+import { EventStage, StageService } from '../stage'
+import { MatchService } from '../match'
 
 @Injectable()
 export class ResultsInternal {
@@ -9,7 +11,9 @@ export class ResultsInternal {
 
   constructor (
     private readonly tm: TmService,
-    private readonly control: FieldControlService
+    private readonly control: FieldControlService,
+    private readonly stage: StageService,
+    private readonly matches: MatchService
   ) { }
 
   @Cron('*/10 * * * * *')
@@ -30,5 +34,15 @@ export class ResultsInternal {
   }
 
   private async handleMatches (matches: ElimsMatch[]): Promise<void> {
+    if (matches.length === 0) {
+      return
+    }
+    const currentStage = this.stage.getStage()
+    if (currentStage === EventStage.ALLIANCE_SELECTION) {
+      this.logger.log('Matches received while alliance selection in process, alliance selection over')
+      await this.stage.advanceStage()
+    }
+
+    await this.matches.handleElimsMatches(matches)
   }
 }

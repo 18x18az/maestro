@@ -47,12 +47,29 @@ export class TmService {
       }
       const matchName = cells[0].rawText
 
-      const round = Round.QUAL
+      let round = Round.QUAL
+      if (matchName.startsWith('R16')) {
+        round = Round.Ro16
+      } else if (matchName.startsWith('QF')) {
+        round = Round.QF
+      } else if (matchName.startsWith('SF')) {
+        round = Round.SF
+      } else if (matchName.startsWith('F')) {
+        round = Round.F
+      }
 
       let matchNumber: number = 0
-      const matchSitting: number = 0
+      let matchSitting: number = 0
       if (round === Round.QUAL) {
         matchNumber = parseInt(matchName.substring(1))
+      } else if (round === Round.F) {
+        matchNumber = 1
+        matchSitting = parseInt(matchName.split(' ')[1])
+      } else {
+        const info = matchName.split(' ')[1]
+        const parts = info.split('-')
+        matchNumber = parseInt(parts[0])
+        matchSitting = parseInt(parts[1])
       }
 
       const red: Alliance = {

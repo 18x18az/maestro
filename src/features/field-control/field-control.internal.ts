@@ -28,7 +28,7 @@ export class FieldControlInternal {
   async onApplicationBootstrap (): Promise<void> {
     const stage = this.stage.getStage()
 
-    if (stage === EventStage.QUALIFICATIONS) {
+    if (stage === EventStage.QUALIFICATIONS || stage === EventStage.ELIMS) {
       await this.initializeFields()
     }
   }

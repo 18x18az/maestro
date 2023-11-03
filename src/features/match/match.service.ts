@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { MatchInternal } from './match.internal'
 import { ReplayStatus } from './match.interface'
+import { ElimsMatch } from '@/utils'
+import { makeMatchName } from '@/utils/string/match-name'
+import { FieldService } from '../field'
 
 @Injectable()
 export class MatchService {
@@ -9,7 +12,8 @@ export class MatchService {
 
   constructor (
     private readonly repo: MatchRepo,
-    private readonly service: MatchInternal
+    private readonly service: MatchInternal,
+    private readonly field: FieldService
   ) {}
 
   async isInBlock (): Promise<boolean> {
@@ -48,5 +52,53 @@ export class MatchService {
     this.logger.log(`Marking replay ${replayId} as scored`)
     await this.repo.setStatus(replayId, ReplayStatus.RESOLVED)
     await this.service.refreshCurrentBlock()
+  }
+
+  async handleElimsMatches (matches: ElimsMatch[]): Promise<void> {
+    for (const match of matches) {
+      const exists = await this.repo.checkExists(match.identifier)
+      if (exists) {
+        continue
+      }
+      this.logger.log(`New match ${makeMatchName(match.identifier)}`)
+
+      const block = await this.repo.getCurrentBlock()
+      let blockId: number
+      if (block === null) {
+        this.logger.log('No elims block, creating')
+        blockId = await this.repo.createBlock()
+        await this.repo.cueNextBlock()
+      } else {
+        blockId = block.id
+      }
+
+      const matchId = await this.repo.createMatch({
+        round: match.identifier.round,
+        matchNum: match.identifier.matchNum,
+        sitting: match.identifier.sitting,
+        red: match.red,
+        blue: match.blue
+      })
+
+      const allFields = await this.field.getCompetitionFields()
+
+      let lastMatchFieldId = await this.repo.getFieldOfLastMatchOfBlock(blockId)
+      if (lastMatchFieldId === null) {
+        lastMatchFieldId = allFields[allFields.length - 1].id
+      }
+
+      const indexOfLastMatchField = allFields.findIndex((field) => field.id === lastMatchFieldId)
+      const nextFieldIndex = (indexOfLastMatchField + 1) % allFields.length
+      const nextField = allFields[nextFieldIndex]
+
+      await this.repo.createScheduledMatch({
+        blockId,
+        matchId,
+        fieldId: nextField.id,
+        replay: 0
+      })
+
+      await this.service.refreshCurrentBlock()
+    }
   }
 }

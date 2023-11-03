@@ -295,4 +295,18 @@ export class MatchRepo {
 
     return match
   }
+
+  async checkExists (ident: MatchIdentifier): Promise<boolean> {
+    const match = await this.prisma.match.findUnique({
+      where: {
+        round_number_sitting: {
+          round: ident.round,
+          number: ident.matchNum,
+          sitting: ident.sitting
+        }
+      }
+    })
+
+    return match !== null
+  }
 }
