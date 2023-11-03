@@ -1,13 +1,13 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
-import { DisplaysService } from './displays.service'
+import { DisplayService } from './display.service'
 
 interface DisplayParams {
   uuid: string
 }
 
 @Controller('displays')
-export class DisplaysController {
-  constructor (private readonly displaysService: DisplaysService) {}
+export class DisplayController {
+  constructor (private readonly displaysService: DisplayService) {}
 
   @Post(':uuid/register')
   async registerDisplay (@Param() params: DisplayParams): Promise<void> {

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../old_utils/prisma/prisma.service'
-import { DisplayConfig } from './displays.interface'
+import { DisplayConfig } from './display.interface'
+import { PrismaService } from '@/utils'
 
 @Injectable()
-export class DisplaysDatabase {
+export class DisplayDatabase {
   constructor (
     private readonly prisma: PrismaService
   ) {}

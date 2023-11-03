@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
 import { FieldService } from './field.service'
 import { FieldRepo } from './field.repo'
-import { PrismaModule } from '@/utils'
+import { PrismaModule, PublishModule } from '@/utils'
+import { FieldPublisher } from './field.publisher'
 
 @Module({
-  imports: [PrismaModule],
-  providers: [FieldService, FieldRepo],
+  imports: [PrismaModule, PublishModule],
+  providers: [FieldService, FieldRepo, FieldPublisher],
   exports: [FieldService]
 })
 export class FieldModule {}

@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, Logger, InternalServerErrorException } from '@nestjs/common'
-import { DisplaysPublisher } from './displays.publisher'
-import { DisplaysDatabase } from './displays.repo'
+import { DisplayPublisher } from './display.publisher'
+import { DisplayDatabase } from './display.repo'
 
 @Injectable()
-export class DisplaysService {
-  private readonly logger = new Logger(DisplaysService.name)
+export class DisplayService {
+  private readonly logger = new Logger(DisplayService.name)
 
   constructor (
-    private readonly publisher: DisplaysPublisher,
-    private readonly database: DisplaysDatabase
+    private readonly publisher: DisplayPublisher,
+    private readonly database: DisplayDatabase
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
