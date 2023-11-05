@@ -7,6 +7,7 @@ import { TeamInformation } from './tm.interface'
 import { TmPublisher } from './tm.publisher'
 import { Cron } from '@nestjs/schedule'
 import { BaseStatus, StatusPublisher } from '../status'
+import { EventStage } from '@/features'
 
 const STORAGE_KEY = 'tm'
 const STATUS_TOPIC = 'tm'
@@ -197,6 +198,12 @@ export class TmInternal {
 
     this.logger.log(`Got ${teams.length} teams`)
     await this.publisher.publishTeams(teams)
+  }
+
+  async onStageChange (stage: EventStage): Promise<void> {
+    if (stage === EventStage.WAITING_FOR_TEAMS && this.isConnected === true) {
+      await this.loadTeams()
+    }
   }
 
   async setAddress (addr: string): Promise<void> {
