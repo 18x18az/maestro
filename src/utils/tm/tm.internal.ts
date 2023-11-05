@@ -6,8 +6,10 @@ import { parse, HTMLElement } from 'node-html-parser'
 import { TeamInformation } from './tm.interface'
 import { TmPublisher } from './tm.publisher'
 import { Cron } from '@nestjs/schedule'
+import { BaseStatus, StatusPublisher } from '../status'
 
 const STORAGE_KEY = 'tm'
+const STATUS_TOPIC = 'tm'
 
 @Injectable()
 export class TmInternal {
@@ -19,13 +21,15 @@ export class TmInternal {
   constructor (
     private readonly request: HttpService,
     private readonly storage: StorageService,
-    private readonly publisher: TmPublisher
+    private readonly publisher: TmPublisher,
+    private readonly status: StatusPublisher
   ) { }
 
   async onModuleInit (): Promise<void> {
     const loaded = await this.storage.getEphemeral(STORAGE_KEY, '')
 
     if (loaded === '') {
+      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOT_CONFIGURED)
       return
     }
 
@@ -44,6 +48,7 @@ export class TmInternal {
 
   async onDisconnect (): Promise<void> {
     if (this.isConnected === true || this.isConnected === undefined) {
+      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.OFFLINE)
       this.isConnected = false
       this.logger.warn(`TM at ${this.tmAddr as string} is not responding`)
       void this.tryReconnect()
@@ -115,6 +120,7 @@ export class TmInternal {
     }
 
     this.isConnected = true
+    await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOMINAL)
     return true
   }
 

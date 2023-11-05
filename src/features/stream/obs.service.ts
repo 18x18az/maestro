@@ -1,5 +1,8 @@
+import { BaseStatus, StatusPublisher } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import OBSWebSocket from 'obs-websocket-js'
+
+const STATUS_TOPIC = 'obs'
 
 @Injectable()
 export class ObsService {
@@ -10,6 +13,10 @@ export class ObsService {
 
   private currentSceneName: string | undefined
   private currentPreviewSceneName: string | undefined
+
+  constructor (
+    private readonly status: StatusPublisher
+  ) { }
 
   async onModuleInit (): Promise<void> {
     void this.tryConnect()
@@ -29,6 +36,7 @@ export class ObsService {
   }
 
   private async onObsConnected (): Promise<void> {
+    await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOMINAL)
     this.isConnected = true
     this.logger.log('Connected to OBS')
   }
@@ -44,6 +52,7 @@ export class ObsService {
 
   private async onObsDisconnected (): Promise<void> {
     if (this.isConnected) {
+      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.OFFLINE)
       this.isConnected = false
       this.logger.warn('Disconnected from OBS')
       await this.tryConnect()
