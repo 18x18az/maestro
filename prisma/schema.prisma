@@ -31,6 +31,7 @@ model Field {
   isEnabled     Int
   displays      Display[]
   matches       ScheduledMatch[]
+  scene         Scene?
 }
 
 model Block {
@@ -66,4 +67,18 @@ model ScheduledMatch {
   block   Block   @relation(fields: [blockId], references: [id])
 
   @@unique([matchId, replay])
+}
+
+model Scene {
+  id Int @id @unique @default(autoincrement())
+  field Field? @relation(fields: [fieldId], references: [id])
+  fieldId Int @unique
+  camera Camera?
+}
+
+model Camera {
+  id Int @id @unique @default(autoincrement())
+  address String @unique
+  scene Scene @relation(fields: [sceneId], references: [id])
+  sceneId Int @unique
 }
