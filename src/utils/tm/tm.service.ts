@@ -83,7 +83,7 @@ export class TmService {
 
       const identifier: MatchIdentifier = {
         round,
-        matchNum: matchNumber,
+        matchNumber,
         sitting: matchSitting
 
       }

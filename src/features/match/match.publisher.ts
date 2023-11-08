@@ -1,6 +1,6 @@
 import { PublishService } from '@/utils'
 import { Injectable } from '@nestjs/common'
-import { CURRENT_BLOCK_TOPIC, Match, MatchBlock, QUAL_BLOCK_TOPIC, QUAL_LIST_TOPIC } from './match.interface'
+import { Match } from './match.interface'
 
 @Injectable()
 export class MatchPublisher {
@@ -8,15 +8,15 @@ export class MatchPublisher {
     private readonly publisher: PublishService
   ) {}
 
-  async publishQuals (quals: Match[]): Promise<void> {
-    await this.publisher.broadcast(QUAL_LIST_TOPIC, quals)
+  async publishMatchlist (matches: Match[]): Promise<void> {
+    await this.publisher.broadcast('matchlist', matches)
   }
 
-  async publishQualBlocks (blocks: MatchBlock[]): Promise<void> {
-    await this.publisher.broadcast(QUAL_BLOCK_TOPIC, blocks)
+  async publishUnqueuedMatches (matches: Match[]): Promise<void> {
+    await this.publisher.broadcast('unqueued', matches)
   }
 
-  async publishCurrentBlock (block: MatchBlock | null): Promise<void> {
-    await this.publisher.broadcast(CURRENT_BLOCK_TOPIC, block)
+  async publishBlock (block: string | null): Promise<void> {
+    await this.publisher.broadcast('block', { block })
   }
 }

@@ -1,8 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventStage, StageService } from '../stage'
 import { FieldService } from '../field/field.service'
-import { Round } from './match.interface'
-import { CreateScheduledMatchDto, MatchRepo } from './match.repo'
+import { CreateQualBlockDto, CreateQualDto, MatchRepo } from './match.repo'
 import { MatchInternal } from './match.internal'
 
 @Injectable()
@@ -31,8 +30,11 @@ export class QualService {
 
     const fields = await this.field.getCompetitionFields()
 
-    let currentBlockId: number | undefined
     let lastTime: Date | undefined
+
+    const blocksToCreate: CreateQualBlockDto[] = []
+    let currentBlock: CreateQualBlockDto = { name: 'Morning', quals: [] }
+    blocksToCreate.push(currentBlock)
 
     for (const rawMatch of rawMatches) {
       const columns = rawMatch.split(',')
@@ -49,18 +51,26 @@ export class QualService {
       const blue = { team1: blue1, team2: blue2 }
       const time = new Date(columns[17]).toISOString()
 
-      const matchId = await this.repo.createMatch({ round: Round.QUAL, matchNum: matchNumber, sitting: 0, red, blue })
+      const match: CreateQualDto = {
+        matchNumber,
+        red1: red.team1,
+        red2: red.team2,
+        blue1: blue.team1,
+        blue2: blue.team2,
+        field: fieldId
+      }
 
       const currentTime = new Date(time)
-      if (currentBlockId === undefined || lastTime === undefined || currentTime.getTime() - lastTime.getTime() > 25 * 60 * 1000) {
-        currentBlockId = await this.repo.createBlock()
+      if (lastTime !== undefined && currentTime.getTime() - lastTime.getTime() > 25 * 60 * 1000) {
+        currentBlock = { name: 'Afternoon', quals: [] }
+        blocksToCreate.push(currentBlock)
       }
-      const scheduledMatch: CreateScheduledMatchDto = { blockId: currentBlockId, matchId, fieldId, time }
-      lastTime = currentTime
 
-      await this.repo.createScheduledMatch(scheduledMatch)
+      lastTime = currentTime
+      currentBlock.quals.push(match)
     }
-    this.logger.log('Finished processing qual data')
-    await this.service.publishAllQuals()
+
+    await this.repo.createQuals(blocksToCreate)
+    await this.service.loadQualState()
   }
 }

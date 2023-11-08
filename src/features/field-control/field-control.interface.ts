@@ -1,5 +1,5 @@
 import { Field } from '../field/field.interface'
-import { ScheduledMatch } from '../match'
+import { Match } from '../match'
 
 export enum FieldState {
   IDLE = 'IDLE',
@@ -15,5 +15,6 @@ export enum FieldState {
 export interface FieldStatus {
   field: Field
   state: FieldState
-  match: ScheduledMatch | null
+  match: Match | null
+  onDeck: Match | null
 }

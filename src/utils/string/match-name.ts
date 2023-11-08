@@ -1,4 +1,4 @@
-import { MatchIdentifier, Round, ScheduledMatch } from '@/features'
+import { MatchIdentifier, Round } from '@/features'
 
 export function makeMatchName (match: MatchIdentifier): string {
   let preamble = 'Q'
@@ -12,17 +12,17 @@ export function makeMatchName (match: MatchIdentifier): string {
     preamble = 'F'
   }
 
-  const output = `${preamble} ${match.matchNum}`
+  const output = `${preamble} ${match.matchNumber}`
 
   return output
 }
 
-export function makeReplayName (match: ScheduledMatch): string {
-  let output = makeMatchName(match)
+// export function makeReplayName (match: ScheduledMatch): string {
+//   let output = makeMatchName(match)
 
-  if (match.replay !== 0) {
-    output += ` R${match.replay}`
-  }
+//   if (match.replay !== 0) {
+//     output += ` R${match.replay}`
+//   }
 
-  return output
-}
+//   return output
+// }

@@ -1,8 +1,5 @@
-import { Controller, Post } from '@nestjs/common'
-import { EventPattern } from '@nestjs/microservices'
-import { EventStage, STAGE_TOPIC } from '../stage'
+import { Body, Controller, Param, Post } from '@nestjs/common'
 import { FieldControlInternal } from './field-control.internal'
-import { CURRENT_BLOCK_TOPIC, MatchBlock } from '../match'
 import { TimeoutService } from './timeout.service'
 
 @Controller('fieldControl')
@@ -12,38 +9,18 @@ export class FieldControlController {
     private readonly timeout: TimeoutService
   ) {}
 
-  @EventPattern(STAGE_TOPIC)
-  async handleStage (stage: { stage: EventStage }): Promise<void> {
-    await this.service.handleStage(stage.stage)
+  @Post('queue/field/:fieldId')
+  async queueField (@Param('fieldId') fieldId: number, @Body() body: { match: number }): Promise<void> {
+    await this.service.queueField(fieldId, body.match)
   }
 
-  @Post('nextBlock')
-  async cueNextBlock (): Promise<void> {
-    await this.service.cueNextBlock()
+  @Post('remove')
+  async removeFromQueue (@Body() body: { match: number }): Promise<void> {
+    await this.service.removeFromQueue(body.match)
   }
 
-  @EventPattern(CURRENT_BLOCK_TOPIC)
-  async handleCurrentBlockChange (block: MatchBlock | null): Promise<void> {
-    await this.service.handleCurrentBlockChange(block)
-  }
-
-  @Post('start')
-  async startMatch (): Promise<void> {
-    await this.service.startMatch()
-  }
-
-  @Post('resume')
-  async resumeMatch (): Promise<void> {
-    await this.service.resumeMatch()
-  }
-
-  @Post('endEarly')
-  async endEarly (): Promise<void> {
-    await this.service.endEarly()
-  }
-
-  @Post('timeout')
-  async callTimeout (): Promise<void> {
-    await this.timeout.callTimeout()
+  @Post('move')
+  async moveMatch (@Body() body: { match: number, targetField: number }): Promise<void> {
+    await this.service.moveMatch(body.match, body.targetField)
   }
 }

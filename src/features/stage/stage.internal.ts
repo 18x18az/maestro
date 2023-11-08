@@ -45,9 +45,13 @@ export class StageInternal {
     }
   }
 
-  async receivedQuals (): Promise<void> {
+  async receivedMatches (): Promise<void> {
     if (this.currentStage === EventStage.CHECKIN) {
+      this.logger.log('Received qual match list, advancing to qualifications')
       await this.setStage(EventStage.QUALIFICATIONS)
+    } else if (this.currentStage === EventStage.ALLIANCE_SELECTION) {
+      this.logger.log('Received elim matches, advancing to elims')
+      await this.setStage(EventStage.ELIMS)
     }
   }
 

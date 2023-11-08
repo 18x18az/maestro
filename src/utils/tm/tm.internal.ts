@@ -211,6 +211,7 @@ export class TmInternal {
     const isValid = await this.tryAddress(addr)
 
     if (!isValid) {
+      this.logger.warn(`Invalid TM address ${addr}`)
       throw new BadRequestException('Invalid TM address')
     }
 

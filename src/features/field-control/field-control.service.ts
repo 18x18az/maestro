@@ -7,6 +7,6 @@ export class FieldControlService {
   constructor (private readonly service: FieldControlInternal) { }
 
   async handleMatchResults (results: MatchResult[]): Promise<void> {
-    await this.service.handleMatchResults(results)
+    // await this.service.handleMatchResults(results)
   }
 }

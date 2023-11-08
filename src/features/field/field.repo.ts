@@ -79,4 +79,47 @@ export class FieldRepo {
       })
     }
   }
+
+  async getFieldOccupants (fieldId: number): Promise<{ onDeck: number | null, onField: number | null }> {
+    const field = await this.repo.field.findUnique({
+      where: {
+        id: fieldId
+      },
+      select: {
+        onDeckId: true,
+        onFieldId: true
+      }
+    })
+
+    if (field === null) {
+      throw new Error(`Field ${fieldId} not found`)
+    }
+
+    return {
+      onDeck: field.onDeckId,
+      onField: field.onFieldId
+    }
+  }
+
+  async setFieldOnDeckMatch (fieldId: number, matchId: number | null): Promise<void> {
+    await this.repo.field.update({
+      where: {
+        id: fieldId
+      },
+      data: {
+        onDeckId: matchId
+      }
+    })
+  }
+
+  async setFieldOnFieldMatch (fieldId: number, matchId: number | null): Promise<void> {
+    await this.repo.field.update({
+      where: {
+        id: fieldId
+      },
+      data: {
+        onFieldId: matchId
+      }
+    })
+  }
 }

@@ -42,7 +42,5 @@ export class ResultsInternal {
       this.logger.log('Matches received while alliance selection in process, alliance selection over')
       await this.stage.advanceStage()
     }
-
-    await this.matches.handleElimsMatches(matches)
   }
 }
