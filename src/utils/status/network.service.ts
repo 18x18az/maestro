@@ -40,6 +40,7 @@ export class NetworkMonitor {
     } else if (this.networkStatus !== BaseStatus.DEGRADED && checks.some(({ isUp }) => isUp) && checks.some(({ isUp }) => !isUp)) {
       this.networkStatus = BaseStatus.DEGRADED
       this.logger.warn('Some sites appear to be blocked')
+      this.logger.warn(checks.filter(({ isUp }) => !isUp).map(({ site }) => site).join(', '))
       await this.status.publishStatus('network', BaseStatus.DEGRADED, { checks })
     } else if (this.networkStatus !== BaseStatus.OFFLINE && checks.every(({ isUp }) => !isUp)) {
       this.networkStatus = BaseStatus.OFFLINE

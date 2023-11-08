@@ -23,4 +23,19 @@ export class FieldControlController {
   async moveMatch (@Body() body: { match: number, targetField: number }): Promise<void> {
     await this.service.moveMatch(body.match, body.targetField)
   }
+
+  @Post('markNext')
+  async markNext (@Body() body: { field: number }): Promise<void> {
+    await this.service.markNext(body.field)
+  }
+
+  @Post('pushActive')
+  async pushActive (): Promise<void> {
+    await this.service.pushActive()
+  }
+
+  @Post('clearActive')
+  async clearActive (): Promise<void> {
+    await this.service.clearActive()
+  }
 }

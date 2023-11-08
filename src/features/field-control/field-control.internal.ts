@@ -9,6 +9,11 @@ import { FieldControlRepo } from './field-control.repo'
 export class FieldControlInternal {
   private readonly logger: Logger = new Logger(FieldControlInternal.name)
 
+  private onDeck: FieldStatus | null = null
+  private active: FieldStatus | null = null
+
+  private readonly isAutomated = true
+
   constructor (
     private readonly fields: FieldService,
     private readonly publisher: FieldControlPublisher,
@@ -39,6 +44,13 @@ export class FieldControlInternal {
 
     await this.match.reconcileQueued(matches)
     await this.publisher.publishFieldStatuses(initialStatus)
+
+    await this.publisher.publishActiveField(null)
+    await this.publisher.publishNextField(null)
+
+    for (const status of initialStatus) {
+      await this.analyzeField(status.field.id)
+    }
   }
 
   private async getFieldStatus (fieldId: number): Promise<FieldStatus> {
@@ -69,6 +81,52 @@ export class FieldControlInternal {
     }
     await this.publisher.publishFieldStatus(status)
     await this.publisher.publishFieldStatuses(allStatus)
+
+    if (this.active !== null && this.active.field.id === fieldId) {
+      if (status.match === null) {
+        this.active = null
+      } else {
+        this.active = status
+      }
+      await this.publisher.publishActiveField(this.active)
+    }
+
+    if (this.onDeck !== null && this.onDeck.field.id === fieldId) {
+      if (status.match === null) {
+        this.onDeck = null
+      } else {
+        this.onDeck = status
+      }
+      await this.publisher.publishNextField(this.onDeck)
+    }
+
+    await this.analyzeField(fieldId)
+  }
+
+  private async analyzeField (fieldId: number): Promise<void> {
+    if (!this.isAutomated) {
+      return
+    }
+
+    const status = await this.getFieldStatus(fieldId)
+
+    if (status.onDeck !== null) {
+      return
+    }
+
+    this.logger.log(`Field ${status.field.name} has no match on deck`)
+
+    const unqueuedMatches = await this.match.getUnqueuedMatches()
+
+    // find first match that either has a matching field id or a null field id
+    const match = unqueuedMatches.find(match => match.fieldId === null || match.fieldId === status.field.id)
+
+    if (match === undefined) {
+      this.logger.log(`No remaining matches found for field ${status.field.name}`)
+      return
+    }
+
+    await this.queueField(status.field.id, match.id)
   }
 
   async queueField (fieldId: number, match: number): Promise<void> {
@@ -103,5 +161,54 @@ export class FieldControlInternal {
     await this.fields.queueMatch(targetFieldId, match)
     await this.updateFieldStatus(fieldOnId)
     await this.updateFieldStatus(targetFieldId)
+  }
+
+  async markNext (field: number): Promise<void> {
+    this.logger.log(`Marking field ID ${field} as next`)
+    const status = await this.getFieldStatus(field)
+
+    if (status.match === null) {
+      this.logger.warn(`Field ID ${field} has no match`)
+      throw new BadRequestException(`Field ID ${field} has no match`)
+    }
+
+    this.onDeck = status
+
+    await this.publisher.publishNextField(status)
+  }
+
+  async pushActive (): Promise<void> {
+    if (this.onDeck === null) {
+      this.logger.warn('No field marked as next')
+      throw new BadRequestException('No field marked as next')
+    }
+
+    this.logger.log(`Pushing field ${this.onDeck.field.name} to active`)
+
+    this.active = this.onDeck
+    this.onDeck = null
+
+    await this.publisher.publishActiveField(this.active)
+    const allFields = await this.loadStatuses()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const activeFieldIndex = allFields.findIndex(field => field.field.id === this.active!.field.id)
+    const nextFieldIndex = (activeFieldIndex + 1) % allFields.length
+    if (allFields[nextFieldIndex].match !== null) {
+      await this.markNext(allFields[nextFieldIndex].field.id)
+    } else {
+      await this.publisher.publishNextField(null)
+    }
+  }
+
+  async clearActive (): Promise<void> {
+    if (this.active === null) {
+      this.logger.warn('No field marked as active')
+      throw new BadRequestException('No field marked as active')
+    }
+
+    this.logger.log(`Clearing active field ${this.active.field.name}`)
+
+    this.active = null
+    await this.publisher.publishActiveField(null)
   }
 }

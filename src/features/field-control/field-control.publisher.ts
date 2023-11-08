@@ -22,6 +22,14 @@ export class FieldControlPublisher {
     await this.publisher.broadcast(FIELD_CONTROL_TOPIC, state)
   }
 
+  async publishActiveField (status: FieldStatus | null): Promise<void> {
+    await this.publisher.broadcast('activeField', status)
+  }
+
+  async publishNextField (status: FieldStatus | null): Promise<void> {
+    await this.publisher.broadcast('nextField', status)
+  }
+
   async publishTimeout (time: string | null): Promise<void> {
     await this.publisher.broadcast('timeout', { time })
   }

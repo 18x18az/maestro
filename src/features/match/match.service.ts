@@ -24,4 +24,8 @@ export class MatchService {
     this.logger.log(`Reconciling ${queuedMatches.length} queued matches`)
     await this.service.reconcileQueued(queuedMatches)
   }
+
+  async getUnqueuedMatches (): Promise<Match[]> {
+    return await this.service.getUnqueuedMatches()
+  }
 }

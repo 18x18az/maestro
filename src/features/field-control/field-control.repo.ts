@@ -61,4 +61,26 @@ export class FieldControlRepo {
 
     return field === null ? null : field.id
   }
+
+  async getMatchOnField (fieldId: number): Promise<Match | null> {
+    const field = await this.repo.field.findUnique({
+      where: {
+        id: fieldId
+      },
+      include: {
+        onField: {
+          include: {
+            block: true,
+            field: true
+          }
+        }
+      }
+    })
+
+    if (field === null) {
+      throw new Error(`Field ${fieldId} not found`)
+    }
+
+    return field.onField === null ? null : parseMatch(field.onField)
+  }
 }

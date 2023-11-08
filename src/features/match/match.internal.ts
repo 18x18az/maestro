@@ -96,4 +96,8 @@ export class MatchInternal {
 
     await this.publishUnqueuedQuals()
   }
+
+  async getUnqueuedMatches (): Promise<Match[]> {
+    return await this.repo.getUnqueuedQuals(false)
+  }
 }
