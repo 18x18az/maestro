@@ -220,4 +220,28 @@ export class MatchRepo {
     })
     return matches.map((match) => { return parseMatch(match) })
   }
+
+  async getScoringMatches (): Promise<Match[]> {
+    const matches = await this.prisma.match.findMany({
+      where: {
+        status: MatchStatus.SCORING
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+    return matches.map((match) => { return parseMatch(match) })
+  }
+
+  async removeFieldAssignment (matchId: number): Promise<void> {
+    await this.prisma.match.update({
+      where: {
+        id: matchId
+      },
+      data: {
+        fieldId: null
+      }
+    })
+  }
 }

@@ -21,6 +21,7 @@ export enum BlockStatus {
 export enum MatchStatus {
   NOT_STARTED = 'NOT_STARTED',
   QUEUED = 'QUEUED',
+  SCORING = 'SCORING',
   NEEDS_REPLAY = 'NEEDS_REPLAY',
   COMPLETE = 'COMPLETE'
 }

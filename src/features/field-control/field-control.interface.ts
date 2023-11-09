@@ -17,4 +17,11 @@ export interface FieldStatus {
   state: FieldState
   match: Match | null
   onDeck: Match | null
+  endTime: string | null
+}
+
+export enum AutomationState {
+  ENABLED = 'ENABLED',
+  CAN_ENABLE = 'CAN_ENABLE',
+  DISABLED = 'DISABLED',
 }

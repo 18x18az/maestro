@@ -55,7 +55,7 @@ export class MatchInternal {
     }
 
     await this.publisher.publishBlock(block.name)
-    await this.publishUnqueuedQuals
+    await this.publishUnqueuedQuals()
   }
 
   async startNextBlock (): Promise<void> {
@@ -78,16 +78,20 @@ export class MatchInternal {
 
   async reconcileQueued (queuedMatches: Match[]): Promise<void> {
     const storedQueuedMatches = await this.repo.getQueuedMatches()
-    for (const storedMatch of storedQueuedMatches) {
-      const match = queuedMatches.find(match => match.id === storedMatch.id)
+    const storedScoringMatches = await this.repo.getScoringMatches()
+
+    const validMatches = [...storedQueuedMatches, ...storedScoringMatches]
+
+    for (const validMatch of validMatches) {
+      const match = queuedMatches.find(match => match.id === validMatch.id)
       if (match === undefined) {
-        this.logger.warn(`Match ${storedMatch.id} is queued but not in queue, fixing`)
-        await this.repo.updateMatchStatus(storedMatch.id, MatchStatus.NOT_STARTED)
+        this.logger.warn(`Match ${validMatch.id} is queued but not in queue, fixing`)
+        await this.repo.updateMatchStatus(validMatch.id, MatchStatus.NOT_STARTED)
       }
     }
 
     for (const providedMatch of queuedMatches) {
-      const match = storedQueuedMatches.find(match => match.id === providedMatch.id)
+      const match = validMatches.find(match => match.id === providedMatch.id)
       if (match === undefined) {
         this.logger.warn(`Match ${providedMatch.id} is in queue but not queued, fixing`)
         await this.repo.updateMatchStatus(providedMatch.id, MatchStatus.QUEUED)
@@ -99,5 +103,10 @@ export class MatchInternal {
 
   async getUnqueuedMatches (): Promise<Match[]> {
     return await this.repo.getUnqueuedQuals(false)
+  }
+
+  async removeFieldAssignment (match: number): Promise<void> {
+    await this.repo.removeFieldAssignment(match)
+    await this.publishUnqueuedQuals()
   }
 }

@@ -1,6 +1,6 @@
 import { PublishService } from '@/utils'
 import { Injectable } from '@nestjs/common'
-import { FieldStatus } from './field-control.interface'
+import { AutomationState, FieldStatus } from './field-control.interface'
 
 const FIELD_STATUSES_TOPIC = 'fieldStatuses'
 const FIELD_STATUS_TOPIC = 'fieldStatus'
@@ -32,5 +32,9 @@ export class FieldControlPublisher {
 
   async publishTimeout (time: string | null): Promise<void> {
     await this.publisher.broadcast('timeout', { time })
+  }
+
+  async publishAutomationState (state: AutomationState): Promise<void> {
+    await this.publisher.broadcast('automation', { state })
   }
 }
