@@ -42,4 +42,5 @@ export interface Match {
   status: MatchStatus
   round: Round
   sitting: number
+  time?: string
 }

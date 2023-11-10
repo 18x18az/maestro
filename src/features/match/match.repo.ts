@@ -11,6 +11,7 @@ export interface CreateQualDto {
   blue1: string
   blue2: string
   field: number
+  time: string
 }
 
 export interface CreateQualBlockDto {
@@ -72,7 +73,8 @@ export class MatchRepo {
         fieldId: qual.field,
         round: Round.QUAL,
         sitting: 0,
-        blockId
+        blockId,
+        time: qual.time
       }
     })
   }

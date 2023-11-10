@@ -20,6 +20,7 @@ export function parseMatch (match: PrismaMatchInfo): Match {
     status: match.status as MatchStatus,
     block: match.block.name,
     round: match.round as Round,
-    sitting: match.sitting
+    sitting: match.sitting,
+    time: match.time !== null ? match.time : undefined
   }
 }

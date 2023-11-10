@@ -59,6 +59,7 @@ model Match {
   blue2     String
   blockId   Int
   fieldId   Int?
+  time      String?
   onDeckAt  Field? @relation("OnDeck")
   onFieldAt Field? @relation("OnField")
 

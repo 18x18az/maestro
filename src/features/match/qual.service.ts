@@ -57,7 +57,8 @@ export class QualService {
         red2: red.team2,
         blue1: blue.team1,
         blue2: blue.team2,
-        field: fieldId
+        field: fieldId,
+        time
       }
 
       const currentTime = new Date(time)
