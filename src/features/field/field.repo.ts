@@ -1,10 +1,12 @@
 import { PrismaService } from '@/utils'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Field } from './field.interface'
 
 @Injectable()
 export class FieldRepo {
   constructor (private readonly repo: PrismaService) {}
+
+  private readonly logger: Logger = new Logger(FieldRepo.name)
 
   async getCompetitionFields (): Promise<Field[]> {
     const fields = await this.repo.field.findMany({
@@ -48,6 +50,7 @@ export class FieldRepo {
 
     if (existingFields < fields.length) {
       for (let i = existingFields; i < fields.length; i++) {
+        this.logger.log(`Creating field ${fields[i]}`)
         await this.repo.field.create({
           data: {
             name: fields[i],
@@ -67,7 +70,7 @@ export class FieldRepo {
       }
     })
 
-    for (let i = 0; i < sortedFields.length; i++) {
+    for (let i = 0; i < fields.length; i++) {
       await this.repo.field.update({
         where: {
           id: sortedFields[i].id
@@ -78,5 +81,48 @@ export class FieldRepo {
         }
       })
     }
+  }
+
+  async getFieldOccupants (fieldId: number): Promise<{ onDeck: number | null, onField: number | null }> {
+    const field = await this.repo.field.findUnique({
+      where: {
+        id: fieldId
+      },
+      select: {
+        onDeckId: true,
+        onFieldId: true
+      }
+    })
+
+    if (field === null) {
+      throw new Error(`Field ${fieldId} not found`)
+    }
+
+    return {
+      onDeck: field.onDeckId,
+      onField: field.onFieldId
+    }
+  }
+
+  async setFieldOnDeckMatch (fieldId: number, matchId: number | null): Promise<void> {
+    await this.repo.field.update({
+      where: {
+        id: fieldId
+      },
+      data: {
+        onDeckId: matchId
+      }
+    })
+  }
+
+  async setFieldOnFieldMatch (fieldId: number, matchId: number | null): Promise<void> {
+    await this.repo.field.update({
+      where: {
+        id: fieldId
+      },
+      data: {
+        onFieldId: matchId
+      }
+    })
   }
 }

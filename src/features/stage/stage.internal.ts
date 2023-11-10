@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { EventStage } from './stage.interface'
 import { StorageService, TeamInformation } from '@/utils'
 import { StagePublisher } from './stage.publisher'
+import { StageRepo } from './stage.repo'
 
 const STORAGE_KEY = 'stage'
 
@@ -16,7 +17,8 @@ export class StageInternal {
 
   constructor (
     private readonly storage: StorageService,
-    private readonly publisher: StagePublisher
+    private readonly publisher: StagePublisher,
+    private readonly repo: StageRepo
   ) { }
 
   async onModuleInit (): Promise<void> {
@@ -32,8 +34,17 @@ export class StageInternal {
     return this.currentStage
   }
 
+  private async onReset (): Promise<void> {
+    this.logger.log('Resetting stage')
+    await this.storage.clearEphemeral()
+    await this.repo.reset()
+  }
+
   async setStage (stage: EventStage): Promise<void> {
     this.logger.log(`Stage changed to ${stage}`)
+    if (stage === EventStage.WAITING_FOR_TEAMS) {
+      await this.onReset()
+    }
     this.currentStage = stage
     await this.storage.setEphemeral(STORAGE_KEY, stage)
     await this.publisher.publishStage(stage)
@@ -45,9 +56,13 @@ export class StageInternal {
     }
   }
 
-  async receivedQuals (): Promise<void> {
+  async receivedMatches (): Promise<void> {
     if (this.currentStage === EventStage.CHECKIN) {
+      this.logger.log('Received qual match list, advancing to qualifications')
       await this.setStage(EventStage.QUALIFICATIONS)
+    } else if (this.currentStage === EventStage.ALLIANCE_SELECTION) {
+      this.logger.log('Received elim matches, advancing to elims')
+      await this.setStage(EventStage.ELIMS)
     }
   }
 

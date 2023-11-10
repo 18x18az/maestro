@@ -14,9 +14,9 @@ export class StageController {
     await this.service.receivedTeams(body.teams)
   }
 
-  @EventPattern('quals')
+  @EventPattern('matchlist')
   async handleQuals (): Promise<void> {
-    await this.service.receivedQuals()
+    await this.service.receivedMatches()
   }
 
   @Post('reset')

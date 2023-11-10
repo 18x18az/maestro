@@ -1,104 +1,58 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { MatchRepo } from './match.repo'
+import { Match, MatchStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
-import { ReplayStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
-import { makeMatchName } from '@/utils/string/match-name'
-import { FieldService } from '../field'
 
 @Injectable()
 export class MatchService {
   private readonly logger = new Logger(MatchService.name)
 
   constructor (
-    private readonly repo: MatchRepo,
-    private readonly service: MatchInternal,
-    private readonly field: FieldService
+    private readonly service: MatchInternal
   ) {}
 
-  async isInBlock (): Promise<boolean> {
-    const currentBlock = await this.repo.getCurrentBlock()
-
-    return currentBlock !== null
+  async markQueued (match: number): Promise<void> {
+    this.logger.log(`Marking match ID ${match} as queued`)
+    await this.service.updateMatchStatus(match, MatchStatus.QUEUED)
   }
 
-  async cueNextBlock (): Promise<boolean> {
-    this.logger.log('Cueing next block')
-    const nextBlock = await this.repo.cueNextBlock()
-
-    if (nextBlock === null) {
-      this.logger.log('No more blocks to cue')
-      return false
-    }
-
-    this.logger.log(`Cued block ${nextBlock.id}`)
-    await this.service.updateCurrentBlock(nextBlock)
-    return true
+  async unmarkQueued (match: number): Promise<void> {
+    this.logger.log(`Unmarking match ID ${match} as queued`)
+    await this.service.updateMatchStatus(match, MatchStatus.NOT_STARTED)
   }
 
-  async markOnDeck (replayId: number): Promise<void> {
-    this.logger.log(`Marking replay ${replayId} as on deck`)
-    await this.repo.setStatus(replayId, ReplayStatus.ON_DECK)
-    await this.service.refreshCurrentBlock()
+  async markForReplay (match: number): Promise<void> {
+    this.logger.log(`Marking match ID ${match} for replay`)
+    await this.service.updateMatchStatus(match, MatchStatus.NEEDS_REPLAY)
+    await this.service.removeFieldAssignment(match)
   }
 
-  async markPlayed (replayId: number): Promise<void> {
-    this.logger.log(`Marking replay ${replayId} as played`)
-    await this.repo.setStatus(replayId, ReplayStatus.AWAITING_SCORES)
-    await this.service.refreshCurrentBlock()
+  async markScored (match: number): Promise<void> {
+    this.logger.log(`Marking match ID ${match} as scored`)
+    await this.service.updateMatchStatus(match, MatchStatus.COMPLETE)
   }
 
-  async markScored (replayId: number): Promise<void> {
-    this.logger.log(`Marking replay ${replayId} as scored`)
-    await this.repo.setStatus(replayId, ReplayStatus.RESOLVED)
-    await this.service.refreshCurrentBlock()
+  async reconcileQueued (queuedMatches: Match[]): Promise<void> {
+    this.logger.log(`Reconciling ${queuedMatches.length} queued matches`)
+    await this.service.reconcileQueued(queuedMatches)
   }
 
-  async handleElimsMatches (matches: ElimsMatch[]): Promise<void> {
-    for (const match of matches) {
-      const exists = await this.repo.checkExists(match.identifier)
-      if (exists) {
-        continue
-      }
-      this.logger.log(`New match ${makeMatchName(match.identifier)}`)
+  async getUnqueuedMatches (): Promise<Match[]> {
+    return await this.service.getUnqueuedMatches()
+  }
 
-      const block = await this.repo.getCurrentBlock()
-      let blockId: number
-      if (block === null) {
-        this.logger.log('No elims block, creating')
-        blockId = await this.repo.createBlock()
-        await this.repo.cueNextBlock()
-      } else {
-        blockId = block.id
-      }
+  async markPlayed (match: number): Promise<void> {
+    this.logger.log(`Marking match ID ${match} as played`)
+    await this.service.updateMatchStatus(match, MatchStatus.SCORING)
+  }
 
-      const matchId = await this.repo.createMatch({
-        round: match.identifier.round,
-        matchNum: match.identifier.matchNum,
-        sitting: match.identifier.sitting,
-        red: match.red,
-        blue: match.blue
-      })
+  async createElimsBlock (): Promise<number> {
+    const id = await this.service.createElimsBlock()
+    await this.service.loadElimsState()
+    return id
+  }
 
-      const allFields = await this.field.getCompetitionFields()
-
-      let lastMatchFieldId = await this.repo.getFieldOfLastMatchOfBlock(blockId)
-      if (lastMatchFieldId === null) {
-        lastMatchFieldId = allFields[allFields.length - 1].id
-      }
-
-      const indexOfLastMatchField = allFields.findIndex((field) => field.id === lastMatchFieldId)
-      const nextFieldIndex = (indexOfLastMatchField + 1) % allFields.length
-      const nextField = allFields[nextFieldIndex]
-
-      await this.repo.createScheduledMatch({
-        blockId,
-        matchId,
-        fieldId: nextField.id,
-        replay: 0
-      })
-
-      await this.service.refreshCurrentBlock()
-    }
+  async createElimsMatch (match: ElimsMatch): Promise<void> {
+    await this.service.createElimsMatch(match)
   }
 }

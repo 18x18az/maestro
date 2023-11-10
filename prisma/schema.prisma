@@ -25,45 +25,57 @@ model Display {
 }
 
 model Field {
-  id            Int              @id @unique @default(autoincrement())
+  id            Int       @id @unique @default(autoincrement())
   name          String
   isCompetition Int
   isEnabled     Int
   displays      Display[]
-  matches       ScheduledMatch[]
+  scene         Scene?
+  matches       Match[]
+  onField       Match?    @relation("OnField", fields: [onFieldId], references: [id])
+  onDeckId      Int?      @unique
+  onDeck        Match?    @relation("OnDeck", fields: [onDeckId], references: [id])
+  onFieldId     Int?      @unique
 }
 
 model Block {
-  id               Int              @id @unique @default(autoincrement())
-  status           String           @default("NOT_STARTED")
-  scheduledMatches ScheduledMatch[]
+  id     Int     @id @unique @default(autoincrement())
+  name   String
+  status String  @default("NOT_STARTED")
+  Match  Match[]
 }
 
 model Match {
-  id        Int              @id @unique @default(autoincrement())
+  id        Int    @id @unique @default(autoincrement())
+  block     Block  @relation(fields: [blockId], references: [id])
   round     String
   number    Int
   sitting   Int
+  status    String @default("NOT_STARTED")
+  field     Field? @relation(fields: [fieldId], references: [id])
   red1      String
   red2      String
   blue1     String
   blue2     String
-  scheduled ScheduledMatch[]
+  blockId   Int
+  fieldId   Int?
+  time      String?
+  onDeckAt  Field? @relation("OnDeck")
+  onFieldAt Field? @relation("OnField")
 
   @@unique([round, number, sitting])
 }
 
-model ScheduledMatch {
+model Scene {
   id      Int     @id @unique @default(autoincrement())
-  blockId Int
-  replay  Int     @default(0)
-  matchId Int
-  fieldId Int
-  time    String?
-  status  String
-  field   Field   @relation(fields: [fieldId], references: [id])
-  match   Match   @relation(fields: [matchId], references: [id])
-  block   Block   @relation(fields: [blockId], references: [id])
+  field   Field?  @relation(fields: [fieldId], references: [id])
+  fieldId Int     @unique
+  camera  Camera?
+}
 
-  @@unique([matchId, replay])
+model Camera {
+  id      Int    @id @unique @default(autoincrement())
+  address String @unique
+  scene   Scene  @relation(fields: [sceneId], references: [id])
+  sceneId Int    @unique
 }

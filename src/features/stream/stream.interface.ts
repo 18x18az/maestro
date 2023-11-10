@@ -1,7 +1,7 @@
-import { ScheduledMatch } from '../match'
+import { Match } from '../match'
 
 export interface DisplayedResults {
-  match: ScheduledMatch
+  match: Match
   redScore: number
   blueScore: number
 }

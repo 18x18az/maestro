@@ -31,4 +31,35 @@ export class FieldService {
   async getCompetitionFieldName (fieldId: number): Promise<string> {
     return await this.repo.getCompetitionFieldName(fieldId)
   }
+
+  async queueMatch (fieldId: number, matchId: number): Promise<void> {
+    const { onDeck, onField } = await this.repo.getFieldOccupants(fieldId)
+
+    if (onDeck !== null) {
+      throw new Error(`Field ${fieldId} is already occupied by match ${onDeck}`)
+    }
+
+    if (onField === null) {
+      await this.repo.setFieldOnFieldMatch(fieldId, matchId)
+    } else {
+      await this.repo.setFieldOnDeckMatch(fieldId, matchId)
+    }
+  }
+
+  async removeMatch (fieldId: number, matchId: number): Promise<void> {
+    const { onDeck, onField } = await this.repo.getFieldOccupants(fieldId)
+
+    if (onDeck === null && onField === null) {
+      throw new Error(`Field ${fieldId} is not occupied`)
+    }
+
+    if (onDeck === matchId) {
+      await this.repo.setFieldOnDeckMatch(fieldId, null)
+    } else if (onField === matchId) {
+      await this.repo.setFieldOnFieldMatch(fieldId, onDeck)
+      await this.repo.setFieldOnDeckMatch(fieldId, null)
+    } else {
+      throw new Error(`Match ${matchId} is not on field ${fieldId}`)
+    }
+  }
 }

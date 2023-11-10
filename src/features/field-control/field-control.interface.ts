@@ -1,9 +1,8 @@
 import { Field } from '../field/field.interface'
-import { ScheduledMatch } from '../match'
+import { Match } from '../match'
 
 export enum FieldState {
   IDLE = 'IDLE',
-  ON_DECK = 'ON_DECK',
   AUTO = 'AUTO',
   PAUSED = 'PAUSED',
   DRIVER = 'DRIVER',
@@ -15,5 +14,13 @@ export enum FieldState {
 export interface FieldStatus {
   field: Field
   state: FieldState
-  match: ScheduledMatch | null
+  match: Match | null
+  onDeck: Match | null
+  endTime: string | null
+}
+
+export enum AutomationState {
+  ENABLED = 'ENABLED',
+  CAN_ENABLE = 'CAN_ENABLE',
+  DISABLED = 'DISABLED',
 }
