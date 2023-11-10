@@ -52,8 +52,8 @@ export class MatchManager {
 
   async add (fieldId: number, match: number): Promise<void> {
     this.logger.log(`Queueing match ID ${match} on field ID ${fieldId}`)
-    await this.match.markQueued(match)
     await this.addToField(fieldId, match)
+    await this.match.markQueued(match)
   }
 
   async replay (match: number): Promise<void> {

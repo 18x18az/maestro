@@ -44,6 +44,23 @@ export class MatchRepo {
     return matches.map((match) => { return parseMatch(match) })
   }
 
+  async getElims (): Promise<Match[]> {
+    // get all matches that are not round qual
+    const matches = await this.prisma.match.findMany({
+      where: {
+        round: {
+          not: Round.QUAL
+        }
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    return matches.map((match) => { return parseMatch(match) })
+  }
+
   private async createQual (blockId: number, qual: CreateQualDto): Promise<void> {
     await this.prisma.match.create({
       data: {

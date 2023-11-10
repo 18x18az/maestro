@@ -31,9 +31,10 @@ export class FieldControlInternal {
     await this.publisher.publishActiveField(null)
     await this.publisher.publishNextField(null)
 
-    const fields = await this.fields.getCompetitionFields()
-    for (const field of fields) {
-      await this.publisher.publishFieldStatus(await this.status.get(field.id))
+    const statuses = await this.status.getAll()
+    await this.publisher.publishFieldStatuses(statuses)
+    for (const status of statuses) {
+      await this.publisher.publishFieldStatus(status)
     }
 
     const automation = await this.storage.getEphemeral('automation', AutomationState.ENABLED) as AutomationState
@@ -52,7 +53,7 @@ export class FieldControlInternal {
       return nonNullMatches
     })
 
-    if (stage === EventStage.QUALIFICATIONS) {
+    if (stage === EventStage.QUALIFICATIONS || stage === EventStage.ELIMS) {
       await this.match.reconcileQueued(matches)
       await this.publisher.publishFieldStatuses(initialStatus)
 
@@ -65,8 +66,16 @@ export class FieldControlInternal {
   private async analyzeFields (): Promise<void> {
     const fields = await this.fields.getCompetitionFields()
     for (const field of fields) {
-      await this.analyzeField(field.id)
+      const wasChanged = await this.analyzeField(field.id)
+      if (wasChanged) {
+        return
+      }
     }
+  }
+
+  async onUnqueuedChange (): Promise<void> {
+    this.logger.log('Unqueued change detected')
+    await this.analyzeFields()
   }
 
   async setAutomation (state: AutomationState): Promise<void> {
@@ -90,29 +99,29 @@ export class FieldControlInternal {
     }
   }
 
-  private async analyzeField (fieldId: number): Promise<void> {
+  private async analyzeField (fieldId: number): Promise<boolean> {
     if (this.automation !== AutomationState.ENABLED) {
-      return
+      return true
     }
 
     const status = await this.status.get(fieldId)
 
     if (status.onDeck !== null) {
-      return
+      return false
     }
 
     this.logger.log(`Field ${status.field.name} has no match on deck`)
 
     const unqueuedMatches = await this.match.getUnqueuedMatches()
 
-    // find first match that either has a matching field id or a null field id
-    const match = unqueuedMatches.find(match => match.fieldId === null || match.fieldId === status.field.id)
+    const match = unqueuedMatches.find(match => match.fieldId === status.field.id)
 
     if (match === undefined) {
       this.logger.log(`No remaining matches found for field ${status.field.name}`)
-      return
+      return false
     }
 
     await this.manager.add(status.field.id, match.id)
+    return true
   }
 }

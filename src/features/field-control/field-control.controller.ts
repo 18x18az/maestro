@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Param, Post } from '@nestjs/common'
 import { FieldControlInternal } from './field-control.internal'
 import { AutomationState } from './field-control.interface'
 import { MatchManager } from './match-manager.service'
 import { ActiveService } from './active-control.service'
+import { EventPattern } from '@nestjs/microservices'
 
 @Controller('fieldControl')
 export class FieldControlController {
@@ -11,6 +12,12 @@ export class FieldControlController {
     private readonly manager: MatchManager,
     private readonly active: ActiveService
   ) {}
+
+  @Post('queue/field/:field')
+  async queueField (@Body() body: { match: number }, @Param('field') field: number): Promise<void> {
+    await this.service.onManualAction()
+    await this.manager.add(field, body.match)
+  }
 
   @Post('remove')
   async removeFromQueue (@Body() body: { match: number }): Promise<void> {
@@ -63,5 +70,10 @@ export class FieldControlController {
   @Post('reset')
   async reset (): Promise<void> {
     await this.active.resetMatch()
+  }
+
+  @EventPattern('unqueued')
+  async onUnqueued (): Promise<void> {
+    await this.service.onUnqueuedChange()
   }
 }

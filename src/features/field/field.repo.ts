@@ -1,10 +1,12 @@
 import { PrismaService } from '@/utils'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Field } from './field.interface'
 
 @Injectable()
 export class FieldRepo {
   constructor (private readonly repo: PrismaService) {}
+
+  private readonly logger: Logger = new Logger(FieldRepo.name)
 
   async getCompetitionFields (): Promise<Field[]> {
     const fields = await this.repo.field.findMany({
@@ -48,6 +50,7 @@ export class FieldRepo {
 
     if (existingFields < fields.length) {
       for (let i = existingFields; i < fields.length; i++) {
+        this.logger.log(`Creating field ${fields[i]}`)
         await this.repo.field.create({
           data: {
             name: fields[i],
@@ -67,7 +70,7 @@ export class FieldRepo {
       }
     })
 
-    for (let i = 0; i < sortedFields.length; i++) {
+    for (let i = 0; i < fields.length; i++) {
       await this.repo.field.update({
         where: {
           id: sortedFields[i].id

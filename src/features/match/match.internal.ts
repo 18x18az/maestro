@@ -20,6 +20,8 @@ export class MatchInternal {
 
     if (stage === EventStage.QUALIFICATIONS) {
       await this.loadQualState()
+    } else if (stage === EventStage.ELIMS) {
+      await this.loadElimsState()
     }
   }
 
@@ -50,6 +52,21 @@ export class MatchInternal {
     } else {
       this.logger.log(`Block ${block.name} in process`)
       await this.publishUnqueuedQuals()
+      await this.publishBlock()
+    }
+  }
+
+  async loadElimsState (): Promise<void> {
+    const matches = await this.repo.getElims()
+    this.logger.log(`Loaded ${matches.length} matches`)
+    await this.publisher.publishMatchlist(matches)
+
+    const block = await this.repo.getCurrentBlock()
+    if (block === null) {
+      this.logger.log('No block in process')
+      await this.publisNoBlock()
+    } else {
+      this.logger.log(`Block ${block.name} in process`)
       await this.publishBlock()
     }
   }

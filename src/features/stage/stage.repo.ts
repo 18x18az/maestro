@@ -14,5 +14,10 @@ export class StageRepo {
     })
     await this.prisma.match.deleteMany({})
     await this.prisma.block.deleteMany({})
+    await this.prisma.field.updateMany({
+      data: {
+        isEnabled: 0
+      }
+    })
   }
 }
