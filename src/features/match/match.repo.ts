@@ -283,7 +283,7 @@ export class MatchRepo {
     const block = await this.prisma.block.create({
       data: {
         name: 'Elims',
-        status: BlockStatus.IN_PROGRESS
+        status: BlockStatus.NOT_STARTED
       }
     })
 

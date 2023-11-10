@@ -15,7 +15,6 @@ export class FieldControlPublisher {
 
   async publishFieldStatus (state: FieldStatus): Promise<void> {
     await this.publisher.broadcast(`${FIELD_STATUS_TOPIC}/${state.field.id}`, state)
-    console.log(state)
   }
 
   async publishActiveField (status: FieldStatus | null): Promise<void> {

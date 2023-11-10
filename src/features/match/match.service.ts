@@ -47,7 +47,9 @@ export class MatchService {
   }
 
   async createElimsBlock (): Promise<number> {
-    return await this.service.createElimsBlock()
+    const id = await this.service.createElimsBlock()
+    await this.service.loadElimsState()
+    return id
   }
 
   async createElimsMatch (match: ElimsMatch): Promise<void> {
