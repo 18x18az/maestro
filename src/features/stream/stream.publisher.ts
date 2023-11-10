@@ -15,4 +15,12 @@ export class StreamPublisher {
   async publishDisplayStage (stage: StreamDisplayStage): Promise<void> {
     await this.publisher.broadcast('displayStage', { stage })
   }
+
+  async publishActiveScene (scene: string): Promise<void> {
+    await this.publisher.broadcast('activeScene', { scene })
+  }
+
+  async publishPreviewScene (scene: string): Promise<void> {
+    await this.publisher.broadcast('previewScene', { scene })
+  }
 }

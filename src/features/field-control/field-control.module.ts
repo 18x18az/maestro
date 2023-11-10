@@ -7,17 +7,17 @@ import { PublishModule, StorageModule } from '@/utils'
 import { MatchModule } from '../match'
 import { StageModule } from '../stage'
 import { FieldControlService } from './field-control.service'
-import { StreamModule } from '../stream'
 import { TimeoutService } from './timeout.service'
 import { FieldControlRepo } from './field-control.repo'
 import { MatchManager } from './match-manager.service'
 import { ActiveService } from './active-control.service'
 import { FieldStatusService } from './field-status.service'
+import { ResultManager } from './result-manager.service'
 
 @Module({
-  imports: [FieldModule, PublishModule, MatchModule, StageModule, StreamModule, StorageModule],
+  imports: [FieldModule, PublishModule, MatchModule, StageModule, StorageModule],
   controllers: [FieldControlController],
-  providers: [FieldControlInternal, FieldControlPublisher, FieldControlService, TimeoutService, FieldControlRepo, MatchManager, ActiveService, FieldStatusService],
+  providers: [ResultManager, FieldControlInternal, FieldControlPublisher, FieldControlService, TimeoutService, FieldControlRepo, MatchManager, ActiveService, FieldStatusService],
   exports: [FieldControlService]
 })
 export class FieldControlModule {}

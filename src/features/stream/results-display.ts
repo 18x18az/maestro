@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common'
-import { DisplayedResults } from './stream.interface'
 import { StreamPublisher } from './stream.publisher'
+import { FieldControlService } from '../field-control'
 
 @Injectable()
 export class ResultsDisplayService {
-  private stagedResults: DisplayedResults | null = null
-
-  constructor (private readonly publisher: StreamPublisher) {}
-
-  setStagedResults (results: DisplayedResults): void {
-    this.stagedResults = results
-  }
+  constructor (private readonly publisher: StreamPublisher,
+    private readonly control: FieldControlService) {}
 
   async publishStagedResults (): Promise<void> {
-    await this.publisher.publishStagedResults(this.stagedResults)
-    this.stagedResults = null
+    const results = this.control.getResults()
+    await this.publisher.publishStagedResults(results)
   }
 
   async clearResults (): Promise<void> {
+    this.control.clearResults()
     await this.publisher.publishStagedResults(null)
   }
 }

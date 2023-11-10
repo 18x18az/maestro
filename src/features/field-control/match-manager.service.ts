@@ -4,6 +4,7 @@ import { FieldStatusService } from './field-status.service'
 import { FieldControlRepo } from './field-control.repo'
 import { MatchResult } from '@/utils'
 import { MatchService, MatchStatus } from '../match'
+import { ResultManager } from './result-manager.service'
 
 @Injectable()
 export class MatchManager {
@@ -13,7 +14,8 @@ export class MatchManager {
     private readonly match: MatchService,
     private readonly fields: FieldService,
     private readonly status: FieldStatusService,
-    private readonly repo: FieldControlRepo
+    private readonly repo: FieldControlRepo,
+    private readonly results: ResultManager
   ) {}
 
   private async removeFromField (fieldId: number, matchId: number): Promise<void> {
@@ -92,6 +94,7 @@ export class MatchManager {
         await this.removeFromField(fieldOnId, match.id)
       }
 
+      this.results.set(match, result)
       await this.match.markScored(match.id)
     }
   }

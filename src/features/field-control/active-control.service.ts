@@ -29,11 +29,17 @@ export class ActiveService {
   async setActive (status: FieldStatus | null): Promise<void> {
     this.active = status
     await this.publisher.publishActiveField(this.active)
+    if (status !== null) {
+      await this.publisher.publishFieldStatus(status)
+    }
   }
 
   async setOnDeck (status: FieldStatus | null): Promise<void> {
     this.onDeck = status
     await this.publisher.publishNextField(this.onDeck)
+    if (status !== null) {
+      await this.publisher.publishFieldStatus(status)
+    }
   }
 
   async markNext (field: number): Promise<void> {
@@ -104,7 +110,7 @@ export class ActiveService {
       this.active.state = FieldState.DRIVER
     }
 
-    await this.publisher.publishActiveField(this.active)
+    await this.setActive(this.active)
 
     const timeToEnd = new Date(this.active.endTime).getTime() - Date.now()
     this.timer = setTimeout(() => {
@@ -146,7 +152,7 @@ export class ActiveService {
       }, 3000)
     }
 
-    await this.publisher.publishActiveField(this.active)
+    await this.setActive(this.active)
   }
 
   async resetMatch (): Promise<void> {
@@ -165,6 +171,17 @@ export class ActiveService {
     this.active.endTime = null
     this.active.state = FieldState.IDLE
 
-    await this.publisher.publishActiveField(this.active)
+    await this.setActive(this.active)
+  }
+
+  async onFieldStatusesChange (statuses: FieldStatus[]): Promise<void> {
+    this.logger.log('Updating field statuses')
+    for (const status of statuses) {
+      if (this.active !== null && status.field.id === this.active.field.id && status.match?.id !== this.active.match?.id) {
+        await this.setActive(status)
+      } else if (this.onDeck !== null && status.field.id === this.onDeck.field.id) {
+        await this.setOnDeck(status)
+      }
+    }
   }
 }

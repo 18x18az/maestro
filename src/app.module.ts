@@ -22,7 +22,7 @@
 // export class WithoutPigeonModule {}
 
 import { ConfigModule } from '@nestjs/config'
-import { AllianceSelectionModule, DisplayModule, FieldControlModule, MatchModule, ResultsModule } from '@/features'
+import { AllianceSelectionModule, DisplayModule, FieldControlModule, MatchModule, ResultsModule, StreamModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -58,7 +58,8 @@ import { BeaconService } from './utils'
     FieldControlModule,
     ResultsModule,
     AllianceSelectionModule,
-    DisplayModule
+    DisplayModule,
+    StreamModule
   ]
 })
 export class WithoutPigeonModule {}

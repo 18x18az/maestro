@@ -44,6 +44,6 @@ export class CameraService {
 
   async callPreset (camera: number, preset: number): Promise<void> {
     this.logger.log(`Calling preset ${preset} on camera ${camera + 1}`)
-    await this.presetAction(camera, preset, PRESET_ACTION.CALL)
+    // await this.presetAction(camera, preset, PRESET_ACTION.CALL)
   }
 }

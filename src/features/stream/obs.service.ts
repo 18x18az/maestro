@@ -1,6 +1,7 @@
 import { BaseStatus, StatusPublisher } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import OBSWebSocket from 'obs-websocket-js'
+import { StreamPublisher } from './stream.publisher'
 
 const STATUS_TOPIC = 'obs'
 
@@ -15,7 +16,8 @@ export class ObsService {
   private currentPreviewSceneName: string | undefined
 
   constructor (
-    private readonly status: StatusPublisher
+    private readonly status: StatusPublisher,
+    private readonly publisher: StreamPublisher
   ) { }
 
   async onModuleInit (): Promise<void> {
@@ -27,11 +29,13 @@ export class ObsService {
 
   private async onPreviewSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentPreviewSceneName = data.sceneName
+    await this.publisher.publishPreviewScene(data.sceneName)
     this.logger.verbose(`Preview scene changed to ${data.sceneName}`)
   }
 
   private async onProgramSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentSceneName = data.sceneName
+    await this.publisher.publishActiveScene(data.sceneName)
     this.logger.verbose(`Program scene changed to ${data.sceneName}`)
   }
 
@@ -84,6 +88,5 @@ export class ObsService {
 
     this.logger.log('Triggering transition')
     await this.obs.call('TriggerStudioModeTransition')
-    this.logger.debug('Transition complete')
   }
 }

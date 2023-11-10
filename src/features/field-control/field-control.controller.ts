@@ -1,6 +1,6 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
 import { FieldControlInternal } from './field-control.internal'
-import { AutomationState } from './field-control.interface'
+import { AutomationState, FieldStatus } from './field-control.interface'
 import { MatchManager } from './match-manager.service'
 import { ActiveService } from './active-control.service'
 import { EventPattern } from '@nestjs/microservices'
@@ -75,5 +75,10 @@ export class FieldControlController {
   @EventPattern('unqueued')
   async onUnqueued (): Promise<void> {
     await this.service.onUnqueuedChange()
+  }
+
+  @EventPattern('fieldStatuses')
+  async onFieldStatusesChange (statuses: FieldStatus[]): Promise<void> {
+    await this.active.onFieldStatusesChange(statuses)
   }
 }
