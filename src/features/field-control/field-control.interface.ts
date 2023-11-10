@@ -3,7 +3,6 @@ import { Match } from '../match'
 
 export enum FieldState {
   IDLE = 'IDLE',
-  ON_DECK = 'ON_DECK',
   AUTO = 'AUTO',
   PAUSED = 'PAUSED',
   DRIVER = 'DRIVER',

@@ -1,46 +1,42 @@
-import { Body, Controller, Param, Post } from '@nestjs/common'
+import { Body, Controller, Post } from '@nestjs/common'
 import { FieldControlInternal } from './field-control.internal'
-import { TimeoutService } from './timeout.service'
 import { AutomationState } from './field-control.interface'
+import { MatchManager } from './match-manager.service'
+import { ActiveService } from './active-control.service'
 
 @Controller('fieldControl')
 export class FieldControlController {
   constructor (
     private readonly service: FieldControlInternal,
-    private readonly timeout: TimeoutService
+    private readonly manager: MatchManager,
+    private readonly active: ActiveService
   ) {}
-
-  @Post('queue/field/:fieldId')
-  async queueField (@Param('fieldId') fieldId: number, @Body() body: { match: number }): Promise<void> {
-    await this.service.onManualAction()
-    await this.service.queueField(fieldId, body.match)
-  }
 
   @Post('remove')
   async removeFromQueue (@Body() body: { match: number }): Promise<void> {
     await this.service.onManualAction()
-    await this.service.removeFromQueue(body.match)
+    await this.manager.remove(body.match)
   }
 
   @Post('move')
   async moveMatch (@Body() body: { match: number, targetField: number }): Promise<void> {
     await this.service.onManualAction()
-    await this.service.moveMatch(body.match, body.targetField)
+    await this.manager.move(body.match, body.targetField)
   }
 
   @Post('markNext')
   async markNext (@Body() body: { field: number }): Promise<void> {
-    await this.service.markNext(body.field)
+    await this.active.markNext(body.field)
   }
 
   @Post('pushActive')
   async pushActive (): Promise<void> {
-    await this.service.pushActive()
+    await this.active.pushActive()
   }
 
   @Post('clearActive')
   async clearActive (): Promise<void> {
-    await this.service.clearActive()
+    await this.active.clearActive()
   }
 
   @Post('automation')
@@ -51,21 +47,21 @@ export class FieldControlController {
 
   @Post('replay')
   async replay (@Body() body: { match: number }): Promise<void> {
-    await this.service.replay(body.match)
+    await this.manager.replay(body.match)
   }
 
   @Post('start')
   async start (): Promise<void> {
-    await this.service.start()
+    await this.active.start()
   }
 
   @Post('endEarly')
   async endEarly (): Promise<void> {
-    await this.service.endMatchSection()
+    await this.active.endMatchSection()
   }
 
   @Post('reset')
   async reset (): Promise<void> {
-    await this.service.resetMatch()
+    await this.active.resetMatch()
   }
 }

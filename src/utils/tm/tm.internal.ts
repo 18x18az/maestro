@@ -27,7 +27,7 @@ export class TmInternal {
   ) { }
 
   async onModuleInit (): Promise<void> {
-    const loaded = await this.storage.getEphemeral(STORAGE_KEY, '')
+    const loaded = await this.storage.getPersistent(STORAGE_KEY, '')
 
     if (loaded === '') {
       await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOT_CONFIGURED)
@@ -217,7 +217,7 @@ export class TmInternal {
 
     this.logger.log(`Connected to TM at ${addr}`)
     this.tmAddr = addr
-    await this.storage.setEphemeral(STORAGE_KEY, addr)
+    await this.storage.setPersistent(STORAGE_KEY, addr)
     await this.loadTeams()
   }
 }

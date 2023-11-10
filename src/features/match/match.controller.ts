@@ -21,9 +21,4 @@ export class MatchController {
   async proceed (): Promise<void> {
     await this.service.startNextBlock()
   }
-
-  // @Post('replay')
-  // async replayMatch (@Body() match: MatchIdentifier): Promise<void> {
-  //   await this.service.replayMatch(match)
-  // }
 }

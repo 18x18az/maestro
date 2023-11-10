@@ -1,6 +1,6 @@
 import { PrismaService } from '@/utils'
 import { Injectable } from '@nestjs/common'
-import { Match } from '../match'
+import { Match, MatchIdentifier } from '../match'
 import { parseMatch } from '@/utils/conversion/match'
 
 interface GetFieldStatusDto {
@@ -82,5 +82,27 @@ export class FieldControlRepo {
     }
 
     return field.onField === null ? null : parseMatch(field.onField)
+  }
+
+  async findMatch (identifier: MatchIdentifier): Promise<Match | null> {
+    const match = await this.repo.match.findUnique({
+      where: {
+        round_number_sitting: {
+          round: identifier.round,
+          number: identifier.matchNumber,
+          sitting: identifier.sitting
+        }
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return parseMatch(match)
   }
 }

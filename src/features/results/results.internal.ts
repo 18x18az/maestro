@@ -18,6 +18,10 @@ export class ResultsInternal {
 
   @Cron('*/10 * * * * *')
   async handleCron (): Promise<void> {
+    if (this.stage.getStage() === EventStage.WAITING_FOR_TEAMS) {
+      return
+    }
+
     const results = await this.tm.getMatchResults()
 
     if (results.matches !== null) {
@@ -30,6 +34,10 @@ export class ResultsInternal {
   }
 
   private async handleResults (results: MatchResult[]): Promise<void> {
+    if (results.length === 0) {
+      return
+    }
+
     await this.control.handleMatchResults(results)
   }
 
@@ -40,7 +48,11 @@ export class ResultsInternal {
     const currentStage = this.stage.getStage()
     if (currentStage === EventStage.ALLIANCE_SELECTION) {
       this.logger.log('Matches received while alliance selection in process, alliance selection over')
+      await this.matches.createElimsBlock()
       await this.stage.advanceStage()
+    }
+    for (const match of matches) {
+      await this.matches.createElimsMatch(match)
     }
   }
 }

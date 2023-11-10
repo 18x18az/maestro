@@ -3,6 +3,7 @@ import { MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
 import { EventStage, StageService } from '../stage'
 import { Match, MatchStatus } from './match.interface'
+import { ElimsMatch } from '@/utils'
 
 @Injectable()
 export class MatchInternal {
@@ -23,6 +24,11 @@ export class MatchInternal {
   }
 
   private async publishUnqueuedQuals (): Promise<void> {
+    const block = await this.repo.getCurrentBlock()
+    if (block === null) {
+      await this.publisher.publishUnqueuedMatches([])
+      return
+    }
     const matches = await this.repo.getUnqueuedQuals(true)
     this.logger.log(`Publishing ${matches.length} unqueued matches`)
     await this.publisher.publishUnqueuedMatches(matches)
@@ -60,14 +66,20 @@ export class MatchInternal {
 
   async startNextBlock (): Promise<void> {
     const block = await this.repo.getCurrentBlock()
+
     if (block !== null) {
-      throw new BadRequestException('Block already in process')
+      this.logger.log(`Ending block ${block.name}`)
+      await this.repo.endCurrentBlock()
     }
 
     const nextBlockExists = await this.repo.startNextBlock()
 
     if (nextBlockExists) {
+      this.logger.log('Next block exists, publishing')
       await this.publishBlock()
+    } else {
+      this.logger.log('No more blocks, advancing stage')
+      await this.stage.advanceStage()
     }
   }
 
@@ -108,5 +120,20 @@ export class MatchInternal {
   async removeFieldAssignment (match: number): Promise<void> {
     await this.repo.removeFieldAssignment(match)
     await this.publishUnqueuedQuals()
+  }
+
+  async createElimsBlock (): Promise<number> {
+    return await this.repo.createElimsBlock()
+  }
+
+  async createElimsMatch (match: ElimsMatch): Promise<void> {
+    const existingMatch = await this.repo.getMatch(match.identifier)
+
+    if (existingMatch !== null) {
+      return
+    }
+
+    this.logger.log(`Creating match ${JSON.stringify(match.identifier)}`)
+    await this.repo.createElimsMatch(match)
   }
 }

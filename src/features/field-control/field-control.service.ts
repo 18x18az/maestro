@@ -1,12 +1,16 @@
 import { MatchResult } from '@/utils'
-import { Injectable } from '@nestjs/common'
-import { FieldControlInternal } from './field-control.internal'
+import { Injectable, Logger } from '@nestjs/common'
+import { MatchManager } from './match-manager.service'
 
 @Injectable()
 export class FieldControlService {
-  constructor (private readonly service: FieldControlInternal) { }
+  private readonly logger = new Logger(FieldControlService.name)
+
+  constructor (
+    private readonly manager: MatchManager
+  ) { }
 
   async handleMatchResults (results: MatchResult[]): Promise<void> {
-    // await this.service.handleMatchResults(results)
+    await this.manager.gotResults(results)
   }
 }

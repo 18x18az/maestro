@@ -1,6 +1,6 @@
-import { PrismaService } from '@/utils'
+import { ElimsMatch, PrismaService } from '@/utils'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { BlockStatus, Match, MatchStatus, Round } from './match.interface'
+import { BlockStatus, Match, MatchIdentifier, MatchStatus, Round } from './match.interface'
 import { Block } from '@prisma/client'
 import { parseMatch } from '@/utils/conversion/match'
 
@@ -94,7 +94,7 @@ export class MatchRepo {
     const currentBlock = await this.getCurrentBlock()
 
     if (currentBlock === null) {
-      throw new BadRequestException('No block in progress')
+      return []
     }
 
     const matches: Match[] = []
@@ -241,6 +241,79 @@ export class MatchRepo {
       },
       data: {
         fieldId: null
+      }
+    })
+  }
+
+  async endCurrentBlock (): Promise<void> {
+    const block = await this.getCurrentBlock()
+    if (block === null) {
+      throw new BadRequestException('No block in progress')
+    }
+    await this.prisma.block.update({
+      where: {
+        id: block.id
+      },
+      data: {
+        status: BlockStatus.FINISHED
+      }
+    })
+  }
+
+  async createElimsBlock (): Promise<number> {
+    const block = await this.prisma.block.create({
+      data: {
+        name: 'Elims',
+        status: BlockStatus.IN_PROGRESS
+      }
+    })
+
+    return block.id
+  }
+
+  async getMatch (match: MatchIdentifier): Promise<Match | null> {
+    const matchRecord = await this.prisma.match.findUnique({
+      where: {
+        round_number_sitting: {
+          round: match.round,
+          number: match.matchNumber,
+          sitting: match.sitting
+        }
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    if (matchRecord === null) {
+      return null
+    }
+
+    return parseMatch(matchRecord)
+  }
+
+  async createElimsMatch (match: ElimsMatch): Promise<void> {
+    const elimsBlockId = await this.prisma.block.findFirst({
+      where: {
+        name: 'Elims'
+      }
+    })
+
+    if (elimsBlockId === null) {
+      throw new BadRequestException('No elims block')
+    }
+
+    await this.prisma.match.create({
+      data: {
+        number: match.identifier.matchNumber,
+        red1: match.red.team1,
+        red2: match.red.team2 ?? '',
+        blue1: match.blue.team1,
+        blue2: match.blue.team2 ?? '',
+        round: match.identifier.round,
+        sitting: match.identifier.sitting,
+        blockId: elimsBlockId.id
       }
     })
   }

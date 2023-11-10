@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { EventStage } from './stage.interface'
 import { StorageService, TeamInformation } from '@/utils'
 import { StagePublisher } from './stage.publisher'
+import { StageRepo } from './stage.repo'
 
 const STORAGE_KEY = 'stage'
 
@@ -16,7 +17,8 @@ export class StageInternal {
 
   constructor (
     private readonly storage: StorageService,
-    private readonly publisher: StagePublisher
+    private readonly publisher: StagePublisher,
+    private readonly repo: StageRepo
   ) { }
 
   async onModuleInit (): Promise<void> {
@@ -32,8 +34,17 @@ export class StageInternal {
     return this.currentStage
   }
 
+  private async onReset (): Promise<void> {
+    this.logger.log('Resetting stage')
+    await this.storage.clearEphemeral()
+    await this.repo.reset()
+  }
+
   async setStage (stage: EventStage): Promise<void> {
     this.logger.log(`Stage changed to ${stage}`)
+    if (stage === EventStage.WAITING_FOR_TEAMS) {
+      await this.onReset()
+    }
     this.currentStage = stage
     await this.storage.setEphemeral(STORAGE_KEY, stage)
     await this.publisher.publishStage(stage)
