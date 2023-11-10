@@ -4,13 +4,15 @@ import { AutomationState, FieldStatus } from './field-control.interface'
 import { MatchManager } from './match-manager.service'
 import { ActiveService } from './active-control.service'
 import { EventPattern } from '@nestjs/microservices'
+import { TimeoutService } from './timeout.service'
 
 @Controller('fieldControl')
 export class FieldControlController {
   constructor (
     private readonly service: FieldControlInternal,
     private readonly manager: MatchManager,
-    private readonly active: ActiveService
+    private readonly active: ActiveService,
+    private readonly timeout: TimeoutService
   ) {}
 
   @Post('queue/field/:field')
@@ -80,5 +82,10 @@ export class FieldControlController {
   @EventPattern('fieldStatuses')
   async onFieldStatusesChange (statuses: FieldStatus[]): Promise<void> {
     await this.active.onFieldStatusesChange(statuses)
+  }
+
+  @Post('timeout')
+  async setTimeout (): Promise<void> {
+    await this.timeout.callTimeout()
   }
 }
