@@ -13,11 +13,12 @@ import { MatchManager } from './match-manager.service'
 import { ActiveService } from './active-control.service'
 import { FieldStatusService } from './field-status.service'
 import { ResultManager } from './result-manager.service'
+import { SkillsService } from './skills.service'
 
 @Module({
   imports: [FieldModule, PublishModule, MatchModule, StageModule, StorageModule],
   controllers: [FieldControlController],
-  providers: [ResultManager, FieldControlInternal, FieldControlPublisher, FieldControlService, TimeoutService, FieldControlRepo, MatchManager, ActiveService, FieldStatusService],
+  providers: [ResultManager, FieldControlInternal, FieldControlPublisher, FieldControlService, TimeoutService, FieldControlRepo, MatchManager, ActiveService, FieldStatusService, SkillsService],
   exports: [FieldControlService]
 })
 export class FieldControlModule {}

@@ -3,24 +3,15 @@ import { FieldDisplayService } from './field-display.service'
 import { ResultsDisplayService } from './results-display'
 import { EventPattern } from '@nestjs/microservices'
 import { FieldStatus } from '../field-control'
-import { Field } from '../field'
+import { SceneService } from './scene.service'
 
 @Controller('stream')
 export class StreamController {
   constructor (
     private readonly service: FieldDisplayService,
-    private readonly results: ResultsDisplayService
+    private readonly results: ResultsDisplayService,
+    private readonly scene: SceneService
   ) {}
-
-  @Post('ready')
-  async readyScene (@Body() body: { field: number }): Promise<void> {
-    await this.service.manualScene(body.field)
-  }
-
-  @Post('preset')
-  async readyPreset (@Body() body: { field: number, preset: number }): Promise<void> {
-    await this.service.manualPosition(body.field, body.preset)
-  }
 
   @Post('clearScore')
   async clearScore (): Promise<void> {
@@ -44,16 +35,11 @@ export class StreamController {
 
   @EventPattern('activeScene')
   async onActiveSceneChange (body: { scene: string }): Promise<void> {
-    await this.service.updateActiveScene(body.scene)
+    await this.scene.onActiveSceneChange(body.scene)
   }
 
   @EventPattern('previewScene')
   async onPreviewSceneChange (body: { scene: string }): Promise<void> {
-    await this.service.updatePreviewScene(body.scene)
-  }
-
-  @EventPattern('fields')
-  async onFieldsChange (fields: Field[]): Promise<void> {
-    await this.service.updateFields(fields)
+    this.scene.onPreviewSceneChange(body.scene)
   }
 }

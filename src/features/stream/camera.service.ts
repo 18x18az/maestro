@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { firstValueFrom } from 'rxjs'
 
 enum PRESET_ACTION {
@@ -8,22 +8,24 @@ enum PRESET_ACTION {
   CLEAN = 'preset_CLEAN'
 }
 
-@Injectable()
-export class CameraService {
-  private readonly logger: Logger = new Logger(CameraService.name)
+export class Camera {
+  private readonly logger: Logger = new Logger(Camera.name)
+
+  desired_preset: number | null = null
+  is_active_scene: boolean
 
   constructor (
+    private readonly ip: string,
     private readonly request: HttpService
   ) {}
 
-  private async cameraCommand (camera: number, payload: any): Promise<void> {
-    const cameraIPs = ['192.168.1.75', '192.168.1.115', '1.2.3.4']
+  private async cameraCommand (payload: any): Promise<void> {
     const message = {
       SysCtrl: {
         PtzCtrl: payload
       }
     }
-    const url = `http://${cameraIPs[camera]}/ajaxcom?szCmd=${JSON.stringify(message)}`
+    const url = `http://${this.ip}/ajaxcom?szCmd=${JSON.stringify(message)}`
     try {
       await firstValueFrom(
         this.request.get(url)
@@ -33,17 +35,40 @@ export class CameraService {
     }
   }
 
-  private async presetAction (camera: number, preset: number, action: PRESET_ACTION): Promise<void> {
+  private async presetAction (preset: number, action: PRESET_ACTION): Promise<void> {
     const payload = {
       nChanel: 0,
       szPtzCmd: action,
       byValue: preset
     }
-    await this.cameraCommand(camera, payload)
+    await this.cameraCommand(payload)
   }
 
-  async callPreset (camera: number, preset: number): Promise<void> {
-    this.logger.log(`Calling preset ${preset} on camera ${camera + 1}`)
-    // await this.presetAction(camera, preset, PRESET_ACTION.CALL)
+  private async call_preset (): Promise<void> {
+    const target = this.desired_preset
+    if (target === null) {
+      return
+    }
+    this.logger.log(`Calling preset ${target} on camera ${this.ip}`)
+    await this.presetAction(target, PRESET_ACTION.CALL)
+    this.desired_preset = null
+  }
+
+  async set_desired_preset (preset: number): Promise<void> {
+    this.logger.debug(`Setting desired preset to ${preset} on camera ${this.ip}`)
+    this.desired_preset = preset
+    if (!this.is_active_scene) {
+      await this.call_preset()
+    }
+  }
+
+  async set_is_active_scene (active: boolean): Promise<void> {
+    if (this.is_active_scene !== active) {
+      this.logger.log(`Setting is_active_scene to ${JSON.stringify(active)} on camera ${this.ip}`)
+      this.is_active_scene = active
+      if (this.desired_preset !== null && !active) {
+        await this.call_preset()
+      }
+    }
   }
 }

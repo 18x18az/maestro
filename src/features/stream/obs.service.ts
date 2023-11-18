@@ -2,6 +2,7 @@ import { BaseStatus, StatusPublisher } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import OBSWebSocket from 'obs-websocket-js'
 import { StreamPublisher } from './stream.publisher'
+import { EventEmitter } from 'events'
 
 const STATUS_TOPIC = 'obs'
 
@@ -9,6 +10,8 @@ const STATUS_TOPIC = 'obs'
 export class ObsService {
   private readonly obs: OBSWebSocket = new OBSWebSocket()
   private readonly logger: Logger = new Logger(ObsService.name)
+
+  private readonly emitter: EventEmitter = new EventEmitter()
 
   private isConnected: boolean = false
 
@@ -27,16 +30,19 @@ export class ObsService {
     this.obs.on('CurrentProgramSceneChanged', this.onProgramSceneChanged.bind(this))
   }
 
+  getCurrentSceneName (): string | undefined {
+    return this.currentSceneName
+  }
+
   private async onPreviewSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentPreviewSceneName = data.sceneName
     await this.publisher.publishPreviewScene(data.sceneName)
-    this.logger.verbose(`Preview scene changed to ${data.sceneName}`)
   }
 
   private async onProgramSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentSceneName = data.sceneName
     await this.publisher.publishActiveScene(data.sceneName)
-    this.logger.verbose(`Program scene changed to ${data.sceneName}`)
+    this.emitter.emit('activeSceneChange', data.sceneName)
   }
 
   private async onObsConnected (): Promise<void> {
@@ -64,20 +70,20 @@ export class ObsService {
   }
 
   async setPreviewScene (sceneName: string): Promise<void> {
-    this.logger.debug(`Requested preview scene change to ${sceneName}`)
     if (!this.isConnected) {
       this.logger.debug('Not connected to OBS')
       return
     }
-    this.logger.log(`Setting preview scene to ${sceneName}`)
     await this.obs.call('SetCurrentPreviewScene', { sceneName })
-    this.logger.debug('Preview scene set')
   }
 
-  async triggerTransition (): Promise<void> {
-    this.logger.debug('Requested transition')
+  async transition (): Promise<void> {
     if (!this.isConnected) {
-      this.logger.debug('Not connected to OBS')
+      return
+    }
+
+    if (this.currentPreviewSceneName === undefined) {
+      this.logger.warn('Preview scene is undefined')
       return
     }
 
@@ -86,7 +92,12 @@ export class ObsService {
       return
     }
 
-    this.logger.log('Triggering transition')
     await this.obs.call('TriggerStudioModeTransition')
+
+    return await new Promise((resolve) => {
+      this.emitter.once('activeSceneChange', () => {
+        resolve()
+      })
+    })
   }
 }

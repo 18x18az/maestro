@@ -6,14 +6,14 @@ import { ObsService } from './obs.service'
 import { FieldDisplayService } from './field-display.service'
 import { FieldModule } from '../field'
 import { StreamController } from './stream.controller'
-import { CameraService } from './camera.service'
 import { HttpModule } from '@nestjs/axios'
 import { FieldControlModule } from '../field-control'
+import { SceneService } from './scene.service'
 
 @Module({
   imports: [FieldModule, HttpModule, StatusModule, FieldControlModule],
   controllers: [StreamController],
-  providers: [ResultsDisplayService, StreamPublisher, ObsService, FieldDisplayService, CameraService],
+  providers: [ResultsDisplayService, StreamPublisher, ObsService, FieldDisplayService, SceneService],
   exports: [ResultsDisplayService, FieldDisplayService]
 })
 export class StreamModule {}
