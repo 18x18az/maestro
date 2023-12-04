@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { EventStage, StageService } from '../stage'
-import { FieldService } from '../field/field.service'
 import { CreateQualBlockDto, CreateQualDto, MatchRepo } from './match.repo'
 import { MatchInternal } from './match.internal'
+import { EventStage, StageService } from '../../stage'
+import { FieldService } from '../../field'
 
 @Injectable()
 export class QualService {

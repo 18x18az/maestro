@@ -10,8 +10,8 @@ export class CompetitionControlController {
     await this.service.markFieldAsOnDeck(body.fieldId)
   }
 
-  @Post('pushActive')
-  async pushActiveMatch (): Promise<void> {
+  @Post('pushLive')
+  async pushLiveMatch (): Promise<void> {
     await this.service.makeOnDeckFieldLive()
   }
 
@@ -20,13 +20,23 @@ export class CompetitionControlController {
     await this.service.startPeriod()
   }
 
+  @Post('stop')
+  async stopEarly (): Promise<void> {
+    await this.service.stopEarly()
+  }
+
   @Post('reset')
   async reset (): Promise<void> {
-    await this.service.resetAutonomous()
+    await this.service.readyAutonomous()
   }
 
   @Post('match/:matchId/replay')
   async replayMatch (@Param('matchId') matchId: number): Promise<void> {
     await this.service.replayMatch(matchId)
+  }
+
+  @Post('match/:matchId/remove')
+  async removeMatch (@Param('matchId') matchId: number): Promise<void> {
+    await this.service.removeMatch(matchId)
   }
 }

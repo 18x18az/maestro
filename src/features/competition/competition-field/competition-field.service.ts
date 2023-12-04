@@ -232,7 +232,7 @@ export class CompetitionFieldService {
     await this.publish(fieldId)
   }
 
-  async replayMatch (matchId: number): Promise<void> {
+  async replayMatch (matchId: number): Promise<number> {
     this.logger.log(`Marking match ${matchId} for replay`)
 
     // Make sure the match has either been queued or is currently being scored
@@ -253,9 +253,11 @@ export class CompetitionFieldService {
 
     // Otherwise resolve it as NEEDS_REPLAY
     await this.resolveMatchOnField(fieldId, MatchStatus.NEEDS_REPLAY)
+
+    return fieldId
   }
 
-  async removeMatch (matchId: number): Promise<void> {
+  async removeMatch (matchId: number): Promise<number> {
     this.logger.log(`Unqueueing match ${matchId}`)
 
     // Make sure the match is marked as queued and can therefore be unqueued
@@ -274,6 +276,8 @@ export class CompetitionFieldService {
     } else {
       await this.resolveMatchOnField(fieldId, MatchStatus.NOT_STARTED)
     }
+
+    return fieldId
   }
 
   async readyAutonomous (fieldId: number): Promise<void> {

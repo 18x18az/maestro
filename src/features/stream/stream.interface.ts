@@ -1,4 +1,4 @@
-import { Match } from '../competition'
+import { Match } from '../competition/match'
 
 export interface DisplayedResults {
   match: Match

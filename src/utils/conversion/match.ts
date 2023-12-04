@@ -1,5 +1,5 @@
-import { Match, MatchStatus, Round } from '@/features'
 import { Prisma } from '@prisma/client'
+import { Match, MatchStatus, Round } from '../../features/competition/match'
 
 type PrismaMatchInfo = Prisma.MatchGetPayload<{ include: { block: true, field: true } }>
 

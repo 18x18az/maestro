@@ -75,17 +75,31 @@ export class CompetitionControlService {
     }
   }
 
-  async resetAutonomous (): Promise<void> {
+  async stopEarly (): Promise<void> {
+    this.logger.log('Ending period early')
     const fieldId = this.cache.getLiveField()
     if (fieldId === null) {
-      this.logger.warn('No field is current')
-      throw new BadRequestException('No field is current')
+      this.logger.warn('No live field')
+      throw new BadRequestException('No live field')
     }
 
-    await this.fields.readyAutonomous(fieldId)
+    const stage = await this.fields.getMatchStage(fieldId)
+
+    if (stage === MATCH_STAGE.AUTON) {
+      await this.fields.endAutonomous(fieldId)
+    } else if (stage === MATCH_STAGE.DRIVER) {
+      await this.fields.endDriver(fieldId)
+    } else {
+      this.logger.warn(`Cannot end period early for stage ${stage}`)
+      throw new BadRequestException(`Cannot end period early for stage ${stage}`)
+    }
   }
 
   async replayMatch (matchId: number): Promise<void> {
     await this.fields.replayMatch(matchId)
+  }
+
+  async removeMatch (matchId: number): Promise<void> {
+    await this.fields.removeMatch(matchId)
   }
 }
