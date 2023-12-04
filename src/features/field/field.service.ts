@@ -12,9 +12,13 @@ export class FieldService {
     private readonly publisher: FieldPublisher
   ) {}
 
+  async publishFields (): Promise<void> {
+    const fieldInfo = await this.getAllFields()
+    await this.publisher.publishFields(fieldInfo)
+  }
+
   async onApplicationBootstrap (): Promise<void> {
-    const existing = await this.getCompetitionFields()
-    await this.publisher.publishFields(existing)
+    await this.publishFields()
   }
 
   async initializeCompetitionFields (fields: string[]): Promise<void> {
@@ -28,38 +32,37 @@ export class FieldService {
     return await this.repo.getCompetitionFields()
   }
 
-  async getCompetitionFieldName (fieldId: number): Promise<string> {
-    return await this.repo.getCompetitionFieldName(fieldId)
+  async getAllFields (): Promise<Field[]> {
+    return await this.repo.getAllFields()
   }
 
-  async queueMatch (fieldId: number, matchId: number): Promise<void> {
-    const { onDeck, onField } = await this.repo.getFieldOccupants(fieldId)
-
-    if (onDeck !== null) {
-      throw new Error(`Field ${fieldId} is already occupied by match ${onDeck}`)
-    }
-
-    if (onField === null) {
-      await this.repo.setFieldOnFieldMatch(fieldId, matchId)
-    } else {
-      await this.repo.setFieldOnDeckMatch(fieldId, matchId)
-    }
+  async getFieldName (fieldId: number): Promise<string> {
+    return await this.repo.getFieldName(fieldId)
   }
 
-  async removeMatch (fieldId: number, matchId: number): Promise<void> {
-    const { onDeck, onField } = await this.repo.getFieldOccupants(fieldId)
+  async addField (): Promise<void> {
+    this.logger.log('Adding field')
+    await this.repo.addField()
+    await this.publishFields()
+  }
 
-    if (onDeck === null && onField === null) {
-      throw new Error(`Field ${fieldId} is not occupied`)
-    }
+  async setName (id: number, name: string): Promise<void> {
+    this.logger.log(`Setting field ${id} name to ${name}`)
+    await this.repo.setName(id, name)
+    await this.publishFields()
+  }
 
-    if (onDeck === matchId) {
-      await this.repo.setFieldOnDeckMatch(fieldId, null)
-    } else if (onField === matchId) {
-      await this.repo.setFieldOnFieldMatch(fieldId, onDeck)
-      await this.repo.setFieldOnDeckMatch(fieldId, null)
-    } else {
-      throw new Error(`Match ${matchId} is not on field ${fieldId}`)
-    }
+  async deleteField (id: number): Promise<void> {
+    this.logger.log(`Deleting field ${id}`)
+    await this.repo.deleteField(id)
+    await this.publishFields()
+  }
+
+  async isEnabled (id: number): Promise<boolean> {
+    return await this.repo.isEnabled(id)
+  }
+
+  async getField (id: number): Promise<Field> {
+    return await this.repo.get(id)
   }
 }

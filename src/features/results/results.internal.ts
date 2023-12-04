@@ -1,7 +1,6 @@
 import { ElimsMatch, MatchResult, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
-import { FieldControlService } from '../field-control'
 import { EventStage, StageService } from '../stage'
 import { MatchService } from '../match'
 
@@ -11,7 +10,7 @@ export class ResultsInternal {
 
   constructor (
     private readonly tm: TmService,
-    private readonly control: FieldControlService,
+    // private readonly control: FieldControlService,
     private readonly stage: StageService,
     private readonly matches: MatchService
   ) { }
@@ -34,11 +33,7 @@ export class ResultsInternal {
   }
 
   private async handleResults (results: MatchResult[]): Promise<void> {
-    if (results.length === 0) {
-      return
-    }
-
-    await this.control.handleMatchResults(results)
+    // await this.control.handleMatchResults(results)
   }
 
   private async handleMatches (matches: ElimsMatch[]): Promise<void> {

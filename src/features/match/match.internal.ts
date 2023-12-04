@@ -153,4 +153,8 @@ export class MatchInternal {
     this.logger.log(`Creating match ${JSON.stringify(match.identifier)}`)
     await this.repo.createElimsMatch(match)
   }
+
+  async getMatch (match: number): Promise<Match | null> {
+    return await this.repo.getMatchById(match)
+  }
 }

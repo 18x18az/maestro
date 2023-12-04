@@ -1,5 +1,5 @@
 import { PrismaService } from '@/utils'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Field } from './field.interface'
 
 @Injectable()
@@ -8,11 +8,29 @@ export class FieldRepo {
 
   private readonly logger: Logger = new Logger(FieldRepo.name)
 
+  private async getField (id: number): Promise<Field> {
+    const field = await this.repo.field.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if (field === null) {
+      throw new NotFoundException(`Field ${id} not found`)
+    }
+
+    return {
+      id: field.id,
+      name: field.name,
+      isCompetition: field.isCompetition === 1,
+      isSkills: field.isSkills === 1
+    }
+  }
+
   async getCompetitionFields (): Promise<Field[]> {
     const fields = await this.repo.field.findMany({
       where: {
-        isCompetition: 1,
-        isEnabled: 1
+        isCompetition: 1
       },
       orderBy: {
         id: 'asc'
@@ -23,30 +41,32 @@ export class FieldRepo {
       id: field.id,
       name: field.name,
       isCompetition: field.isCompetition === 1,
-      isEnabled: field.isEnabled === 1
+      isSkills: field.isSkills === 1
     }))
   }
 
-  async getCompetitionFieldName (fieldId: number): Promise<string> {
-    const field = await this.repo.field.findUnique({
-      where: {
-        id: fieldId
+  async getAllFields (): Promise<Field[]> {
+    const fields = await this.repo.field.findMany({
+      orderBy: {
+        id: 'asc'
       }
     })
 
-    if (field === null) {
-      throw new Error(`Field ${fieldId} not found`)
-    }
+    return fields.map(field => ({
+      id: field.id,
+      name: field.name,
+      isCompetition: field.isCompetition === 1,
+      isSkills: field.isSkills === 1
+    }))
+  }
 
+  async getFieldName (fieldId: number): Promise<string> {
+    const field = await this.getField(fieldId)
     return field.name
   }
 
   async initializeCompetitionFields (fields: string[]): Promise<void> {
-    const existingFields = await this.repo.field.count({
-      where: {
-        isCompetition: 1
-      }
-    })
+    const existingFields = await this.repo.field.count({})
 
     if (existingFields < fields.length) {
       for (let i = existingFields; i < fields.length; i++) {
@@ -55,16 +75,13 @@ export class FieldRepo {
           data: {
             name: fields[i],
             isCompetition: 1,
-            isEnabled: 1
+            isSkills: 0
           }
         })
       }
     }
 
     const sortedFields = await this.repo.field.findMany({
-      where: {
-        isCompetition: 1
-      },
       orderBy: {
         id: 'asc'
       }
@@ -76,53 +93,74 @@ export class FieldRepo {
           id: sortedFields[i].id
         },
         data: {
-          isEnabled: 1,
-          name: fields[i]
+          name: fields[i],
+          isCompetition: 1,
+          isSkills: 0
         }
       })
     }
   }
 
-  async getFieldOccupants (fieldId: number): Promise<{ onDeck: number | null, onField: number | null }> {
-    const field = await this.repo.field.findUnique({
-      where: {
-        id: fieldId
-      },
-      select: {
-        onDeckId: true,
-        onFieldId: true
-      }
-    })
-
-    if (field === null) {
-      throw new Error(`Field ${fieldId} not found`)
-    }
-
-    return {
-      onDeck: field.onDeckId,
-      onField: field.onFieldId
-    }
-  }
-
-  async setFieldOnDeckMatch (fieldId: number, matchId: number | null): Promise<void> {
-    await this.repo.field.update({
-      where: {
-        id: fieldId
-      },
+  async addField (): Promise<void> {
+    await this.repo.field.create({
       data: {
-        onDeckId: matchId
+        name: 'Unnamed Field'
       }
     })
   }
 
-  async setFieldOnFieldMatch (fieldId: number, matchId: number | null): Promise<void> {
+  async setName (id: number, name: string): Promise<void> {
     await this.repo.field.update({
       where: {
-        id: fieldId
+        id
       },
       data: {
-        onFieldId: matchId
+        name
       }
     })
+  }
+
+  async deleteField (id: number): Promise<void> {
+    await this.repo.field.delete({
+      where: {
+        id
+      }
+    })
+  }
+
+  async isEnabled (id: number): Promise<boolean> {
+    const field = await this.getField(id)
+
+    if (field.isCompetition || field.isSkills) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  async isExclusivelyCompetition (id: number): Promise<boolean> {
+    const field = await this.getField(id)
+
+    return (field.isCompetition && !field.isSkills)
+  }
+
+  async isCompetition (id: number): Promise<boolean> {
+    const field = await this.getField(id)
+    return field.isCompetition
+  }
+
+  async setCanBeUsedForSkills (id: number, canBeUsedForSkills: boolean): Promise<void> {
+    await this.repo.field.update({
+      where: {
+        id
+      },
+      data: {
+        isSkills: canBeUsedForSkills ? 1 : 0
+      }
+    })
+  }
+
+  async get (id: number): Promise<Field> {
+    return await this.getField(id)
   }
 }

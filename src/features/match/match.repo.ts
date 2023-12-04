@@ -336,4 +336,22 @@ export class MatchRepo {
       }
     })
   }
+
+  async getMatchById (matchId: number): Promise<Match | null> {
+    const match = await this.prisma.match.findUnique({
+      where: {
+        id: matchId
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return parseMatch(match)
+  }
 }

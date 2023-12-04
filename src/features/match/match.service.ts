@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { Match, MatchStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { ElimsMatch } from '@/utils'
@@ -54,5 +54,58 @@ export class MatchService {
 
   async createElimsMatch (match: ElimsMatch): Promise<void> {
     await this.service.createElimsMatch(match)
+  }
+
+  async getMatch (match: number): Promise<Match | null> {
+    return await this.service.getMatch(match)
+  }
+
+  async getMatchStatus (matchId: number): Promise<MatchStatus> {
+    const match = await this.service.getMatch(matchId)
+
+    if (match === null) {
+      throw new BadRequestException(`Match ${matchId} not found`)
+    }
+
+    return match.status
+  }
+
+  async canBeQueued (matchId: number): Promise<boolean> {
+    const status = await this.getMatchStatus(matchId)
+
+    return status === MatchStatus.NOT_STARTED || status === MatchStatus.NEEDS_REPLAY
+  }
+
+  async canBeResolved (matchId: number): Promise<boolean> {
+    const status = await this.getMatchStatus(matchId)
+
+    return status === MatchStatus.QUEUED || status === MatchStatus.SCORING
+  }
+
+  async resolveMatch (matchId: number, resolution: MatchStatus): Promise<void> {
+    if (!await this.canBeResolved(matchId)) {
+      this.logger.warn(`Match ${matchId} cannot be resolved`)
+      throw new BadRequestException(`Match ${matchId} cannot be resolved`)
+    }
+
+    switch (resolution) {
+      case MatchStatus.COMPLETE:
+        await this.markScored(matchId)
+        break
+      case MatchStatus.NEEDS_REPLAY:
+        await this.markForReplay(matchId)
+        break
+      case MatchStatus.NOT_STARTED:
+        await this.unmarkQueued(matchId)
+        break
+      default:
+        throw new Error(`Invalid match resolution ${resolution}`)
+    }
+  }
+
+  async canStartMatch (matchId: number): Promise<boolean> {
+    const status = await this.getMatchStatus(matchId)
+
+    return status === MatchStatus.QUEUED
   }
 }
