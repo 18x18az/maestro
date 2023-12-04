@@ -2,8 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { MatchService, MatchStatus } from '../match'
-import { FieldControlService } from '../field-control'
-import { CONTROL_MODE } from '../field-control/field-control.interface'
+import { CONTROL_MODE, FieldControlService } from '../../field'
 
 @Injectable()
 export class CompetitionFieldControlService {

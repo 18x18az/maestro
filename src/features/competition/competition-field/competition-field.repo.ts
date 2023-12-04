@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../../utils'
+import { PrismaService } from '@/utils'
 
 @Injectable()
 export class CompetitionFieldRepo {

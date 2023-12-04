@@ -2,7 +2,7 @@ import { ElimsMatch, MatchResult, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
-import { MatchService } from '../match'
+import { MatchService } from '../competition'
 
 @Injectable()
 export class ResultsInternal {

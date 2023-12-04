@@ -1,5 +1,5 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
-import { CompetitionControlService } from './competition-control.service'
+import { CompetitionControlService } from './competition.service'
 
 @Controller('competitionControl')
 export class CompetitionControlController {
@@ -12,7 +12,7 @@ export class CompetitionControlController {
 
   @Post('pushActive')
   async pushActiveMatch (): Promise<void> {
-    await this.service.makeOnDeckFieldCurrent()
+    await this.service.makeOnDeckFieldLive()
   }
 
   @Post('start')
@@ -22,7 +22,7 @@ export class CompetitionControlController {
 
   @Post('reset')
   async reset (): Promise<void> {
-    await this.service.reset()
+    await this.service.resetAutonomous()
   }
 
   @Post('match/:matchId/replay')

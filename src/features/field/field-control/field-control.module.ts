@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common'
 import { FieldControlService } from './field-control.service'
 import { FieldControlPublisher } from './field-control.publisher'
-import { FieldModule } from '../field/field.module'
-import { PublishModule } from '../../utils'
+import { PublishModule } from '@/utils'
+import { FieldModule } from '../field'
 
 @Module({
   imports: [FieldModule, PublishModule],

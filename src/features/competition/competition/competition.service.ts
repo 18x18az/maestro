@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { CompetitionControlCache } from './competition-control.cache'
+import { CompetitionControlCache } from './competition.cache'
 import { CompetitionFieldService } from '../competition-field/competition-field.service'
 import { MATCH_STAGE } from '../competition-field/competition-field.interface'
 
@@ -13,11 +13,22 @@ export class CompetitionControlService {
 
   async markFieldAsOnDeck (fieldId: number): Promise<void> {
     this.logger.log(`Marking field ${fieldId} as on deck`)
-    await this.fields.readyAutonomous(fieldId)
     await this.cache.setOnDeckField(fieldId)
   }
 
-  async makeOnDeckFieldCurrent (): Promise<void> {
+  async readyAutonomous (): Promise<void> {
+    this.logger.log('Readying autonomous period')
+
+    const fieldId = this.cache.getLiveField()
+    if (fieldId === null) {
+      this.logger.warn('No live field')
+      throw new BadRequestException('No live field')
+    }
+
+    await this.fields.readyAutonomous(fieldId)
+  }
+
+  async makeOnDeckFieldLive (): Promise<void> {
     const fieldId = this.cache.getOnDeckField()
     if (fieldId === null) {
       this.logger.warn('No field is on deck')
@@ -25,23 +36,34 @@ export class CompetitionControlService {
     }
 
     // If there is a match on the field, ensure it's not an active match
-    const currentField = this.cache.getCurrentField()
+    const currentField = this.cache.getLiveField()
     if (currentField !== null) {
-      await this.fields.noLongerActiveField(currentField)
+      await this.fields.noLongerLiveField(currentField)
     }
 
     await this.cache.setOnDeckField(null)
-    await this.cache.setCurrentField(fieldId)
+    await this.cache.setLiveField(fieldId)
+    await this.readyAutonomous()
+  }
+
+  async clearLiveField (): Promise<void> {
+    const fieldId = this.cache.getLiveField()
+    if (fieldId === null) {
+      this.logger.warn('No field currently active')
+      throw new BadRequestException('No field currently live')
+    }
+
+    await this.fields.noLongerLiveField(fieldId)
   }
 
   async startPeriod (): Promise<void> {
-    const fieldId = this.cache.getCurrentField()
+    const fieldId = this.cache.getLiveField()
     if (fieldId === null) {
       this.logger.warn('No field is current')
       throw new BadRequestException('No field is current')
     }
 
-    const stage = await this.fields.getOnFieldMatchStage(fieldId)
+    const stage = await this.fields.getMatchStage(fieldId)
 
     if (stage === MATCH_STAGE.QUEUED) {
       await this.fields.startAutonomous(fieldId)
@@ -53,8 +75,8 @@ export class CompetitionControlService {
     }
   }
 
-  async reset (): Promise<void> {
-    const fieldId = this.cache.getCurrentField()
+  async resetAutonomous (): Promise<void> {
+    const fieldId = this.cache.getLiveField()
     if (fieldId === null) {
       this.logger.warn('No field is current')
       throw new BadRequestException('No field is current')

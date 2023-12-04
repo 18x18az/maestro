@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { FieldControlModel } from './field-control.model'
 import { CONTROL_MODE, FieldControlEndCb } from './field-control.interface'
 import { FieldControlPublisher } from './field-control.publisher'
-import { FieldService } from '../field/field.service'
+import { FieldService } from '../field'
 @Injectable()
 export class FieldControlService {
   private readonly fields: Map<number, FieldControlModel> = new Map<number, FieldControlModel>()

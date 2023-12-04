@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
-import { EventStage, StageService } from '../stage'
 import { Match, MatchStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
+import { EventStage, StageService } from '../../stage'
 
 @Injectable()
 export class MatchInternal {

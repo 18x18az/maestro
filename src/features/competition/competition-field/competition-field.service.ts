@@ -3,16 +3,16 @@ import { CompetitionFieldRepo } from './competition-field.repo'
 import { Match, MatchService, MatchStatus } from '../match'
 import { CompetitionFieldControlService } from './competition-field-control.service'
 import { CompetitionFieldStatus, MATCH_STAGE } from './competition-field.interface'
-import { FieldService } from '../field'
 import { CompetitionFieldPublisher } from './competition-field.publisher'
 import { VacancyService } from './vacancy.service'
+import { FieldService } from '../../field'
 
 @Injectable({ scope: Scope.REQUEST })
 export class CompetitionFieldService {
   private readonly logger: Logger = new Logger(CompetitionFieldService.name)
 
   private onField: number | null | undefined
-  private onDeck: number | null | undefined
+  private onTable: number | null | undefined
 
   constructor (
     private readonly repo: CompetitionFieldRepo,
@@ -37,12 +37,12 @@ export class CompetitionFieldService {
 
   private async bustCache (fieldId: number): Promise<void> {
     await this.getOnFieldMatch(fieldId, true)
-    await this.getOnDeckMatch(fieldId, true)
+    await this.getOnTableMatch(fieldId, true)
   }
 
-  private async getOnDeckMatchInfo (fieldId: number): Promise<Match | null> {
+  private async getOnTableMatchInfo (fieldId: number): Promise<Match | null> {
     // If no match is on deck, return null
-    const onDeckId = await this.getOnDeckMatch(fieldId)
+    const onDeckId = await this.getOnTableMatch(fieldId)
     if (onDeckId === null) {
       return null
     }
@@ -52,7 +52,7 @@ export class CompetitionFieldService {
     return match
   }
 
-  async getOnFieldMatchStage (fieldId: number): Promise<MATCH_STAGE> {
+  async getMatchStage (fieldId: number): Promise<MATCH_STAGE> {
     return await this.control.get(fieldId)
   }
 
@@ -60,13 +60,13 @@ export class CompetitionFieldService {
     return await this.control.isActive(fieldId)
   }
 
-  async noLongerActiveField (fieldId: number): Promise<void> {
+  async noLongerLiveField (fieldId: number): Promise<void> {
     if (await this.isActive(fieldId)) {
       this.logger.warn(`Field ${fieldId} is still active`)
       throw new BadRequestException(`Field ${fieldId} is still active`)
     }
 
-    const currentStatus = await this.getOnFieldMatchStage(fieldId)
+    const currentStatus = await this.getMatchStage(fieldId)
     if (currentStatus === MATCH_STAGE.OUTRO) {
       await this.control.onOutroEnd(fieldId)
     }
@@ -76,9 +76,9 @@ export class CompetitionFieldService {
   private async publish (fieldId: number): Promise<void> {
     const payload: CompetitionFieldStatus = {
       field: await this.field.getField(fieldId),
-      onDeck: await this.getOnDeckMatchInfo(fieldId),
+      onDeck: await this.getOnTableMatchInfo(fieldId),
       onField: await this.getOnFieldMachInfo(fieldId),
-      stage: await this.getOnFieldMatchStage(fieldId)
+      stage: await this.getMatchStage(fieldId)
     }
 
     await this.publisher.publishFieldStatus(fieldId, payload)
@@ -90,15 +90,15 @@ export class CompetitionFieldService {
     await this.publish(fieldId)
   }
 
-  private async getOnDeckMatch (fieldId: number, bustCache: boolean = false): Promise<number | null> {
+  private async getOnTableMatch (fieldId: number, bustCache: boolean = false): Promise<number | null> {
     // If the on deck match is already cached, return it
-    if (this.onDeck !== undefined && !bustCache) {
-      return this.onDeck
+    if (this.onTable !== undefined && !bustCache) {
+      return this.onTable
     }
 
     // Otherwise, get the match from the database and cache it
     const match = await this.repo.getMatchOnDeck(fieldId)
-    this.onDeck = match
+    this.onTable = match
     return match
   }
 
@@ -133,7 +133,7 @@ export class CompetitionFieldService {
 
   private async putOnDeck (fieldId: number, matchId: number): Promise<void> {
     // Make sure there is not already a match on deck
-    const onDeck = await this.getOnDeckMatch(fieldId)
+    const onDeck = await this.getOnTableMatch(fieldId)
     if (onDeck !== null) {
       throw new Error(`Field ${fieldId} already has a match on deck`)
     }
@@ -141,7 +141,7 @@ export class CompetitionFieldService {
     // Put the match on deck and mark it as queued
     this.logger.log(`Putting match ${matchId} on deck for field ${fieldId}`)
     await this.repo.putOnDeck(fieldId, matchId)
-    this.onDeck = matchId
+    this.onTable = matchId
     await this.matches.markQueued(matchId)
 
     // Publish the new field status
@@ -151,7 +151,7 @@ export class CompetitionFieldService {
   private async fieldCanQueue (fieldId: number): Promise<boolean> {
     // Make sure there is a gap to queue the match into
     const onField = await this.getOnFieldMatch(fieldId)
-    const onDeck = await this.getOnDeckMatch(fieldId)
+    const onDeck = await this.getOnTableMatch(fieldId)
 
     return onField === null || onDeck === null
   }
@@ -199,7 +199,7 @@ export class CompetitionFieldService {
     this.onField = null
 
     // If no match is on deck, publish the new field status and return
-    const onDeck = await this.getOnDeckMatch(fieldId)
+    const onDeck = await this.getOnTableMatch(fieldId)
     if (onDeck === null) {
       await this.publish(fieldId)
       return
@@ -209,7 +209,7 @@ export class CompetitionFieldService {
     this.logger.log(`Moving match ${onDeck} from on deck to on field`)
     await this.repo.moveOnDeckToOnField(fieldId)
     this.onField = onDeck
-    this.onDeck = null
+    this.onTable = null
     await this.publish(fieldId)
   }
 
@@ -217,7 +217,7 @@ export class CompetitionFieldService {
     this.logger.log(`Removing match on deck on field ${fieldId}`)
 
     // Make sure there is a match on deck to remove
-    const onDeck = await this.getOnDeckMatch(fieldId)
+    const onDeck = await this.getOnTableMatch(fieldId)
     if (onDeck === null) {
       this.logger.warn(`Field ${fieldId} has no match on deck`)
       throw new BadRequestException(`Field ${fieldId} has no match on deck`)
@@ -226,7 +226,7 @@ export class CompetitionFieldService {
     // Unmark the match as queued and remove it from the on deck slot
     await this.matches.unmarkQueued(onDeck)
     await this.repo.removeOnDeck(fieldId)
-    this.onDeck = null
+    this.onTable = null
 
     // Publish the new field status
     await this.publish(fieldId)

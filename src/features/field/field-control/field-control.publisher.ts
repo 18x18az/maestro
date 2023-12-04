@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PublishService } from '../../utils'
+import { PublishService } from '@/utils'
 import { FieldControlStatus } from './field-control.interface'
 
 @Injectable()
