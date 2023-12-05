@@ -4,7 +4,7 @@ import { CompetitionFieldStatus } from './competition-field.interface'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { Match, MatchService } from '../match'
 import { CompetitionFieldControlService } from './competition-field-control.service'
-import { FieldService } from '../../field/field'
+import { FieldService } from '../../field'
 
 @Injectable()
 export class LifecycleService {

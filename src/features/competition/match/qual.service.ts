@@ -10,9 +10,9 @@ export class QualService {
 
   constructor (
     private readonly stage: StageService,
-    private readonly field: FieldService,
     private readonly repo: MatchRepo,
-    private readonly service: MatchInternal
+    private readonly service: MatchInternal,
+    private readonly field: FieldService
   ) {}
 
   async handleUpload (file: string): Promise<void> {

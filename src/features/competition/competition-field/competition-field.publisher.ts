@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PublishService } from '@/utils'
 import { CompetitionFieldStatus } from './competition-field.interface'
-import { Field } from '../../field/field'
+import { Field } from '../../field'
 
 @Injectable()
 export class CompetitionFieldPublisher {

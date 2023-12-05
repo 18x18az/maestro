@@ -7,7 +7,7 @@ import { MatchInternal } from './match.internal'
 import { MatchPublisher } from './match.publisher'
 import { MatchService } from './match.service'
 import { StageModule } from '../../stage'
-import { FieldModule } from '../../field'
+import { FieldModule } from '@/features/field'
 
 @Module({
   imports: [StageModule, PrismaModule, PublishModule, FieldModule],

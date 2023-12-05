@@ -5,7 +5,7 @@ import { CompetitionFieldControlService } from './competition-field-control.serv
 import { CompetitionFieldStatus, MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldPublisher } from './competition-field.publisher'
 import { VacancyService } from './vacancy.service'
-import { FieldService } from '../../field'
+import { FieldService } from '@/features/field'
 
 @Injectable({ scope: Scope.REQUEST })
 export class CompetitionFieldService {

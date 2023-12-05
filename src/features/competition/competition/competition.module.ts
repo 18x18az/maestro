@@ -4,7 +4,7 @@ import { CompetitionControlService } from './competition.service'
 import { CompetitionControlPublisher } from './competition.publisher'
 import { PublishModule } from '@/utils'
 import { CompetitionControlController } from './competition.controller'
-import { CompetitionFieldModule } from '../competition-field/competition-field.module'
+import { CompetitionFieldModule } from '../competition-field'
 
 @Module({
   imports: [CompetitionFieldModule, PublishModule],

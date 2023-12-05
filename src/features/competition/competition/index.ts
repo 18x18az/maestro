@@ -1,1 +1,1 @@
-export { CompetitionModule as CompetitionControlModule } from './competition.module'
+export { CompetitionModule } from './competition.module'

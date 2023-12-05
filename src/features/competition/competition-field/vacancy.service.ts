@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { CompetitionFieldPublisher } from './competition-field.publisher'
 import { CompetitionFieldRepo } from './competition-field.repo'
-import { FieldService } from '../../field/field'
+import { FieldService } from '../../field'
 
 @Injectable()
 export class VacancyService {

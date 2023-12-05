@@ -1,4 +1,4 @@
-import { Field } from '../../field/field'
+import { Field } from '../../field'
 import { Match } from '../match'
 
 export enum MATCH_STAGE {
