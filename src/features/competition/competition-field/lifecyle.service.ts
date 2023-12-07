@@ -10,6 +10,8 @@ import { FieldService } from '../../field'
 export class LifecycleService {
   private readonly logger = new Logger(LifecycleService.name)
 
+  private automationEnabled: boolean = false
+
   constructor (private readonly publisher: CompetitionFieldPublisher,
     private readonly fields: FieldService,
     private readonly repo: CompetitionFieldRepo,
@@ -42,5 +44,13 @@ export class LifecycleService {
 
       await this.publisher.publishFieldStatus(field.id, initialState)
     }
+  }
+
+  enableAutomation (enabled: boolean): void {
+    this.automationEnabled = enabled
+  }
+
+  isAutomationEnabled (): boolean {
+    return this.automationEnabled
   }
 }

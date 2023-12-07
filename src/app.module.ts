@@ -1,5 +1,5 @@
 import { ConfigModule } from '@nestjs/config'
-import { AllianceSelectionModule, CompetitionModule, DisplayModule, StreamModule } from '@/features'
+import { AllianceSelectionModule, CompetitionModule, DisplayModule, ResultsModule, StreamModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -11,7 +11,8 @@ import { BeaconService } from './utils'
     AllianceSelectionModule,
     DisplayModule,
     StreamModule,
-    CompetitionModule
+    CompetitionModule,
+    ResultsModule
   ]
 })
 export class WithoutPigeonModule {}

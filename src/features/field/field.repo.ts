@@ -163,4 +163,30 @@ export class FieldRepo {
   async get (id: number): Promise<Field> {
     return await this.getField(id)
   }
+
+  async getNextField (id: number): Promise<Field> {
+    const fields = await this.repo.field.findMany({
+      where: {
+        isCompetition: 1
+      }
+    })
+
+    if (fields === null) {
+      throw new Error('No competition fields')
+    }
+
+    const currentIndex = fields.findIndex(function (item, i) {
+      return item.id === id
+    })
+
+    const nextIndex = (currentIndex + 1) % fields.length
+    const field = fields[nextIndex]
+
+    return {
+      id: field.id,
+      isCompetition: field.isCompetition === 1,
+      isSkills: field.isSkills === 1,
+      name: field.name
+    }
+  }
 }

@@ -3,14 +3,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
 import { MatchService } from '../competition/match'
+import { CompetitionControlService } from '../competition/competition/competition.service'
 
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
+  private readonly savedResults: string[] = []
 
   constructor (
     private readonly tm: TmService,
-    // private readonly control: FieldControlService,
+    private readonly control: CompetitionControlService,
     private readonly stage: StageService,
     private readonly matches: MatchService
   ) { }
@@ -33,7 +35,14 @@ export class ResultsInternal {
   }
 
   private async handleResults (results: MatchResult[]): Promise<void> {
-    // await this.control.handleMatchResults(results)
+    for (const result of results) {
+      const key = JSON.stringify(result.identifier)
+      if (this.savedResults.includes(key)) continue
+
+      this.logger.log(`Result for match ${JSON.stringify(result.identifier)}`)
+      await this.control.handleMatchResult(result)
+      this.savedResults.push(key)
+    }
   }
 
   private async handleMatches (matches: ElimsMatch[]): Promise<void> {

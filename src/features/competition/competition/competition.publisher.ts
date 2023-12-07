@@ -12,4 +12,8 @@ export class CompetitionControlPublisher {
   public async publishOnDeckField (fieldId: number | null): Promise<void> {
     await this.publisher.broadcast('onDeckField', { fieldId })
   }
+
+  public async publishAutomation (enabled: boolean): Promise<void> {
+    await this.publisher.broadcast('automation', { enabled })
+  }
 }

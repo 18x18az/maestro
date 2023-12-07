@@ -65,4 +65,8 @@ export class FieldService {
   async getField (id: number): Promise<Field> {
     return await this.repo.get(id)
   }
+
+  async getNextField (id: number): Promise<Field> {
+    return await this.repo.getNextField(id)
+  }
 }

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { Match, MatchStatus } from './match.interface'
+import { Match, MatchIdentifier, MatchStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { ElimsMatch } from '@/utils'
 
@@ -107,5 +107,9 @@ export class MatchService {
     const status = await this.getMatchStatus(matchId)
 
     return status === MatchStatus.QUEUED
+  }
+
+  async findByIdent (identifier: MatchIdentifier): Promise<Match> {
+    return await this.service.findByIdent(identifier)
   }
 }

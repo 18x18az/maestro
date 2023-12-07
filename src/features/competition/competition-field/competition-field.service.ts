@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, Scope } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { Match, MatchService, MatchStatus } from '../match'
 import { CompetitionFieldControlService } from './competition-field-control.service'
@@ -6,13 +6,11 @@ import { CompetitionFieldStatus, MATCH_STAGE } from './competition-field.interfa
 import { CompetitionFieldPublisher } from './competition-field.publisher'
 import { VacancyService } from './vacancy.service'
 import { FieldService } from '@/features/field'
+import { LifecycleService } from './lifecyle.service'
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class CompetitionFieldService {
   private readonly logger: Logger = new Logger(CompetitionFieldService.name)
-
-  private onField: number | null | undefined
-  private onTable: number | null | undefined
 
   constructor (
     private readonly repo: CompetitionFieldRepo,
@@ -20,7 +18,8 @@ export class CompetitionFieldService {
     private readonly control: CompetitionFieldControlService,
     private readonly field: FieldService,
     private readonly publisher: CompetitionFieldPublisher,
-    private readonly vacancy: VacancyService
+    private readonly vacancy: VacancyService,
+    private readonly persistence: LifecycleService
   ) {}
 
   private async getOnFieldMachInfo (fieldId: number): Promise<Match | null> {
@@ -33,11 +32,6 @@ export class CompetitionFieldService {
     // Get basic match info from the match service
     const match = await this.matches.getMatch(onFieldId)
     return match
-  }
-
-  private async bustCache (fieldId: number): Promise<void> {
-    await this.getOnFieldMatch(fieldId, true)
-    await this.getOnTableMatch(fieldId, true)
   }
 
   private async getOnTableMatchInfo (fieldId: number): Promise<Match | null> {
@@ -68,6 +62,7 @@ export class CompetitionFieldService {
 
     const currentStatus = await this.getMatchStage(fieldId)
     if (currentStatus === MATCH_STAGE.OUTRO) {
+      this.logger.log('Closing out outro')
       await this.control.onOutroEnd(fieldId)
     }
     await this.publish(fieldId)
@@ -85,33 +80,12 @@ export class CompetitionFieldService {
     await this.vacancy.onFieldUpdate(fieldId)
   }
 
-  private async republish (fieldId: number): Promise<void> {
-    await this.bustCache(fieldId)
-    await this.publish(fieldId)
+  private async getOnTableMatch (fieldId: number): Promise<number | null> {
+    return await this.repo.getMatchOnDeck(fieldId)
   }
 
-  private async getOnTableMatch (fieldId: number, bustCache: boolean = false): Promise<number | null> {
-    // If the on deck match is already cached, return it
-    if (this.onTable !== undefined && !bustCache) {
-      return this.onTable
-    }
-
-    // Otherwise, get the match from the database and cache it
-    const match = await this.repo.getMatchOnDeck(fieldId)
-    this.onTable = match
-    return match
-  }
-
-  private async getOnFieldMatch (fieldId: number, bustCache: boolean = false): Promise<number | null> {
-    // If the on field match is already cached, return it
-    if (this.onField !== undefined && !bustCache) {
-      return this.onField
-    }
-
-    // Otherwise, get the match from the database and cache it
-    const match = await this.repo.getMatchOnField(fieldId)
-    this.onField = match
-    return match
+  private async getOnFieldMatch (fieldId: number): Promise<number | null> {
+    return await this.repo.getMatchOnField(fieldId)
   }
 
   private async putOnField (fieldId: number, matchId: number): Promise<void> {
@@ -124,7 +98,6 @@ export class CompetitionFieldService {
     // Put the match on field and mark it as queued
     this.logger.log(`Putting match ${matchId} on field ${fieldId}`)
     await this.repo.putOnField(fieldId, matchId)
-    this.onField = matchId
     await this.matches.markQueued(matchId)
 
     // Publish the new field status
@@ -141,7 +114,6 @@ export class CompetitionFieldService {
     // Put the match on deck and mark it as queued
     this.logger.log(`Putting match ${matchId} on deck for field ${fieldId}`)
     await this.repo.putOnDeck(fieldId, matchId)
-    this.onTable = matchId
     await this.matches.markQueued(matchId)
 
     // Publish the new field status
@@ -183,6 +155,48 @@ export class CompetitionFieldService {
     }
   }
 
+  private async queueNextMatch (fieldId: number): Promise<boolean> {
+    if (!this.persistence.isAutomationEnabled()) {
+      return false
+    }
+    const unqueued = await this.matches.getUnqueuedMatches()
+    const firstEligible = unqueued.find((match) => {
+      return match.fieldId === undefined || match.fieldId === fieldId
+    })
+
+    if (firstEligible === undefined) {
+      return false
+    }
+
+    await this.queueMatch(fieldId, firstEligible.id)
+    return true
+  }
+
+  async fillField (fieldId: number): Promise<void> {
+    this.logger.log(`Ensuring field ${fieldId} is filled`)
+    const onTable = await this.getOnTableMatch(fieldId)
+    if (onTable === null) {
+      const didFillNextMatch = await this.queueNextMatch(fieldId)
+
+      if (didFillNextMatch) {
+        await this.fillField(fieldId)
+      }
+    }
+  }
+
+  async fillAllFields (): Promise<void> {
+    if (!this.persistence.isAutomationEnabled()) {
+      return
+    }
+
+    this.logger.log('Filling all fields')
+    const fields = await this.field.getCompetitionFields()
+
+    for (const field of fields) {
+      await this.fillField(field.id)
+    }
+  }
+
   async resolveMatchOnField (fieldId: number, resolution: MatchStatus): Promise<void> {
     this.logger.log(`Clearing field ${fieldId}`)
 
@@ -196,7 +210,6 @@ export class CompetitionFieldService {
     // Resolve the match on the field and remove it from the on field slot
     await this.matches.resolveMatch(onField, resolution)
     await this.repo.removeOnField(fieldId)
-    this.onField = null
 
     // If no match is on deck, publish the new field status and return
     const onDeck = await this.getOnTableMatch(fieldId)
@@ -208,9 +221,13 @@ export class CompetitionFieldService {
     // Otherwise, move the match on deck onto the field and publish the new field status
     this.logger.log(`Moving match ${onDeck} from on deck to on field`)
     await this.repo.moveOnDeckToOnField(fieldId)
-    this.onField = onDeck
-    this.onTable = null
-    await this.publish(fieldId)
+
+    const didQueueNextMatch = await this.queueNextMatch(fieldId)
+
+    // Didn't have a next match to queue so manually publish the removal
+    if (!didQueueNextMatch) {
+      await this.publish(fieldId)
+    }
   }
 
   async removeMatchOnDeck (fieldId: number): Promise<void> {
@@ -226,7 +243,6 @@ export class CompetitionFieldService {
     // Unmark the match as queued and remove it from the on deck slot
     await this.matches.unmarkQueued(onDeck)
     await this.repo.removeOnDeck(fieldId)
-    this.onTable = null
 
     // Publish the new field status
     await this.publish(fieldId)
@@ -255,6 +271,16 @@ export class CompetitionFieldService {
     await this.resolveMatchOnField(fieldId, MatchStatus.NEEDS_REPLAY)
 
     return fieldId
+  }
+
+  async matchScored (matchId: number): Promise<void> {
+    const { fieldId, location } = await this.repo.getMatchLocation(matchId)
+
+    if (location === 'ON_DECK') {
+      throw new Error('Scored match that was on deck')
+    } else {
+      await this.resolveMatchOnField(fieldId, MatchStatus.COMPLETE)
+    }
   }
 
   async removeMatch (matchId: number): Promise<number> {
@@ -288,7 +314,7 @@ export class CompetitionFieldService {
 
   async startAutonomous (fieldId: number): Promise<void> {
     this.logger.log(`Starting autonomous on field ${fieldId}`)
-    await this.control.startAuto(fieldId, this.republish.bind(this))
+    await this.control.startAuto(fieldId, this.publish.bind(this))
     await this.publish(fieldId)
   }
 
@@ -297,14 +323,30 @@ export class CompetitionFieldService {
     await this.control.endAutoEarly(fieldId)
   }
 
-  async startDriver (fieldId: number): Promise<void> {
+  async startDriver (fieldId: number, endCb?: (fieldId: number) => Promise<void>): Promise<void> {
     this.logger.log(`Starting driver on field ${fieldId}`)
-    await this.control.startDriver(fieldId, this.republish.bind(this))
+    await this.control.startDriver(fieldId, async () => {
+      await this.publish(fieldId)
+      if (endCb !== undefined) await endCb(fieldId)
+    })
     await this.publish(fieldId)
   }
 
   async endDriver (fieldId: number): Promise<void> {
     this.logger.log(`Ending driver on field ${fieldId}`)
     await this.control.endDriverEarly(fieldId)
+  }
+
+  async getNextOnDeckField (fieldId: number): Promise<number | null> {
+    this.logger.log('Checking if next field is ready to be queued')
+    const nextField = await this.field.getNextField(fieldId)
+    this.logger.log(`Next field is ${nextField.name}`)
+    const info = await this.getOnFieldMachInfo(nextField.id)
+    if (info === null) {
+      this.logger.log('No match queued on field')
+      return null
+    }
+
+    return nextField.id
   }
 }

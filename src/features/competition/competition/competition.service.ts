@@ -2,13 +2,16 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CompetitionControlCache } from './competition.cache'
 import { CompetitionFieldService } from '../competition-field/competition-field.service'
 import { MATCH_STAGE } from '../competition-field/competition-field.interface'
+import { MatchResult } from '../../../utils'
+import { MatchService, MatchStatus } from '../match'
 
 @Injectable()
 export class CompetitionControlService {
   private readonly logger = new Logger(CompetitionControlService.name)
   constructor (
     private readonly cache: CompetitionControlCache,
-    private readonly fields: CompetitionFieldService
+    private readonly fields: CompetitionFieldService,
+    private readonly matches: MatchService
   ) { }
 
   async markFieldAsOnDeck (fieldId: number): Promise<void> {
@@ -44,9 +47,14 @@ export class CompetitionControlService {
     await this.cache.setOnDeckField(null)
     await this.cache.setLiveField(fieldId)
     await this.readyAutonomous()
+    const nextOnDeck = await this.fields.getNextOnDeckField(fieldId)
+    if (nextOnDeck !== null) {
+      await this.markFieldAsOnDeck(nextOnDeck)
+    }
   }
 
   async clearLiveField (): Promise<void> {
+    this.logger.log('Clearing live field')
     const fieldId = this.cache.getLiveField()
     if (fieldId === null) {
       this.logger.warn('No field currently active')
@@ -54,6 +62,13 @@ export class CompetitionControlService {
     }
 
     await this.fields.noLongerLiveField(fieldId)
+    await this.cache.setLiveField(null)
+  }
+
+  async onDriverEnd (): Promise<void> {
+    setTimeout(() => {
+      void this.clearLiveField()
+    }, 3000)
   }
 
   async startPeriod (): Promise<void> {
@@ -68,7 +83,7 @@ export class CompetitionControlService {
     if (stage === MATCH_STAGE.QUEUED) {
       await this.fields.startAutonomous(fieldId)
     } else if (stage === MATCH_STAGE.SCORING_AUTON) {
-      await this.fields.startDriver(fieldId)
+      await this.fields.startDriver(fieldId, this.onDriverEnd.bind(this))
     } else {
       this.logger.warn(`Field ${fieldId} is not ready to start`)
       throw new BadRequestException(`Field ${fieldId} is not ready to start`)
@@ -100,6 +115,18 @@ export class CompetitionControlService {
   }
 
   async removeMatch (matchId: number): Promise<void> {
+    await this.enableAutomation(false)
     await this.fields.removeMatch(matchId)
+  }
+
+  async enableAutomation (enabled: boolean): Promise<void> {
+    await this.cache.setAutomationEnabled(enabled)
+  }
+
+  async handleMatchResult (result: MatchResult): Promise<void> {
+    const match = await this.matches.findByIdent(result.identifier)
+    if (match.status === MatchStatus.SCORING) {
+      await this.fields.matchScored(match.id)
+    }
   }
 }

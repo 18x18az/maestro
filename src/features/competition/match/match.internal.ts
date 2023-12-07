@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
-import { Match, MatchStatus } from './match.interface'
+import { Match, MatchIdentifier, MatchStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
 import { EventStage, StageService } from '../../stage'
 
@@ -131,7 +131,7 @@ export class MatchInternal {
   }
 
   async getUnqueuedMatches (): Promise<Match[]> {
-    return await this.repo.getUnqueuedQuals(false)
+    return await this.repo.getUnqueuedQuals(true)
   }
 
   async removeFieldAssignment (match: number): Promise<void> {
@@ -156,5 +156,9 @@ export class MatchInternal {
 
   async getMatch (match: number): Promise<Match | null> {
     return await this.repo.getMatchById(match)
+  }
+
+  async findByIdent (ident: MatchIdentifier): Promise<Match> {
+    return await this.repo.findByIdent(ident)
   }
 }

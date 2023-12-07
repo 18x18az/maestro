@@ -15,6 +15,11 @@ export class CompetitionControlController {
     await this.service.makeOnDeckFieldLive()
   }
 
+  @Post('clearLive')
+  async clearLiveMatch (): Promise<void> {
+    await this.service.clearLiveField()
+  }
+
   @Post('start')
   async startPeriod (): Promise<void> {
     await this.service.startPeriod()
@@ -38,5 +43,10 @@ export class CompetitionControlController {
   @Post('match/:matchId/remove')
   async removeMatch (@Param('matchId') matchId: number): Promise<void> {
     await this.service.removeMatch(matchId)
+  }
+
+  @Post('automation')
+  async enableAutomation (@Body() body: { enabled: boolean }): Promise<void> {
+    await this.service.enableAutomation(body.enabled)
   }
 }
