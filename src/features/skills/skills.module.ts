@@ -3,10 +3,12 @@ import { FieldControlModule } from '../field-control'
 import { FieldModule } from '../field'
 import { SkillsController } from './skills.controller'
 import { SkillsService } from './skills.service'
+import { PublishModule } from '../../utils'
+import { SkillsPublisher } from './skills.publisher'
 
 @Module({
-  imports: [FieldControlModule, FieldModule],
+  imports: [FieldControlModule, FieldModule, PublishModule],
   controllers: [SkillsController],
-  providers: [SkillsService]
+  providers: [SkillsService, SkillsPublisher]
 })
 export class SkillsModule {}

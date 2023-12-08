@@ -6,6 +6,7 @@ export enum CONTROL_MODE {
 export interface FieldControlStatus {
   mode: CONTROL_MODE
   endTime: Date | null
+  duration: number | null
 }
 
 export type FieldControlEndCb = (fieldId: number) => Promise<void>

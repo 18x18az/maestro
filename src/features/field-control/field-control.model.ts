@@ -106,7 +106,8 @@ export class FieldControlModel {
 
     await this.publishCb(this.fieldId, {
       mode: this.state,
-      endTime: this.endTime
+      endTime: this.endTime,
+      duration: this.duration
     })
   }
 }
