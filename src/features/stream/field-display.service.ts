@@ -4,14 +4,14 @@ import { StreamPublisher } from './stream.publisher'
 import { ResultsDisplayService } from './results-display'
 import { SceneService } from './scene.service'
 
-// const FIELD_NAMES = ['Field 1', 'Field 2', 'Field 3']
+const FIELD_NAMES = ['Field 1', 'Field 2', 'Field 3']
 
 @Injectable()
 export class FieldDisplayService {
   private readonly logger: Logger = new Logger(FieldDisplayService.name)
 
-  // private currentField: FieldStatus | null = null
-  // private nextField: FieldStatus | null = null
+  private currentField: number | null = null
+  private onDeckField: number | null = null
 
   constructor (
     private readonly publisher: StreamPublisher,
@@ -23,48 +23,54 @@ export class FieldDisplayService {
     await this.publisher.publishDisplayStage(StreamDisplayStage.RESULTS)
   }
 
-  // async updateActiveField (status: FieldStatus | null): Promise<void> {
-  //   // const current = this.currentField
-  //   // this.currentField = status
-  //   // const remainsNull = status === null && current === null
+  async updateLiveField (fieldId: number | null): Promise<void> {
+    const current = this.currentField
+    this.currentField = fieldId
+    const remainsNull = fieldId === null && current === null
 
-  //   // if (remainsNull) return
+    if (remainsNull) return
 
-  //   // const remainsNotNull = status !== null && current !== null
-  //   // const remainsSameField = remainsNotNull && status.field.id === current.field.id
+    const remainsNotNull = fieldId !== null && current !== null
+    const remainsSameField = remainsNotNull && fieldId === current
 
-  //   // if (remainsSameField) return
+    if (remainsSameField) return
 
-  //   if (status === null) { // No longer an active field, go to results
-  //     await this.results.publishStagedResults()
-  //     this.logger.log('Match ended, setting display stage to results')
-  //     await this.scene.transition()
-  //     await this.publisher.publishDisplayStage(StreamDisplayStage.RESULTS)
-  //     // if (this.nextField !== null) {
-  //     //   this.logger.log(`Previewing next match on ${this.nextField.field.name}`)
-  //     //   await this.scene.setPreviewScene(this.nextField.field.name, 0)
-  //     // }
-  //   } else { // New active field, transition to it
-  //     // this.logger.log(`Introing match on ${status.field.name}`)
-  //     await this.scene.transition()
-  //     await this.publisher.publishDisplayStage(StreamDisplayStage.MATCH)
-  //     // const unusedScene = FIELD_NAMES.filter(name => name !== status.field.name && name !== this.nextField?.field.name)[0]
-  //     // this.logger.log(`Previewing results on ${unusedScene}`)
-  //     // await this.scene.setPreviewScene(unusedScene, 1)
-  //   }
-  // }
+    if (fieldId === null) { // No longer an active field, go to results
+      await this.results.publishStagedResults()
+      this.logger.log('Match ended, setting display stage to results')
+      await this.scene.transition()
+      await this.publisher.publishDisplayStage(StreamDisplayStage.RESULTS)
+      if (this.onDeckField !== null) {
+        const onDeckName = FIELD_NAMES[this.onDeckField]
+        this.logger.log(`Previewing next match on ${onDeckName}`)
+        await this.scene.setPreviewScene(onDeckName, 0)
+      }
+    } else { // New active field, transition to it
+      this.logger.log(`Introing match on ${fieldId}`)
+      await this.scene.transition()
+      await this.publisher.publishDisplayStage(StreamDisplayStage.MATCH)
+      const liveFieldName = FIELD_NAMES[fieldId]
+      const onDeckFieldName = FIELD_NAMES[fieldId]
+      const unusedScene = FIELD_NAMES.filter(name => name !== liveFieldName && name !== onDeckFieldName)[0]
+      this.logger.log(`Previewing results on ${unusedScene}`)
+      await this.scene.setPreviewScene(unusedScene, 1)
+    }
+  }
 
-  // async updateNextField (status: FieldStatus | null): Promise<void> {
-  //   this.nextField = status
-  //   if (status === null) return
-  //   this.logger.log(`Next match is on ${status.field.name}`)
-  //   if (this.currentField === null) {
-  //     this.logger.log(`Previewing next match on ${status.field.name}`)
-  //     await this.scene.setPreviewScene(status.field.name, 0)
-  //   } else {
-  //     const unusedScene = FIELD_NAMES.filter(name => name !== this.currentField?.field.name && name !== status.field.name)[0]
-  //     this.logger.log(`Previewing results on ${unusedScene}`)
-  //     await this.scene.setPreviewScene(unusedScene, 1)
-  //   }
-  // }
+  async updateOnDeckField (fieldId: number | null): Promise<void> {
+    this.onDeckField = fieldId
+    if (fieldId === null) return
+    this.logger.log(`Next match is on ${fieldId}`)
+    if (this.currentField === null) {
+      const fieldName = FIELD_NAMES[fieldId]
+      this.logger.log(`Previewing next match on ${fieldName}`)
+      await this.scene.setPreviewScene(fieldName, 0)
+    } else {
+      const liveFieldName = FIELD_NAMES[fieldId]
+      const onDeckFieldName = FIELD_NAMES[fieldId]
+      const unusedScene = FIELD_NAMES.filter(name => name !== liveFieldName && name !== onDeckFieldName)[0]
+      this.logger.log(`Previewing results on ${unusedScene}`)
+      await this.scene.setPreviewScene(unusedScene, 1)
+    }
+  }
 }

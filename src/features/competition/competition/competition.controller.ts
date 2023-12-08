@@ -49,4 +49,19 @@ export class CompetitionControlController {
   async enableAutomation (@Body() body: { enabled: boolean }): Promise<void> {
     await this.service.enableAutomation(body.enabled)
   }
+
+  @Post('pushResult')
+  async pushMatchResult (): Promise<void> {
+    await this.service.publishResult()
+  }
+
+  @Post('clearResult')
+  async clearMatchResult (): Promise<void> {
+    await this.service.clearResult()
+  }
+
+  @Post('enableSkills')
+  async enableSkills (@Body() body: { enabled: boolean }): Promise<void> {
+    await this.service.setSkillsEnabled(body.enabled)
+  }
 }

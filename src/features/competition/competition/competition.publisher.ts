@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { PublishService } from '@/utils'
+import { Match } from '../match'
+
+export interface PublishMatchResult {
+  match: Match
+  redScore: number
+  blueScore: number
+}
 
 @Injectable()
 export class CompetitionControlPublisher {
@@ -15,5 +22,13 @@ export class CompetitionControlPublisher {
 
   public async publishAutomation (enabled: boolean): Promise<void> {
     await this.publisher.broadcast('automation', { enabled })
+  }
+
+  async publishMatchResult (result: PublishMatchResult | null): Promise<void> {
+    await this.publisher.broadcast('results', result)
+  }
+
+  async publishSkillsEnabled (enabled: boolean): Promise<void> {
+    await this.publisher.broadcast('skillsEnabled', { enabled })
   }
 }

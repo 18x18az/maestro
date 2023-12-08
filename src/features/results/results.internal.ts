@@ -1,4 +1,4 @@
-import { ElimsMatch, MatchResult, TmService } from '@/utils'
+import { ElimsMatch, MatchResult, PublishService, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
@@ -14,7 +14,8 @@ export class ResultsInternal {
     private readonly tm: TmService,
     private readonly control: CompetitionControlService,
     private readonly stage: StageService,
-    private readonly matches: MatchService
+    private readonly matches: MatchService,
+    private readonly publisher: PublishService
   ) { }
 
   @Cron('*/10 * * * * *')

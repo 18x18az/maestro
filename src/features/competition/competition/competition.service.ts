@@ -4,14 +4,20 @@ import { CompetitionFieldService } from '../competition-field/competition-field.
 import { MATCH_STAGE } from '../competition-field/competition-field.interface'
 import { MatchResult } from '../../../utils'
 import { MatchService, MatchStatus } from '../match'
+import { CompetitionControlPublisher, PublishMatchResult } from './competition.publisher'
 
 @Injectable()
 export class CompetitionControlService {
   private readonly logger = new Logger(CompetitionControlService.name)
+
+  private cachedResult: PublishMatchResult | null = null
+  private skillsEnabled: boolean = false
+
   constructor (
     private readonly cache: CompetitionControlCache,
     private readonly fields: CompetitionFieldService,
-    private readonly matches: MatchService
+    private readonly matches: MatchService,
+    private readonly publisher: CompetitionControlPublisher
   ) { }
 
   async markFieldAsOnDeck (fieldId: number): Promise<void> {
@@ -53,6 +59,17 @@ export class CompetitionControlService {
     }
   }
 
+  async publishResult (): Promise<void> {
+    this.logger.log('Publishing match results')
+    await this.publisher.publishMatchResult(this.cachedResult)
+    this.cachedResult = null
+  }
+
+  async clearResult (): Promise<void> {
+    this.cachedResult = null
+    await this.publishResult()
+  }
+
   async clearLiveField (): Promise<void> {
     this.logger.log('Clearing live field')
     const fieldId = this.cache.getLiveField()
@@ -63,6 +80,7 @@ export class CompetitionControlService {
 
     await this.fields.noLongerLiveField(fieldId)
     await this.cache.setLiveField(null)
+    await this.publishResult()
   }
 
   async onDriverEnd (): Promise<void> {
@@ -127,6 +145,17 @@ export class CompetitionControlService {
     const match = await this.matches.findByIdent(result.identifier)
     if (match.status === MatchStatus.SCORING) {
       await this.fields.matchScored(match.id)
+      this.cachedResult = {
+        redScore: result.redScore,
+        blueScore: result.blueScore,
+        match
+      }
     }
+  }
+
+  async setSkillsEnabled (enabled: boolean): Promise<void> {
+    this.logger.log(`Setting skills to ${enabled ? 'enabled' : 'disabled'}`)
+    this.skillsEnabled = enabled
+    await this.publisher.publishSkillsEnabled(enabled)
   }
 }
