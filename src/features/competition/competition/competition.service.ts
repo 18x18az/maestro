@@ -11,7 +11,6 @@ export class CompetitionControlService {
   private readonly logger = new Logger(CompetitionControlService.name)
 
   private cachedResult: PublishMatchResult | null = null
-  private skillsEnabled: boolean = false
 
   constructor (
     private readonly cache: CompetitionControlCache,
@@ -66,6 +65,7 @@ export class CompetitionControlService {
   }
 
   async clearResult (): Promise<void> {
+    this.logger.log('Clearing match results')
     this.cachedResult = null
     await this.publishResult()
   }
@@ -153,9 +153,40 @@ export class CompetitionControlService {
     }
   }
 
+  private timeout: NodeJS.Timeout | null = null
+
+  private async endTimeout (): Promise<void> {
+    if (this.timeout !== null) {
+      this.logger.log('Ending timeout')
+      clearTimeout(this.timeout)
+      this.timeout = null
+      await this.publisher.publishTimeout(null)
+    }
+  }
+
+  private async startTimeout (): Promise<void> {
+    if (this.timeout === null) {
+      const endTime = new Date(Date.now() + 3 * 60 * 1000)
+      await this.publisher.publishTimeout(endTime)
+      // create timer for 3 minutes
+      this.logger.log('Starting timeout')
+      const timeRemaining = endTime.getTime() - Date.now()
+      this.timeout = setTimeout(() => {
+        void this.endTimeout()
+      }, timeRemaining)
+    }
+  }
+
+  async startStopTimeout (): Promise<void> {
+    if (this.timeout === null) {
+      await this.startTimeout()
+    } else {
+      await this.endTimeout()
+    }
+  }
+
   async setSkillsEnabled (enabled: boolean): Promise<void> {
     this.logger.log(`Setting skills to ${enabled ? 'enabled' : 'disabled'}`)
-    this.skillsEnabled = enabled
     await this.publisher.publishSkillsEnabled(enabled)
     await this.fields.enableSkills(enabled)
   }

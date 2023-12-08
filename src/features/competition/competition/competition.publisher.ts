@@ -31,4 +31,9 @@ export class CompetitionControlPublisher {
   async publishSkillsEnabled (enabled: boolean): Promise<void> {
     await this.publisher.broadcast('skillsEnabled', { enabled })
   }
+
+  async publishTimeout (endTime: Date | null): Promise<void> {
+    const dateString = endTime === null ? null : endTime.toISOString()
+    await this.publisher.broadcast('timeout', { endTime: dateString })
+  }
 }

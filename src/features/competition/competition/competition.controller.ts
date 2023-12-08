@@ -64,4 +64,9 @@ export class CompetitionControlController {
   async enableSkills (@Body() body: { enabled: boolean }): Promise<void> {
     await this.service.setSkillsEnabled(body.enabled)
   }
+
+  @Post('timeout')
+  async timeout (): Promise<void> {
+    await this.service.startStopTimeout()
+  }
 }
