@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
-import { Alliance, MatchIdentifier, Round } from '@/features'
 import { ElimsMatch, MatchResult, TmReturn } from './tm.interface'
+import { Alliance, MatchIdentifier, Round } from '../../features/competition/match'
 
 @Injectable()
 export class TmService {

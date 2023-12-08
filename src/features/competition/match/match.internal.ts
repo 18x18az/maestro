@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { MatchPublisher } from './match.publisher'
-import { EventStage, StageService } from '../stage'
-import { Match, MatchStatus } from './match.interface'
+import { Match, MatchIdentifier, MatchStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
+import { EventStage, StageService } from '../../stage'
 
 @Injectable()
 export class MatchInternal {
@@ -44,16 +44,8 @@ export class MatchInternal {
     const matches = await this.repo.getQuals()
     this.logger.log(`Loaded ${matches.length} matches`)
     await this.publisher.publishMatchlist(matches)
-
-    const block = await this.repo.getCurrentBlock()
-    if (block === null) {
-      this.logger.log('No block in process')
-      await this.publisNoBlock()
-    } else {
-      this.logger.log(`Block ${block.name} in process`)
-      await this.publishUnqueuedQuals()
-      await this.publishBlock()
-    }
+    await this.publishBlock()
+    await this.publishUnqueuedQuals()
   }
 
   async loadElimsState (): Promise<void> {
@@ -74,7 +66,8 @@ export class MatchInternal {
   private async publishBlock (): Promise<void> {
     const block = await this.repo.getCurrentBlock()
     if (block === null) {
-      throw new BadRequestException('No block in process')
+      await this.publisher.publishBlock(null)
+      return
     }
 
     await this.publisher.publishBlock(block.name)
@@ -87,6 +80,8 @@ export class MatchInternal {
     if (block !== null) {
       this.logger.log(`Ending block ${block.name}`)
       await this.repo.endCurrentBlock()
+      await this.publishBlock()
+      return
     }
 
     const nextBlockExists = await this.repo.startNextBlock()
@@ -131,7 +126,7 @@ export class MatchInternal {
   }
 
   async getUnqueuedMatches (): Promise<Match[]> {
-    return await this.repo.getUnqueuedQuals(false)
+    return await this.repo.getUnqueuedQuals(true)
   }
 
   async removeFieldAssignment (match: number): Promise<void> {
@@ -152,5 +147,13 @@ export class MatchInternal {
 
     this.logger.log(`Creating match ${JSON.stringify(match.identifier)}`)
     await this.repo.createElimsMatch(match)
+  }
+
+  async getMatch (match: number): Promise<Match | null> {
+    return await this.repo.getMatchById(match)
+  }
+
+  async findByIdent (ident: MatchIdentifier): Promise<Match> {
+    return await this.repo.findByIdent(ident)
   }
 }

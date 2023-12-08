@@ -11,5 +11,5 @@ export class Field {
     isCompetition: boolean
 
   @IsBoolean()
-    isEnabled: boolean
+    isSkills: boolean
 }

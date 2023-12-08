@@ -1,12 +1,12 @@
-import { TmModule } from '@/utils'
+import { PublishModule, TmModule } from '@/utils'
 import { Module } from '@nestjs/common'
 import { ResultsInternal } from './results.internal'
-import { FieldControlModule } from '../field-control'
 import { StageModule } from '../stage'
-import { MatchModule } from '../match'
+import { CompetitionModule } from '../competition'
+import { MatchModule } from '../competition/match'
 
 @Module({
-  imports: [TmModule, FieldControlModule, StageModule, MatchModule],
+  imports: [TmModule, StageModule, CompetitionModule, MatchModule, PublishModule],
   providers: [ResultsInternal]
 })
 export class ResultsModule { }

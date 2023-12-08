@@ -1,26 +1,12 @@
-import { Field } from '../field/field.interface'
-import { Match } from '../match'
-
-export enum FieldState {
-  IDLE = 'IDLE',
+export enum CONTROL_MODE {
   AUTO = 'AUTO',
-  PAUSED = 'PAUSED',
   DRIVER = 'DRIVER',
-  SCORING = 'SCORING',
-  PROG_SKILLS = 'PROG_SKILLS',
-  DRIVER_SKILLS = 'DRIVER_SKILLS',
 }
 
-export interface FieldStatus {
-  field: Field
-  state: FieldState
-  match: Match | null
-  onDeck: Match | null
-  endTime: string | null
+export interface FieldControlStatus {
+  mode: CONTROL_MODE
+  endTime: Date | null
+  duration: number | null
 }
 
-export enum AutomationState {
-  ENABLED = 'ENABLED',
-  CAN_ENABLE = 'CAN_ENABLE',
-  DISABLED = 'DISABLED',
-}
+export type FieldControlEndCb = (fieldId: number) => Promise<void>

@@ -1,4 +1,4 @@
-import { TeamInformation, TeamsTopic } from '@/utils'
+import { TeamInformation } from '@/utils'
 import { Controller, Post } from '@nestjs/common'
 import { EventPattern } from '@nestjs/microservices'
 import { StageInternal } from './stage.internal'
@@ -9,7 +9,7 @@ export class StageController {
     private readonly service: StageInternal
   ) {}
 
-  @EventPattern(TeamsTopic)
+  @EventPattern('teams')
   async handleTeams (body: { teams: TeamInformation[] }): Promise<void> {
     await this.service.receivedTeams(body.teams)
   }

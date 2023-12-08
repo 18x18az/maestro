@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common'
-import { EventStage, STAGE_TOPIC } from '../stage'
+import { EventStage } from '../stage'
 import { EventPattern } from '@nestjs/microservices'
 import { AllianceSelectionInternal } from './alliance-selection.internal'
 
@@ -7,7 +7,7 @@ import { AllianceSelectionInternal } from './alliance-selection.internal'
 export class AllianceSelectionController {
   constructor (private readonly service: AllianceSelectionInternal) {}
 
-  @EventPattern(STAGE_TOPIC)
+  @EventPattern('stage')
   async handleStage (stage: { stage: EventStage }): Promise<void> {
     await this.service.handleStage(stage.stage)
   }

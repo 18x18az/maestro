@@ -2,9 +2,11 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { FieldDisplayService } from './field-display.service'
 import { ResultsDisplayService } from './results-display'
 import { EventPattern } from '@nestjs/microservices'
-import { FieldStatus } from '../field-control'
 import { SceneService } from './scene.service'
 
+interface FieldSelection {
+  fieldId: number | null
+}
 @Controller('stream')
 export class StreamController {
   constructor (
@@ -23,14 +25,14 @@ export class StreamController {
     await this.results.publishStagedResults()
   }
 
-  @EventPattern('activeField')
-  async onActiveFieldChange (field: FieldStatus | null): Promise<void> {
-    await this.service.updateActiveField(field)
+  @EventPattern('liveField')
+  async onActiveFieldChange (selection: FieldSelection): Promise<void> {
+    await this.service.updateLiveField(selection.fieldId)
   }
 
-  @EventPattern('nextField')
-  async onNextFieldChange (field: FieldStatus | null): Promise<void> {
-    await this.service.updateNextField(field)
+  @EventPattern('onDeckField')
+  async onNextFieldChange (selection: FieldSelection): Promise<void> {
+    await this.service.updateOnDeckField(selection.fieldId)
   }
 
   @EventPattern('activeScene')

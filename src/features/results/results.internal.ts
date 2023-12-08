@@ -1,19 +1,21 @@
-import { ElimsMatch, MatchResult, TmService } from '@/utils'
+import { ElimsMatch, MatchResult, PublishService, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
-import { FieldControlService } from '../field-control'
 import { EventStage, StageService } from '../stage'
-import { MatchService } from '../match'
+import { MatchService } from '../competition/match'
+import { CompetitionControlService } from '../competition/competition/competition.service'
 
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
+  private readonly savedResults: string[] = []
 
   constructor (
     private readonly tm: TmService,
-    private readonly control: FieldControlService,
+    private readonly control: CompetitionControlService,
     private readonly stage: StageService,
-    private readonly matches: MatchService
+    private readonly matches: MatchService,
+    private readonly publisher: PublishService
   ) { }
 
   @Cron('*/10 * * * * *')
@@ -34,11 +36,14 @@ export class ResultsInternal {
   }
 
   private async handleResults (results: MatchResult[]): Promise<void> {
-    if (results.length === 0) {
-      return
-    }
+    for (const result of results) {
+      const key = JSON.stringify(result.identifier)
+      if (this.savedResults.includes(key)) continue
 
-    await this.control.handleMatchResults(results)
+      this.logger.log(`Result for match ${JSON.stringify(result.identifier)}`)
+      await this.control.handleMatchResult(result)
+      this.savedResults.push(key)
+    }
   }
 
   private async handleMatches (matches: ElimsMatch[]): Promise<void> {

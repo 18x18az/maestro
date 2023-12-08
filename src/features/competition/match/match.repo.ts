@@ -336,4 +336,44 @@ export class MatchRepo {
       }
     })
   }
+
+  async getMatchById (matchId: number): Promise<Match | null> {
+    const match = await this.prisma.match.findUnique({
+      where: {
+        id: matchId
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    if (match === null) {
+      return null
+    }
+
+    return parseMatch(match)
+  }
+
+  async findByIdent (ident: MatchIdentifier): Promise<Match> {
+    const match = await this.prisma.match.findUnique({
+      where: {
+        round_number_sitting: {
+          round: ident.round,
+          number: ident.matchNumber,
+          sitting: ident.sitting
+        }
+      },
+      include: {
+        block: true,
+        field: true
+      }
+    })
+
+    if (match === null) {
+      throw new Error('Match not found')
+    }
+
+    return parseMatch(match)
+  }
 }

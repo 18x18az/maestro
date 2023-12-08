@@ -1,4 +1,4 @@
-import { Alliance, MatchIdentifier } from '@/features'
+import { Alliance, MatchIdentifier } from '../../features/competition/match'
 
 export interface TeamInformation {
   number: string

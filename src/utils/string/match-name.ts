@@ -1,4 +1,4 @@
-import { MatchIdentifier, Round } from '@/features'
+import { MatchIdentifier, Round } from '../../features/competition/match'
 
 export function makeMatchName (match: MatchIdentifier): string {
   let preamble = 'Q'
