@@ -157,5 +157,6 @@ export class CompetitionControlService {
     this.logger.log(`Setting skills to ${enabled ? 'enabled' : 'disabled'}`)
     this.skillsEnabled = enabled
     await this.publisher.publishSkillsEnabled(enabled)
+    await this.fields.enableSkills(enabled)
   }
 }

@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
 import { BeaconService } from './utils'
+import { SkillsModule } from './features/skills/skills.module'
 
 @Module({
   imports: [
@@ -12,7 +13,8 @@ import { BeaconService } from './utils'
     DisplayModule,
     StreamModule,
     CompetitionModule,
-    ResultsModule
+    ResultsModule,
+    SkillsModule
   ]
 })
 export class WithoutPigeonModule {}

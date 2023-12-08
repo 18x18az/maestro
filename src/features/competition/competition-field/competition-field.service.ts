@@ -349,4 +349,11 @@ export class CompetitionFieldService {
 
     return nextField.id
   }
+
+  async enableSkills (enabled: boolean): Promise<void> {
+    const compFields = await this.field.getCompetitionFields()
+    for (const field of compFields) {
+      await this.field.enableSkills(field.id, enabled)
+    }
+  }
 }

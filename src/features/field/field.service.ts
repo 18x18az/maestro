@@ -69,4 +69,9 @@ export class FieldService {
   async getNextField (id: number): Promise<Field> {
     return await this.repo.getNextField(id)
   }
+
+  async enableSkills (fieldId: number, enabled: boolean): Promise<void> {
+    await this.repo.setCanBeUsedForSkills(fieldId, enabled)
+    await this.publishFields()
+  }
 }
