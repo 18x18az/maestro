@@ -3,6 +3,7 @@ import { StreamDisplayStage } from './stream.interface'
 import { StreamPublisher } from './stream.publisher'
 import { ResultsDisplayService } from './results-display'
 import { SceneService } from './scene.service'
+import { Field, FieldService } from '../field'
 
 const FIELD_NAMES = ['Field 1', 'Field 2', 'Field 3']
 
@@ -10,13 +11,14 @@ const FIELD_NAMES = ['Field 1', 'Field 2', 'Field 3']
 export class FieldDisplayService {
   private readonly logger: Logger = new Logger(FieldDisplayService.name)
 
-  private currentField: number | null = null
-  private onDeckField: number | null = null
+  private currentField: Field | null = null
+  private onDeckField: Field | null = null
 
   constructor (
     private readonly publisher: StreamPublisher,
     private readonly scene: SceneService,
-    private readonly results: ResultsDisplayService
+    private readonly results: ResultsDisplayService,
+    private readonly fields: FieldService
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
@@ -24,51 +26,52 @@ export class FieldDisplayService {
   }
 
   async updateLiveField (fieldId: number | null): Promise<void> {
-    const current = this.currentField
-    this.currentField = fieldId
-    const remainsNull = fieldId === null && current === null
+    const previousField = this.currentField
+    const newField = fieldId === null ? null : await this.fields.getField(fieldId)
+    this.currentField = newField
+    const remainsNull = previousField === null && newField === null
 
     if (remainsNull) return
 
-    const remainsNotNull = fieldId !== null && current !== null
-    const remainsSameField = remainsNotNull && fieldId === current
+    const remainsNotNull = newField !== null && previousField !== null
+    const remainsSameField = remainsNotNull && newField.id === previousField.id
 
     if (remainsSameField) return
 
-    if (fieldId === null) { // No longer an active field, go to results
+    if (newField === null) { // No longer an active field, go to results
       await this.results.publishStagedResults()
       this.logger.log('Match ended, setting display stage to results')
       await this.scene.transition()
       await this.publisher.publishDisplayStage(StreamDisplayStage.RESULTS)
       if (this.onDeckField !== null) {
-        const onDeckName = FIELD_NAMES[this.onDeckField]
+        const onDeckName = this.onDeckField.name
         this.logger.log(`Previewing next match on ${onDeckName}`)
         await this.scene.setPreviewScene(onDeckName, 0)
       }
     } else { // New active field, transition to it
-      this.logger.log(`Introing match on ${fieldId}`)
+      this.logger.log(`Introing match on ${newField.name}`)
       await this.scene.transition()
       await this.publisher.publishDisplayStage(StreamDisplayStage.MATCH)
-      const liveFieldName = FIELD_NAMES[fieldId]
-      const onDeckFieldName = FIELD_NAMES[fieldId]
-      const unusedScene = FIELD_NAMES.filter(name => name !== liveFieldName && name !== onDeckFieldName)[0]
+      const index = FIELD_NAMES.indexOf(newField.name)
+      const unusedIndex = (index + 2) % 3
+      const unusedScene = FIELD_NAMES[unusedIndex]
       this.logger.log(`Previewing results on ${unusedScene}`)
       await this.scene.setPreviewScene(unusedScene, 1)
     }
   }
 
   async updateOnDeckField (fieldId: number | null): Promise<void> {
-    this.onDeckField = fieldId
-    if (fieldId === null) return
-    this.logger.log(`Next match is on ${fieldId}`)
+    const onDeckField = fieldId === null ? null : await this.fields.getField(fieldId)
+    this.onDeckField = onDeckField
+    if (onDeckField === null) return
+    this.logger.log(`Next match is on ${onDeckField.name}`)
     if (this.currentField === null) {
-      const fieldName = FIELD_NAMES[fieldId]
-      this.logger.log(`Previewing next match on ${fieldName}`)
-      await this.scene.setPreviewScene(fieldName, 0)
+      this.logger.log(`Previewing next match on ${onDeckField.name}`)
+      await this.scene.setPreviewScene(onDeckField.name, 0)
     } else {
-      const liveFieldName = FIELD_NAMES[fieldId]
-      const onDeckFieldName = FIELD_NAMES[fieldId]
-      const unusedScene = FIELD_NAMES.filter(name => name !== liveFieldName && name !== onDeckFieldName)[0]
+      const index = FIELD_NAMES.indexOf(this.currentField.name)
+      const unusedIndex = (index + 2) % 3
+      const unusedScene = FIELD_NAMES[unusedIndex]
       this.logger.log(`Previewing results on ${unusedScene}`)
       await this.scene.setPreviewScene(unusedScene, 1)
     }
