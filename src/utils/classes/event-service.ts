@@ -2,7 +2,7 @@ import { BaseClass } from './base-class'
 
 export type EventCallback<Context> = (data: Context) => Promise<void>
 
-export abstract class EventService<T, Context extends T> extends BaseClass {
+export abstract class EventService<T, StartContext extends T, EndContext extends StartContext> extends BaseClass {
   private readonly beforeCallbacks: Array<EventCallback<T>> = []
   private readonly afterCallbacks: Array<EventCallback<T>> = []
   private readonly completeCallbacks: Array<EventCallback<T>> = []
@@ -14,51 +14,52 @@ export abstract class EventService<T, Context extends T> extends BaseClass {
     this.completeCallbacks = []
   }
 
-  registerBefore (callback: EventCallback<Context>): void {
+  registerBefore (callback: EventCallback<StartContext>): void {
     this.beforeCallbacks.push(callback)
   }
 
-  private async executeBefore (data: Context): Promise<void> {
+  private async executeBefore (data: StartContext): Promise<void> {
     const promises = this.beforeCallbacks.map(async callback => await callback(data))
     await Promise.all(promises)
   }
 
-  registerAfter (callback: EventCallback<Context>): void {
+  registerAfter (callback: EventCallback<EndContext>): void {
     this.afterCallbacks.push(callback)
   }
 
-  private async executeAfter (data: Context): Promise<void> {
+  private async executeAfter (data: EndContext): Promise<void> {
     const promises = this.afterCallbacks.map(async callback => await callback(data))
     await Promise.all(promises)
   }
 
-  registerOnComplete (callback: EventCallback<Context>): void {
+  registerOnComplete (callback: EventCallback<EndContext>): void {
     this.completeCallbacks.push(callback)
   }
 
-  private async executeOnComplete (data: Context): Promise<void> {
+  private async executeOnComplete (data: EndContext): Promise<void> {
     const promises = this.completeCallbacks.map(async callback => await callback(data))
     await Promise.all(promises)
   }
 
-  protected abstract doExecute (data: Context): Promise<void>
+  protected abstract doExecute (data: StartContext): Promise<EndContext>
 
-  protected async getContext (data: T): Promise<Context> {
+  protected async getContext (data: T): Promise<StartContext> {
     this.logger.debug('Using default provided context')
-    return data as Context
+    return data as StartContext
   }
 
-  async execute (data: T): Promise<void> {
+  async execute (data: T): Promise<EndContext> {
     this.logger.debug('Getting event context')
     const context = await this.getContext(data)
     this.logger.debug('Executing pre-event callbacks')
     await this.executeBefore(context)
     this.logger.debug('Executing event')
-    await this.doExecute(context)
+    const result = await this.doExecute(context)
     this.logger.debug('Executing post-event callbacks')
-    await this.executeAfter(context)
+    await this.executeAfter(result)
     this.logger.debug('Executing event-complete callbacks')
-    await this.executeOnComplete(context)
+    await this.executeOnComplete(result)
     this.logger.debug('Event complete')
+    return result
   }
 }

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { FieldControlModel } from './field-control.model'
-import { CONTROL_MODE, FieldControlEndCb } from './field-control.interface'
+import { CONTROL_MODE } from './field-control.interface'
 import { FieldControlPublisher } from './field-control.publisher'
 import { FieldService } from '../field'
 @Injectable()
@@ -10,7 +10,7 @@ export class FieldControlService {
   private readonly logger = new Logger(FieldControlService.name)
 
   constructor (private readonly publisher: FieldControlPublisher, private readonly fieldInfo: FieldService) { }
-  private async getOrCreateField (fieldId: number): Promise<FieldControlModel> {
+  async getOrCreateField (fieldId: number): Promise<FieldControlModel> {
     if (!(await this.fieldInfo.isEnabled(fieldId))) {
       this.logger.warn(`Attempted to control disabled field ${fieldId}`)
       throw new BadRequestException(`Field ${fieldId} is not enabled`)
@@ -24,21 +24,6 @@ export class FieldControlService {
     }
 
     return field
-  }
-
-  public async load (fieldId: number, mode: CONTROL_MODE, duration: number): Promise<void> {
-    const field = await this.getOrCreateField(fieldId)
-    await field.load(mode, duration)
-  }
-
-  public async start (fieldId: number, endCb?: FieldControlEndCb): Promise<void> {
-    const field = await this.getOrCreateField(fieldId)
-    await field.start(endCb)
-  }
-
-  public async stop (fieldId: number): Promise<number> {
-    const field = await this.getOrCreateField(fieldId)
-    return await field.stop()
   }
 
   public async getState (fieldId: number): Promise<CONTROL_MODE | undefined> {

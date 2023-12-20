@@ -3,6 +3,9 @@ import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { MatchService, MatchStatus } from '../match'
 import { CONTROL_MODE, FieldControlService } from '@/features'
+import { StartFieldEvent } from '../../field-control/start-field.event'
+import { StopFieldEvent } from '../../field-control/stop-field.event'
+import { LoadFieldEvent } from '../../field-control/load-field.event'
 
 @Injectable()
 export class CompetitionFieldControlService {
@@ -13,7 +16,10 @@ export class CompetitionFieldControlService {
   constructor (
     private readonly repo: CompetitionFieldRepo,
     private readonly matches: MatchService,
-    private readonly control: FieldControlService
+    private readonly control: FieldControlService,
+    private readonly startField: StartFieldEvent,
+    private readonly stopField: StopFieldEvent,
+    private readonly loadField: LoadFieldEvent
   ) {}
 
   async remove (fieldId: number): Promise<void> {
@@ -52,7 +58,7 @@ export class CompetitionFieldControlService {
     this.cache.delete(fieldId)
 
     // Load the field with a 15 second auton timer
-    await this.control.load(fieldId, CONTROL_MODE.AUTO, 15 * 1000)
+    await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: 15 * 1000 })
   }
 
   async canStartAuto (fieldId: number): Promise<boolean> {
@@ -72,10 +78,13 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot start auto on field ${fieldId}`)
     }
 
-    await this.control.start(fieldId, async () => {
-      await this.onAutoEnd(fieldId)
-      if (endCb !== undefined) {
-        await endCb(fieldId)
+    await this.startField.execute({
+      fieldId,
+      _endCb: async () => {
+        await this.onAutoEnd(fieldId)
+        if (endCb !== undefined) {
+          await endCb(fieldId)
+        }
       }
     })
     this.cache.set(fieldId, MATCH_STAGE.AUTON)
@@ -96,7 +105,7 @@ export class CompetitionFieldControlService {
       throw new Error(`cannot end auto on field ${fieldId}`)
     }
 
-    await this.control.load(fieldId, CONTROL_MODE.DRIVER, 105 * 1000)
+    await this.loadField.execute({ fieldId, mode: CONTROL_MODE.DRIVER, duration: 105 * 1000 })
     this.cache.set(fieldId, MATCH_STAGE.SCORING_AUTON)
   }
 
@@ -105,7 +114,7 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot end auto on field ${fieldId}`)
     }
 
-    await this.control.stop(fieldId)
+    await this.stopField.execute({ fieldId })
   }
 
   async canStartDriver (fieldId: number): Promise<boolean> {
@@ -125,10 +134,13 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot start driver on field ${fieldId}`)
     }
 
-    await this.control.start(fieldId, async () => {
-      await this.onDriverEnd(fieldId)
-      if (endCb !== undefined) {
-        await endCb(fieldId)
+    await this.startField.execute({
+      fieldId,
+      _endCb: async () => {
+        await this.onDriverEnd(fieldId)
+        if (endCb !== undefined) {
+          await endCb(fieldId)
+        }
       }
     })
     this.cache.set(fieldId, MATCH_STAGE.DRIVER)
@@ -171,7 +183,7 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot end driver on field ${fieldId}`)
     }
 
-    await this.control.stop(fieldId)
+    await this.stopField.execute({ fieldId })
   }
 
   async get (fieldId: number): Promise<MATCH_STAGE> {
