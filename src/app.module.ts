@@ -5,14 +5,30 @@ import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
 import { BeaconService } from './utils'
 import { SkillsModule } from './features/skills/skills.module'
+import { MikroOrmModule } from '@mikro-orm/nestjs'
+import { GraphQLModule } from '@nestjs/graphql'
+import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius'
+import { join } from 'path'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AllianceSelectionModule,
     DisplayModule,
+    GraphQLModule.forRoot<MercuriusDriverConfig>({
+      driver: MercuriusDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      graphiql: true
+    }),
     StreamModule,
     CompetitionModule,
+    MikroOrmModule.forRoot(
+      {
+        dbName: 'new.db',
+        type: 'sqlite',
+        autoLoadEntities: true
+      }
+    ),
     ResultsModule,
     SkillsModule
   ]

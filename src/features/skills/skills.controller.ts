@@ -22,6 +22,6 @@ export class SkillsController {
 
   @Post(':fieldId/stop')
   async stopSkillsMatch (@Param('fieldId') fieldId: number): Promise<void> {
-    await this.service.stopSkillsMatch(fieldId)
+    // await this.service.stopSkillsMatch(fieldId)
   }
 }
