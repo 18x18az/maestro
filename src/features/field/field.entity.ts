@@ -1,14 +1,10 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core'
-import { ObjectType, Field as GField, Int } from '@nestjs/graphql'
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity()
-@ObjectType()
-export class Field {
-  @PrimaryKey()
-  @GField(type => Int)
+export class FieldEntity {
+  @PrimaryGeneratedColumn()
     id!: number
 
-  @Property()
-  @GField()
+  @Column()
     name!: string
 }

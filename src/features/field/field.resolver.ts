@@ -1,10 +1,10 @@
 import { Query, Resolver } from '@nestjs/graphql'
-import { Field } from './field.entity'
+import { FieldObject } from './field.object'
 
-@Resolver(of => Field)
+@Resolver(of => FieldObject)
 export class FieldResolver {
-  @Query(returns => [Field])
-  async fields (): Promise<Field[]> {
+  @Query(returns => [FieldObject])
+  async fields (): Promise<FieldObject[]> {
     return []
   }
 }

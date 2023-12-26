@@ -27,9 +27,6 @@
   "dependencies": {
     "@alecmmiller/pigeon-mqtt-nest": "^0.0.1",
     "@mercuriusjs/gateway": "^2.1.0",
-    "@mikro-orm/core": "^5.9.6",
-    "@mikro-orm/nestjs": "^5.2.3",
-    "@mikro-orm/sqlite": "^5.9.6",
     "@nestjs-addons/in-memory-db": "^3.0.3",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^10.2.6",
@@ -44,6 +41,7 @@
     "@nestjs/platform-fastify": "^10.3.0",
     "@nestjs/schedule": "^4.0.0",
     "@nestjs/swagger": "^7.1.8",
+    "@nestjs/typeorm": "^10.0.1",
     "@prisma/client": "^4.16.2",
     "axios": "^1.6.0",
     "bcrypt": "^5.1.1",
@@ -62,7 +60,9 @@
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "regex": "^0.1.1",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "sqlite3": "^5.1.6",
+    "typeorm": "^0.3.17"
   },
   "devDependencies": {
     "@alecmmiller/interface-generator": "^1.2.2",

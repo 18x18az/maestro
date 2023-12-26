@@ -5,10 +5,10 @@ import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
 import { BeaconService } from './utils'
 import { SkillsModule } from './features/skills/skills.module'
-import { MikroOrmModule } from '@mikro-orm/nestjs'
 import { GraphQLModule } from '@nestjs/graphql'
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius'
 import { join } from 'path'
+import { TypeOrmModule } from '@nestjs/typeorm'
 
 @Module({
   imports: [
@@ -22,13 +22,15 @@ import { join } from 'path'
     }),
     StreamModule,
     CompetitionModule,
-    MikroOrmModule.forRoot(
-      {
-        dbName: 'new.db',
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
         type: 'sqlite',
-        autoLoadEntities: true
-      }
-    ),
+        database: 'database.sqlite',
+        synchronize: true,
+        logging: false,
+        entities: ['dist/**/*.entity.js']
+      })
+    }),
     ResultsModule,
     SkillsModule
   ]

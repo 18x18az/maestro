@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import { FieldRepo } from './field.repo'
 import { Field } from './field.interface'
 import { FieldPublisher } from './field.publisher'
+import { FieldEntity } from './field.entity'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
 
 @Injectable()
 export class FieldService {
@@ -9,7 +12,8 @@ export class FieldService {
 
   constructor (
     private readonly repo: FieldRepo,
-    private readonly publisher: FieldPublisher
+    private readonly publisher: FieldPublisher,
+    @InjectRepository(FieldEntity) private readonly fieldRepository: Repository<FieldEntity>
   ) {}
 
   async publishFields (): Promise<void> {
@@ -18,7 +22,9 @@ export class FieldService {
   }
 
   async onApplicationBootstrap (): Promise<void> {
-    await this.publishFields()
+    // await this.publishFields()
+    const fields = await this.fieldRepository.find()
+    console.log(fields)
   }
 
   async initializeCompetitionFields (fields: string[]): Promise<void> {
