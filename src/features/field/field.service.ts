@@ -1,83 +1,62 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { FieldRepo } from './field.repo'
-import { Field } from './field.interface'
-import { FieldPublisher } from './field.publisher'
 import { FieldEntity } from './field.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
+import { FieldUpdate } from './field.mutation'
 
 @Injectable()
 export class FieldService {
   private readonly logger = new Logger(FieldService.name)
 
   constructor (
-    private readonly repo: FieldRepo,
-    private readonly publisher: FieldPublisher,
     @InjectRepository(FieldEntity) private readonly fieldRepository: Repository<FieldEntity>
   ) {}
 
-  async publishFields (): Promise<void> {
-    const fieldInfo = await this.getAllFields()
-    await this.publisher.publishFields(fieldInfo)
-  }
-
   async onApplicationBootstrap (): Promise<void> {
-    // await this.publishFields()
     const fields = await this.fieldRepository.find()
-    console.log(fields)
+    if (fields.length > 0) return
+
+    this.logger.log('No fields found, initializing with default fields')
+    for (let i = 0; i < 3; i++) {
+      await this.addField()
+    }
   }
 
-  async initializeCompetitionFields (fields: string[]): Promise<void> {
-    this.logger.log(`Initializing ${fields.length} fields with names ${fields.join(', ')}`)
-    await this.repo.initializeCompetitionFields(fields)
-    const fieldInfo = await this.getCompetitionFields()
-    await this.publisher.publishFields(fieldInfo)
-  }
-
-  async getCompetitionFields (): Promise<Field[]> {
-    return await this.repo.getCompetitionFields()
-  }
-
-  async getAllFields (): Promise<Field[]> {
-    return await this.repo.getAllFields()
-  }
-
-  async getFieldName (fieldId: number): Promise<string> {
-    return await this.repo.getFieldName(fieldId)
+  async getFields (): Promise<FieldEntity[]> {
+    return await this.fieldRepository.find()
   }
 
   async addField (): Promise<void> {
     this.logger.log('Adding field')
-    await this.repo.addField()
-    await this.publishFields()
+    await this.fieldRepository.insert({ name: 'Unnamed Field' })
   }
 
-  async setName (id: number, name: string): Promise<void> {
-    this.logger.log(`Setting field ${id} name to ${name}`)
-    await this.repo.setName(id, name)
-    await this.publishFields()
-  }
+  // async getField (id: number): Promise<Field> {
+  //   return await this.repo.get(id)
+  // }
 
-  async deleteField (id: number): Promise<void> {
-    this.logger.log(`Deleting field ${id}`)
-    await this.repo.deleteField(id)
-    await this.publishFields()
-  }
+  // async getNextField (id: number): Promise<Field> {
+  //   return await this.repo.getNextField(id)
+  // }
 
-  async isEnabled (id: number): Promise<boolean> {
-    return await this.repo.isEnabled(id)
-  }
+  // async enableSkills (fieldId: number, enabled: boolean): Promise<void> {
+  //   await this.repo.setCanBeUsedForSkills(fieldId, enabled)
+  //   await this.publishFields()
+  // }
 
-  async getField (id: number): Promise<Field> {
-    return await this.repo.get(id)
-  }
+  async updateField (fieldId: number, update: FieldUpdate): Promise<FieldEntity> {
+    const field = await this.fieldRepository.findOneByOrFail({ id: fieldId })
 
-  async getNextField (id: number): Promise<Field> {
-    return await this.repo.getNextField(id)
-  }
+    console.log(update)
 
-  async enableSkills (fieldId: number, enabled: boolean): Promise<void> {
-    await this.repo.setCanBeUsedForSkills(fieldId, enabled)
-    await this.publishFields()
+    const { name, isCompetition, canRunSkills, isEnabled } = update
+    console.log(isEnabled)
+
+    if (name !== undefined) field.name = name
+    if (isCompetition !== undefined) field.isCompetition = isCompetition
+    if (canRunSkills !== undefined) field.skillsEnabled = canRunSkills
+    if (isEnabled !== undefined) field.isEnabled = isEnabled
+
+    return await this.fieldRepository.save(field)
   }
 }

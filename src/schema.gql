@@ -2,14 +2,53 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type FieldObject {
+"""Representation of a single field"""
+type Field {
+  """Unique identifier for the field"""
   id: Int!
+
+  """Name of the field"""
   name: String!
-  enabled: Boolean!
-  isComp: Boolean!
+
+  """Whether the field is enabled for use"""
+  isEnabled: Boolean!
+
+  """
+  Whether the field is allocated as a competition field. Can be true even if the field is disabled.
+  """
+  isCompetition: Boolean!
+
+  """
+  Whether or not the field can be used for skills. Can be true even if the field is disabled.
+  """
+  canRunSkills: Boolean!
+
+  """
+  Whether or not the field is allocated as a dedicated skills field. Can be true even if the field is disabled.
+  """
   isSkills: Boolean!
 }
 
 type Query {
-  fields: [FieldObject!]!
+  fields: [Field!]!
+}
+
+type Mutation {
+  updateField(fieldId: Int!, update: FieldUpdate!): Field!
+}
+
+input FieldUpdate {
+  """Name of the field"""
+  name: String
+
+  """Whether the field is enabled for use"""
+  isEnabled: Boolean
+
+  """True for a competition field, false for a dedicated skills field"""
+  isCompetition: Boolean
+
+  """
+  Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
+  """
+  canRunSkills: Boolean
 }

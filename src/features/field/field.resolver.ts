@@ -1,10 +1,38 @@
-import { Query, Resolver } from '@nestjs/graphql'
-import { FieldObject } from './field.object'
-
-@Resolver(of => FieldObject)
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Field } from './field.object'
+import { FieldService } from './field.service'
+import { FieldEntity } from './field.entity'
+import { FieldUpdate } from './field.mutation'
+@Resolver(of => Field)
 export class FieldResolver {
-  @Query(returns => [FieldObject])
-  async fields (): Promise<FieldObject[]> {
-    return []
+  constructor (private readonly fieldService: FieldService) {}
+
+  @Query(returns => [Field])
+  async fields (): Promise<FieldEntity[]> {
+    const fields = await this.fieldService.getFields()
+    return fields
+  }
+
+  @ResolveField()
+  async isCompetition (@Parent() field: FieldEntity): Promise<boolean> {
+    return field.isCompetition
+  }
+
+  @ResolveField()
+  async isSkills (@Parent() field: FieldEntity): Promise<boolean> {
+    return !field.isCompetition
+  }
+
+  @ResolveField()
+  async canRunSkills (@Parent() field: FieldEntity): Promise<boolean> {
+    return field.skillsEnabled || !field.isCompetition
+  }
+
+  @Mutation(() => Field)
+  async updateField (
+    @Args({ name: 'fieldId', type: () => Int }) fieldId: number,
+      @Args({ name: 'update', type: () => FieldUpdate }) update: FieldUpdate
+  ): Promise<FieldEntity> {
+    return await this.fieldService.updateField(fieldId, update)
   }
 }
