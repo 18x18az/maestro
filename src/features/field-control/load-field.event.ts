@@ -18,10 +18,10 @@ export class LoadFieldEvent extends EventService<LoadFieldPayload, LoadFieldCont
     super()
   }
 
-  protected async getContext (data: LoadFieldPayload): Promise<LoadFieldContext> {
-    const model = await this.service.getOrCreateField(data.fieldId)
-    return { ...data, _control: model }
-  }
+  // protected async getContext (data: LoadFieldPayload): Promise<LoadFieldContext> {
+  //   const model = await this.service.getOrCreateField(data.fieldId)
+  //   return { ...data, _control: model }
+  // }
 
   protected async doExecute (data: LoadFieldContext): Promise<LoadFieldContext> {
     await data._control.load(data.mode, data.duration)

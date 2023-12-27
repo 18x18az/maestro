@@ -1,4 +1,5 @@
 import { Field as GField, Int, ObjectType } from '@nestjs/graphql'
+import { FieldControl } from '../field-control/field-control.object'
 
 @ObjectType({ description: 'Representation of a single field' })
 export class Field {
@@ -19,4 +20,7 @@ export class Field {
 
   @GField({ description: 'Whether or not the field is allocated as a dedicated skills field. Can be true even if the field is disabled.' })
     isSkills: boolean
+
+  @GField({ nullable: true, description: 'The current state of field control on the field. Null if the field is disabled.' })
+    fieldControl: FieldControl
 }
