@@ -2,6 +2,21 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Stage {
+  """The current stage of the event"""
+  stage: EventStage!
+}
+
+"""The current stage of the event"""
+enum EventStage {
+  WAITING_FOR_TEAMS
+  CHECKIN
+  QUALIFICATIONS
+  ALLIANCE_SELECTION
+  ELIMS
+  TEARDOWN
+}
+
 type FieldControl {
   """
   The current mode of the field, null if undefined. Will still return a value even if it is not currently running.
@@ -84,6 +99,7 @@ type Query {
   fieldControls: [FieldControl!]!
   fields: [Field!]!
   teams: [Team!]!
+  stage: Stage!
 }
 
 type Mutation {

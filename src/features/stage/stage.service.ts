@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { EventStage } from './stage.interface'
-import { StageInternal } from './stage.internal'
+import { StorageService } from '../../utils/storage/storage.service'
 
 @Injectable()
 export class StageService {
   constructor (
-    private readonly service: StageInternal
+    private readonly storage: StorageService
   ) {}
 
-  getStage (): EventStage {
-    return this.service.getStage()
-  }
-
-  async advanceStage (): Promise<void> {
-    await this.service.advanceStage()
+  async getStage (): Promise<EventStage> {
+    return await this.storage.getEphemeral('stage', EventStage.WAITING_FOR_TEAMS) as EventStage
   }
 }
