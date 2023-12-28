@@ -105,6 +105,9 @@ type Mutation {
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   updateTeam(teamId: Int!, update: TeamUpdate!): Team!
   createTeams(teams: [TeamCreate!]!): [Team!]!
+
+  """Reset the event. Only available in test mode."""
+  reset: Stage!
 }
 
 input FieldUpdate {

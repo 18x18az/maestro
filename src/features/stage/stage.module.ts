@@ -2,10 +2,13 @@ import { PublishModule, StorageModule } from '@/utils'
 import { Module } from '@nestjs/common'
 import { StageService } from './stage.service'
 import { StageResolver } from './stage.resolver'
+import { EventResetEvent } from './event-reset.event'
+import { StageInternal } from './stage.internal'
+import { SettingsModule } from '../../utils/settings/settings.module'
 
 @Module({
-  imports: [StorageModule, PublishModule],
-  providers: [StageService, StageResolver],
-  exports: [StageService]
+  imports: [StorageModule, PublishModule, SettingsModule],
+  providers: [StageService, StageResolver, EventResetEvent, StageInternal],
+  exports: [StageService, EventResetEvent]
 })
 export class StageModule {}
