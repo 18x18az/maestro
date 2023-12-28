@@ -62,13 +62,34 @@ type Field {
   fieldControl: FieldControl
 }
 
+type Team {
+  """Number of the team"""
+  number: String!
+
+  """Checkin status of the team"""
+  checkin: Checkin!
+
+  """Unique identifier for the team"""
+  id: Int!
+}
+
+"""The checkin status of a team"""
+enum Checkin {
+  NOT_HERE
+  CHECKED_IN
+  NO_SHOW
+}
+
 type Query {
   fieldControls: [FieldControl!]!
   fields: [Field!]!
+  teams: [Team!]!
 }
 
 type Mutation {
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
+  updateTeam(teamId: Int!, update: TeamUpdate!): Team!
+  createTeams(teams: [TeamCreate!]!): [Team!]!
 }
 
 input FieldUpdate {
@@ -85,4 +106,17 @@ input FieldUpdate {
   Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
   """
   canRunSkills: Boolean
+}
+
+input TeamUpdate {
+  """Number of the team"""
+  number: String
+
+  """Checkin status of the team"""
+  checkin: Checkin
+}
+
+input TeamCreate {
+  """Number of the team"""
+  number: String!
 }
