@@ -96,7 +96,6 @@ enum Checkin {
 }
 
 type Query {
-  fieldControls: [FieldControl!]!
   fields: [Field!]!
   teams: [Team!]!
   stage: Stage!
