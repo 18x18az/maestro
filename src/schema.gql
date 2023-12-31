@@ -77,6 +77,28 @@ type Field {
   fieldControl: FieldControl
 }
 
+type TournamentManager {
+  """
+  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL
+
+  """The status of the TM server"""
+  status: TmStatus!
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
+enum TmStatus {
+  INITIALIZING
+  NOT_CONFIGURED
+  DISCONNECTED
+  CONNECTED
+}
+
 type Team {
   """Number of the team"""
   number: String!
@@ -99,15 +121,16 @@ type Query {
   fields: [Field!]!
   teams: [Team!]!
   stage: Stage!
+  tournamentManager: TournamentManager!
 }
 
 type Mutation {
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   updateTeam(teamId: Int!, update: TeamUpdate!): Team!
-  createTeams(teams: [TeamCreate!]!): [Team!]!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
+  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
 }
 
 input FieldUpdate {
@@ -134,7 +157,9 @@ input TeamUpdate {
   checkin: Checkin
 }
 
-input TeamCreate {
-  """Number of the team"""
-  number: String!
+input TournamentManagerSetup {
+  """
+  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL!
 }

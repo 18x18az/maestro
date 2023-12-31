@@ -3,101 +3,86 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { StorageService } from '../storage'
 import { catchError, firstValueFrom } from 'rxjs'
 import { parse, HTMLElement } from 'node-html-parser'
-import { TeamInformation } from './tm.interface'
-import { TmPublisher } from './tm.publisher'
+import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
-import { BaseStatus, StatusPublisher } from '../status'
-import { EventStage } from '@/features'
+import { TmConnectedEvent } from './tm-connected.event'
 
 const STORAGE_KEY = 'tm'
-const STATUS_TOPIC = 'tm'
 
 @Injectable()
 export class TmInternal {
   private readonly logger = new Logger(TmInternal.name)
 
-  private tmAddr: string | undefined
-  private isConnected: boolean | undefined
+  private tmUrl: URL | undefined
+  private status: TmStatus = TmStatus.INITIALIZING
 
   constructor (
     private readonly request: HttpService,
     private readonly storage: StorageService,
-    private readonly publisher: TmPublisher,
-    private readonly status: StatusPublisher
+    private readonly connectedEvent: TmConnectedEvent
   ) { }
 
   async onModuleInit (): Promise<void> {
     const loaded = await this.storage.getPersistent(STORAGE_KEY, '')
 
     if (loaded === '') {
-      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOT_CONFIGURED)
+      this.status = TmStatus.NOT_CONFIGURED
+      this.logger.warn('TM address not set')
       return
     }
 
-    this.tmAddr = loaded
+    this.tmUrl = new URL(loaded)
 
-    const isUp = await this.tryAddress(loaded)
+    this.status = TmStatus.DISCONNECTED
+  }
 
-    if (!isUp) {
-      await this.onDisconnect()
-      return
-    }
+  getUrl (): URL | undefined {
+    return this.tmUrl
+  }
 
-    this.logger.log(`Connected to TM at ${loaded}`)
-    await this.loadTeams()
+  getStatus (): TmStatus {
+    return this.status
   }
 
   async onDisconnect (): Promise<void> {
-    if (this.isConnected === true || this.isConnected === undefined) {
-      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.OFFLINE)
-      this.isConnected = false
-      this.logger.warn(`TM at ${this.tmAddr as string} is not responding`)
-      void this.tryReconnect()
-    }
+    this.logger.warn('Disconnected from TM')
+    this.status = TmStatus.DISCONNECTED
   }
 
-  async tryReconnect (): Promise<void> {
-    if (this.isConnected === true) {
-      return
-    }
-
-    const isConnected = await this.tryConnect()
-
-    if (isConnected) {
-      this.logger.log(`Reconnected to TM at ${this.tmAddr as string}`)
-      this.isConnected = true
-    } else {
-      setTimeout(() => { void this.tryReconnect() }, 2500)
-    }
+  async onConnect (): Promise<void> {
+    this.status = TmStatus.CONNECTED
+    await this.connectedEvent.execute()
   }
 
   @Cron('*/10 * * * * *')
   async handleCron (): Promise<void> {
-    if (this.isConnected === false || this.tmAddr === undefined) {
+    if (this.status !== TmStatus.CONNECTED && this.status !== TmStatus.DISCONNECTED) {
       return
     }
 
-    const stillConnected = await this.tryConnect()
+    await this.tryConnect()
+  }
 
-    if (!stillConnected) {
+  private async tryConnect (): Promise<void> {
+    const url = this.tmUrl
+    if (url === undefined) {
+      this.logger.warn('TM address not set')
+      this.status = TmStatus.NOT_CONFIGURED
+      return
+    }
+
+    const isConnected = await this.tryURL(url)
+
+    if (isConnected && this.status !== TmStatus.CONNECTED) {
+      await this.onConnect()
+    } else if (!isConnected && this.status !== TmStatus.DISCONNECTED) {
       await this.onDisconnect()
     }
   }
 
-  private async tryConnect (): Promise<boolean> {
-    if (this.tmAddr === undefined) {
-      this.logger.warn('TM address not set')
-      this.isConnected = false
-      return false
-    }
-
-    return await this.tryAddress(this.tmAddr)
-  }
-
-  private async tryAddress (addr: string): Promise<boolean> {
-    const url = `http://${addr}`
+  private async tryURL (url: URL): Promise<boolean> {
     const { data } = await firstValueFrom(
-      this.request.get(url).pipe(
+      this.request.get(url.href).pipe(
         catchError(async () => {
           return await Promise.resolve({ data: null })
         })
@@ -120,21 +105,19 @@ export class TmInternal {
       return false
     }
 
-    this.isConnected = true
-    await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOMINAL)
     return true
   }
 
   private async getData (resource: string): Promise<HTMLElement | null> {
-    if (this.tmAddr === undefined) {
+    if (this.tmUrl === undefined) {
       throw new Error('TM address not set')
     }
 
-    if (this.isConnected === false) {
+    if (this.status !== TmStatus.CONNECTED) {
       return null
     }
 
-    const url = `http://${this.tmAddr}/${resource}`
+    const url = `${this.tmUrl.href}/${resource}`
 
     const { data } = await firstValueFrom(
       this.request.get(url).pipe(
@@ -197,27 +180,19 @@ export class TmInternal {
     })
 
     this.logger.log(`Got ${teams.length} teams`)
-    await this.publisher.publishTeams(teams)
   }
 
-  async onStageChange (stage: EventStage): Promise<void> {
-    if (stage === EventStage.WAITING_FOR_TEAMS && this.isConnected === true) {
-      await this.loadTeams()
-    }
-  }
-
-  async setAddress (addr: string): Promise<void> {
-    this.logger.log(`Trying TM at ${addr}`)
-    const isValid = await this.tryAddress(addr)
+  async setURL (url: URL): Promise<void> {
+    this.logger.log(`Trying TM at ${url.href}`)
+    const isValid = await this.tryURL(url)
 
     if (!isValid) {
-      this.logger.warn(`Invalid TM address ${addr}`)
+      this.logger.warn(`Invalid TM address ${url.href}`)
       throw new BadRequestException('Invalid TM address')
     }
 
-    this.logger.log(`Connected to TM at ${addr}`)
-    this.tmAddr = addr
-    await this.storage.setPersistent(STORAGE_KEY, addr)
-    await this.loadTeams()
+    this.logger.log(`Connected to TM at ${url.href}`)
+    this.tmUrl = url
+    await this.storage.setPersistent(STORAGE_KEY, url.toJSON())
   }
 }

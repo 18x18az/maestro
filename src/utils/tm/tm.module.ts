@@ -2,15 +2,14 @@ import { Module } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
 import { HttpModule } from '@nestjs/axios'
 import { StorageModule } from '../storage'
-import { TmController } from './tm.controller'
-import { TmPublisher } from './tm.publisher'
 import { TmService } from './tm.service'
 import { StatusModule } from '../status'
+import { TmResolver } from './tm.resolver'
+import { TmConnectedEvent } from './tm-connected.event'
 
 @Module({
-  controllers: [TmController],
   imports: [HttpModule, StorageModule, StatusModule],
-  providers: [TmInternal, TmPublisher, TmService],
-  exports: [TmService]
+  providers: [TmInternal, TmService, TmResolver, TmConnectedEvent],
+  exports: [TmService, TmConnectedEvent]
 })
 export class TmModule {}

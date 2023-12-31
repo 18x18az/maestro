@@ -1,27 +1,32 @@
 import { ConfigModule } from '@nestjs/config'
-import { AllianceSelectionModule, CompetitionModule, DisplayModule, ResultsModule, StreamModule } from '@/features'
 import { Module } from '@nestjs/common'
 import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
-import { BeaconService } from './utils'
-import { SkillsModule } from './features/skills/skills.module'
+import { BeaconService, TmModule } from './utils'
 import { GraphQLModule } from '@nestjs/graphql'
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius'
 import { join } from 'path'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { FieldControlModule } from './features/field-control/field-control.module'
+import { TeamModule } from './features/team/team.module'
+import { SettingsModule } from './utils/settings/settings.module'
+import { StageModule } from './features'
+import { URLResolver } from 'graphql-scalars'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AllianceSelectionModule,
-    DisplayModule,
     GraphQLModule.forRoot<MercuriusDriverConfig>({
       driver: MercuriusDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      graphiql: true
+      graphiql: true,
+      resolvers: { URL: URLResolver }
     }),
-    StreamModule,
-    CompetitionModule,
+    FieldControlModule,
+    TeamModule,
+    SettingsModule,
+    StageModule,
+    TmModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'sqlite',
@@ -30,9 +35,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
         logging: false,
         entities: ['dist/**/*.entity.js']
       })
-    }),
-    ResultsModule,
-    SkillsModule
+    })
   ]
 })
 export class WithoutPigeonModule {}
