@@ -5,9 +5,10 @@ import { StageResolver } from './stage.resolver'
 import { EventResetEvent } from './event-reset.event'
 import { StageInternal } from './stage.internal'
 import { SettingsModule } from '../../utils/settings/settings.module'
+import { TeamModule } from '../team/team.module'
 
 @Module({
-  imports: [StorageModule, PublishModule, SettingsModule],
+  imports: [StorageModule, PublishModule, SettingsModule, TeamModule],
   providers: [StageService, StageResolver, EventResetEvent, StageInternal],
   exports: [StageService, EventResetEvent]
 })

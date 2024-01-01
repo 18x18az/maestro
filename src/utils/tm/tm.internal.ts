@@ -6,7 +6,7 @@ import { parse, HTMLElement } from 'node-html-parser'
 import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
 import { TmConnectedEvent } from './tm-connected.event'
-import { TeamService } from '../../features/team/team.service'
+import { TeamListUpdateEvent } from '../../features/team/team-list-update.event'
 
 const STORAGE_KEY = 'tm'
 
@@ -21,7 +21,7 @@ export class TmInternal {
     private readonly request: HttpService,
     private readonly storage: StorageService,
     private readonly connectedEvent: TmConnectedEvent,
-    private readonly teams: TeamService
+    private readonly teamCreate: TeamListUpdateEvent
   ) {
     this.connectedEvent.registerOnComplete(this.loadTeams.bind(this))
   }
@@ -184,7 +184,7 @@ export class TmInternal {
     })
 
     this.logger.log(`Got ${teams.length} teams`)
-    await this.teams.createTeams(teams)
+    await this.teamCreate.execute({ teams })
   }
 
   async setURL (url: URL): Promise<void> {

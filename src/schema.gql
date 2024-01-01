@@ -17,6 +17,33 @@ enum EventStage {
   TEARDOWN
 }
 
+type Team {
+  """Number of the team"""
+  number: String!
+
+  """Name of the team"""
+  name: String!
+
+  """Location of the team"""
+  location: String!
+
+  """School of the team"""
+  school: String!
+
+  """Checkin status of the team"""
+  checkin: Checkin!
+
+  """Unique identifier for the team"""
+  id: Int!
+}
+
+"""The checkin status of a team"""
+enum Checkin {
+  NOT_HERE
+  CHECKED_IN
+  NO_SHOW
+}
+
 type FieldControl {
   """
   The current mode of the field, null if undefined. Will still return a value even if it is not currently running.
@@ -97,33 +124,6 @@ enum TmStatus {
   NOT_CONFIGURED
   DISCONNECTED
   CONNECTED
-}
-
-type Team {
-  """Number of the team"""
-  number: String!
-
-  """Name of the team"""
-  name: String!
-
-  """Location of the team"""
-  location: String!
-
-  """School of the team"""
-  school: String!
-
-  """Checkin status of the team"""
-  checkin: Checkin!
-
-  """Unique identifier for the team"""
-  id: Int!
-}
-
-"""The checkin status of a team"""
-enum Checkin {
-  NOT_HERE
-  CHECKED_IN
-  NO_SHOW
 }
 
 type Query {

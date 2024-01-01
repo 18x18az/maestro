@@ -18,25 +18,15 @@ export class TeamService {
   //   return { id: teamId, number: '1234', checkin: Checkin.NOT_HERE }
   // }
 
-  async createTeams (teams: TeamCreate[]): Promise<Team[]> {
-    const existingTeams = await this.repo.getTeams()
-    const teamsToRemove = existingTeams.filter(team => teams.find(t => t.number === team.number) === undefined)
-    const teamsToAdd = teams.filter(team => existingTeams.find(t => t.number === team.number) === undefined)
-
-    if (teamsToRemove.length === 0 && teamsToAdd.length === 0) return existingTeams
-
-    if (teamsToRemove.length > 0) {
-      this.logger.log(`Removing ${teamsToRemove.length} teams`)
-      for (const team of teamsToRemove) {
-        await this.repo.markCheckinStatus(team.id, Checkin.NO_SHOW)
-      }
-    }
-
-    if (teamsToAdd.length > 0) {
-      this.logger.log(`Adding ${teamsToAdd.length} teams`)
-      await this.repo.addTeams(teamsToAdd)
-    }
-
+  async getTeams (): Promise<Team[]> {
     return await this.repo.getTeams()
+  }
+
+  async markCheckinStatus (teamId: number, status: Checkin): Promise<Team> {
+    return await this.repo.markCheckinStatus(teamId, status)
+  }
+
+  async addTeams (teams: TeamCreate[]): Promise<Team[]> {
+    return await this.repo.addTeams(teams)
   }
 }
