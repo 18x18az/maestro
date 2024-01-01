@@ -9,6 +9,15 @@ export class TeamEntity {
   @Column({ unique: true })
     number: string
 
+  @Column()
+    name: string
+
+  @Column()
+    location: string
+
+  @Column()
+    school: string
+
   @Column({ enum: Checkin, type: 'simple-enum', default: Checkin.NOT_HERE })
     checkin: Checkin
 }

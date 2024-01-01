@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { TeamEntity } from './team.entity'
 import { Repository } from 'typeorm'
@@ -7,6 +7,7 @@ import { Checkin } from './team.interface'
 
 @Injectable()
 export class TeamRepo {
+  private readonly logger = new Logger(TeamRepo.name)
   constructor (@InjectRepository(TeamEntity) private readonly teamRepository: Repository<TeamEntity>) {}
 
   async getTeams (): Promise<TeamEntity[]> {
@@ -27,5 +28,10 @@ export class TeamRepo {
     const team = await this.teamRepository.findOneByOrFail({ id: teamId })
     team.checkin = status
     return await this.teamRepository.save(team)
+  }
+
+  async reset (): Promise<void> {
+    this.logger.log('Resetting teams')
+    await this.teamRepository.clear()
   }
 }

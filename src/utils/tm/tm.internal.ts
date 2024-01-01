@@ -6,6 +6,7 @@ import { parse, HTMLElement } from 'node-html-parser'
 import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
 import { TmConnectedEvent } from './tm-connected.event'
+import { TeamService } from '../../features/team/team.service'
 
 const STORAGE_KEY = 'tm'
 
@@ -19,10 +20,13 @@ export class TmInternal {
   constructor (
     private readonly request: HttpService,
     private readonly storage: StorageService,
-    private readonly connectedEvent: TmConnectedEvent
-  ) { }
+    private readonly connectedEvent: TmConnectedEvent,
+    private readonly teams: TeamService
+  ) {
+    this.connectedEvent.registerOnComplete(this.loadTeams.bind(this))
+  }
 
-  async onModuleInit (): Promise<void> {
+  async onApplicationBootstrap (): Promise<void> {
     const loaded = await this.storage.getPersistent(STORAGE_KEY, '')
 
     if (loaded === '') {
@@ -180,9 +184,14 @@ export class TmInternal {
     })
 
     this.logger.log(`Got ${teams.length} teams`)
+    await this.teams.createTeams(teams)
   }
 
   async setURL (url: URL): Promise<void> {
+    if (this.status === TmStatus.CONNECTED) {
+      this.logger.warn('Attempted to set TM address while connected')
+      throw new BadRequestException('TM already connected')
+    }
     this.logger.log(`Trying TM at ${url.href}`)
     const isValid = await this.tryURL(url)
 

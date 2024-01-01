@@ -6,6 +6,15 @@ import { Checkin } from './team.interface'
 export class TeamCreate {
   @Field({ description: 'Number of the team' })
     number: string
+
+  @Field({ description: 'Name of the team' })
+    name: string
+
+  @Field({ description: 'Location of the team' })
+    location: string
+
+  @Field({ description: 'School of the team' })
+    school: string
 }
 
 @InputType()
