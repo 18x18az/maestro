@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
 import { Round } from './match.interface'
 import { ContestEntity } from './contest.entity'
 import { TeamEntity } from '../../team/team.entity'
@@ -20,7 +20,11 @@ export class MatchEntity {
   @PrimaryGeneratedColumn()
     id: number
 
-  @ManyToOne(() => ContestEntity, contest => contest.matches)
+  @Column()
+    contestId: number
+
+  @ManyToOne(() => ContestEntity, contest => contest.matches, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'contestId', referencedColumnName: 'id' })
     contest: ContestEntity
 
   @OneToMany(() => SittingEntity, sitting => sitting.match)

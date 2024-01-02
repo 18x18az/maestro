@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateQualMatch, MatchEntity } from './match.entity'
 import { Repository } from 'typeorm'
@@ -6,15 +6,30 @@ import { Round, SittingStatus } from './match.interface'
 import { ContestEntity } from './contest.entity'
 import { BlockEntity, CreateQualBlock } from './block.entity'
 import { SittingEntity } from './sitting.entity'
+import { EventResetEvent } from '../../stage/event-reset.event'
+import { TeamEntity } from '../../team/team.entity'
 
 @Injectable()
 export class MatchRepo {
+  private readonly logger = new Logger(MatchRepo.name)
+
   constructor (
     @InjectRepository(MatchEntity) private readonly matchRepository: Repository<MatchEntity>,
     @InjectRepository(SittingEntity) private readonly sittingRepository: Repository<SittingEntity>,
     @InjectRepository(ContestEntity) private readonly contestRepository: Repository<ContestEntity>,
-    @InjectRepository(BlockEntity) private readonly blockRepository: Repository<BlockEntity>
-  ) {}
+    @InjectRepository(BlockEntity) private readonly blockRepository: Repository<BlockEntity>,
+    private readonly resetEvent: EventResetEvent
+  ) {
+    this.resetEvent.registerBefore(this.reset.bind(this))
+  }
+
+  async reset (): Promise<void> {
+    this.logger.log('Resetting matches')
+    await this.blockRepository.clear()
+    await this.contestRepository.clear()
+    await this.matchRepository.clear()
+    await this.sittingRepository.clear()
+  }
 
   async createElimsBlock (): Promise<number> {
     const block = await this.blockRepository.save(new BlockEntity())
@@ -54,6 +69,10 @@ export class MatchRepo {
     }
   }
 
+  async getBlock (id: number): Promise<BlockEntity> {
+    return await this.blockRepository.findOneByOrFail({ id })
+  }
+
   async getBlocks (): Promise<BlockEntity[]> {
     return await this.blockRepository.find()
   }
@@ -62,11 +81,37 @@ export class MatchRepo {
     return await this.contestRepository.find()
   }
 
+  async getContest (id: number): Promise<ContestEntity> {
+    return await this.contestRepository.findOneByOrFail({ id })
+  }
+
   async getMatches (): Promise<MatchEntity[]> {
     return await this.matchRepository.find()
   }
 
+  async getMatchesByContest (contest: number): Promise<MatchEntity[]> {
+    return await this.matchRepository.find({ where: { contestId: contest } })
+  }
+
+  async getMatch (id: number): Promise<MatchEntity> {
+    return await this.matchRepository.findOneByOrFail({ id })
+  }
+
   async getSittings (): Promise<SittingEntity[]> {
     return await this.sittingRepository.find()
+  }
+
+  async getSittingsByMatch (match: number): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find({ where: { matchId: match } })
+  }
+
+  async getRedTeams (contest: number): Promise<TeamEntity[]> {
+    const c = await this.contestRepository.findOneOrFail({ relations: ['redTeams'], where: { id: contest } })
+    return c.redTeams
+  }
+
+  async getBlueTeams (contest: number): Promise<TeamEntity[]> {
+    const c = await this.contestRepository.findOneOrFail({ relations: ['blueTeams'], where: { id: contest } })
+    return c.blueTeams
   }
 }

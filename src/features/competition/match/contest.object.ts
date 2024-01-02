@@ -1,6 +1,7 @@
 import { ObjectType, Field as GField } from '@nestjs/graphql'
 import { Round } from './match.interface'
 import { Team } from '../../team/team.object'
+import { Match } from './match.object'
 
 @ObjectType({ description: 'A contest refers to a match or group of matches between two alliances. E.g. in Bo3 finals, F1 and F2 are both part of the same contest' })
 export class Contest {
@@ -14,8 +15,11 @@ export class Contest {
     number: number
 
   @GField(() => [Team], { description: 'The red alliance' })
-    redAlliance: Team[]
+    redTeams: Team[]
 
   @GField(() => [Team], { description: 'The blue alliance' })
-    blueAlliance: Team[]
+    blueTeams: Team[]
+
+  @GField(() => [Match], { description: 'The matches in this contest' })
+    matches: Match[]
 }

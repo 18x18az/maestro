@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { SittingStatus } from './match.interface'
 import { FieldEntity } from '../../field/field.entity'
 import { BlockEntity } from './block.entity'
@@ -12,16 +12,24 @@ export class SittingEntity {
   @Column({ type: 'int', default: 1 })
     number: number
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
     scheduled: Date
 
-  @ManyToOne(() => FieldEntity, field => field.sittings, { nullable: true })
+  @ManyToOne(() => FieldEntity, field => field.sittings, { nullable: true, onDelete: 'CASCADE' })
     field: FieldEntity
 
-  @ManyToOne(() => BlockEntity, block => block.sittings)
+  @Column()
+    blockId: number
+
+  @ManyToOne(() => BlockEntity, block => block.sittings, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'blockId', referencedColumnName: 'id' })
     block: BlockEntity
 
-  @ManyToOne(() => MatchEntity, match => match.sittings)
+  @Column()
+    matchId: number
+
+  @ManyToOne(() => MatchEntity, match => match.sittings, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'matchId', referencedColumnName: 'id' })
     match: MatchEntity
 
   @Column({ type: 'simple-enum', enum: SittingStatus, default: SittingStatus.NOT_STARTED })

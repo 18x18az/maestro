@@ -22,9 +22,9 @@ export class TeamEntity {
   @Column({ enum: Checkin, type: 'simple-enum', default: Checkin.NOT_HERE })
     checkin: Checkin
 
-  @ManyToMany(() => ContestEntity, contest => contest.redTeams)
+  @ManyToMany(() => ContestEntity, contest => contest.redTeams, { onDelete: 'CASCADE' })
     redContests: ContestEntity[]
 
-  @ManyToMany(() => ContestEntity, contest => contest.blueTeams)
+  @ManyToMany(() => ContestEntity, contest => contest.blueTeams, { onDelete: 'CASCADE' })
     blueContests: ContestEntity[]
 }

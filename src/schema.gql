@@ -118,10 +118,13 @@ type Contest {
   number: Float!
 
   """The red alliance"""
-  redAlliance: [Team!]!
+  redTeams: [Team!]!
 
   """The blue alliance"""
-  blueAlliance: [Team!]!
+  blueTeams: [Team!]!
+
+  """The matches in this contest"""
+  matches: [Match!]!
 }
 
 """The round of the match"""
@@ -141,13 +144,13 @@ type Match {
   id: Int!
 
   """The number of the match. E.g. SF-2-1 is 2"""
-  matchNumber: Int!
+  number: Int!
 
   """The contest this match is a part of"""
   contest: Contest!
 
   """Sittings of the match"""
-  sitting: Int!
+  sittings: [Sitting!]!
 }
 
 """

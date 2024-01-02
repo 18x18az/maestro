@@ -18,11 +18,11 @@ export class ContestEntity {
   @OneToMany(() => MatchEntity, match => match.contest)
     matches: MatchEntity[]
 
-  @ManyToMany(() => TeamEntity, team => team.redContests)
+  @ManyToMany(() => TeamEntity, team => team.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   @JoinTable()
     redTeams: TeamEntity[]
 
-  @ManyToMany(() => TeamEntity, team => team.blueContests)
+  @ManyToMany(() => TeamEntity, team => team.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   @JoinTable()
     blueTeams: TeamEntity[]
 }

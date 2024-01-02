@@ -7,6 +7,7 @@ import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
 import { TmConnectedEvent } from './tm-connected.event'
 import { TeamListUpdateEvent } from '../../features/team/team-list-update.event'
+import { EventResetEvent } from '../../features/stage/event-reset.event'
 
 const STORAGE_KEY = 'tm'
 
@@ -21,9 +22,11 @@ export class TmInternal {
     private readonly request: HttpService,
     private readonly storage: StorageService,
     private readonly connectedEvent: TmConnectedEvent,
-    private readonly teamCreate: TeamListUpdateEvent
+    private readonly teamCreate: TeamListUpdateEvent,
+    private readonly resetEvent: EventResetEvent
   ) {
     this.connectedEvent.registerOnComplete(this.loadTeams.bind(this))
+    this.resetEvent.registerOnComplete(this.loadTeams.bind(this))
   }
 
   async onApplicationBootstrap (): Promise<void> {
