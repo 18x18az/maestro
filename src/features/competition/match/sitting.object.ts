@@ -10,7 +10,7 @@ export class Sitting {
     id: number
 
   @GField(() => Number, { description: 'The number of the sitting. Indexed from 1' })
-    sittingNumber: number
+    number: number
 
   @GField(() => Match, { description: 'The match this sitting is a part of' })
     match: Match

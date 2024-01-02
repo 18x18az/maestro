@@ -9,6 +9,9 @@ export class SittingEntity {
   @PrimaryGeneratedColumn()
     id: number
 
+  @Column({ type: 'int', default: 1 })
+    number: number
+
   @Column({ type: 'date', nullable: true })
     scheduled: Date
 

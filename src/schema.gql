@@ -158,7 +158,7 @@ type Sitting {
   id: Float!
 
   """The number of the sitting. Indexed from 1"""
-  sittingNumber: Float!
+  number: Float!
 
   """The match this sitting is a part of"""
   match: Match!
