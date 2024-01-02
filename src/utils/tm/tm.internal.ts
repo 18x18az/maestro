@@ -203,5 +203,6 @@ export class TmInternal {
     this.logger.log(`Connected to TM at ${url.href}`)
     this.tmUrl = url
     await this.storage.setPersistent(STORAGE_KEY, url.toJSON())
+    await this.connectedEvent.execute()
   }
 }

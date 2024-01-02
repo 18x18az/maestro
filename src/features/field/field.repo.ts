@@ -7,9 +7,8 @@ import { Repository } from 'typeorm'
 export class FieldRepo {
   constructor (@InjectRepository(FieldEntity) private readonly fieldRepository: Repository<FieldEntity>) { }
 
-  async getEnabledFields (): Promise<number[]> {
-    const fields = await this.fieldRepository.findBy({ isEnabled: true })
-    return fields.map(field => field.id)
+  async getEnabledFields (): Promise<FieldEntity[]> {
+    return await this.fieldRepository.findBy({ isEnabled: true })
   }
 
   async isCompetition (fieldId: number): Promise<boolean> {
@@ -31,14 +30,12 @@ export class FieldRepo {
     return await this.fieldRepository.findOneByOrFail({ id })
   }
 
-  async findEnabled (): Promise<number[]> {
-    const fields = await this.fieldRepository.findBy({ isEnabled: true })
-    return fields.map(field => field.id)
+  async findEnabled (): Promise<FieldEntity[]> {
+    return await this.fieldRepository.findBy({ isEnabled: true })
   }
 
-  async findEnabledCompetition (): Promise<number[]> {
-    const fields = await this.fieldRepository.findBy({ isEnabled: true, isCompetition: true })
-    return fields.map(field => field.id)
+  async findEnabledCompetition (): Promise<FieldEntity[]> {
+    return await this.fieldRepository.findBy({ isEnabled: true, isCompetition: true })
   }
 
   async createUnnamedField (): Promise<FieldEntity> {

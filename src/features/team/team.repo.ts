@@ -34,4 +34,8 @@ export class TeamRepo {
     this.logger.log('Resetting teams')
     await this.teamRepository.clear()
   }
+
+  async getTeamByNumber (number: string): Promise<TeamEntity> {
+    return await this.teamRepository.findOneByOrFail({ number })
+  }
 }

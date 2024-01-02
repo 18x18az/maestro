@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { Checkin } from './team.interface'
+import { ContestEntity } from '../competition/match/contest.entity'
 
 @Entity()
 export class TeamEntity {
@@ -20,4 +21,10 @@ export class TeamEntity {
 
   @Column({ enum: Checkin, type: 'simple-enum', default: Checkin.NOT_HERE })
     checkin: Checkin
+
+  @ManyToMany(() => ContestEntity, contest => contest.redTeams)
+    redContests: ContestEntity[]
+
+  @ManyToMany(() => ContestEntity, contest => contest.blueTeams)
+    blueContests: ContestEntity[]
 }

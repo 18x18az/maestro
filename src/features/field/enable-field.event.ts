@@ -19,7 +19,8 @@ export class EnableFieldEvent extends EventService<EnableFieldPayload, EnableFie
     const enabled = await this.fieldRepo.getEnabledFields()
     this.logger.log(`Enabling ${enabled.length} existing fields`)
 
-    for (const id of enabled) {
+    for (const field of enabled) {
+      const id = field.id
       await this.execute({ id })
     }
   }

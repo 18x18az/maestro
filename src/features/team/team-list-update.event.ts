@@ -19,8 +19,9 @@ export class TeamListUpdateEvent extends EventService<TeamListUpdatePayload, Tea
 
   protected async getContext (data: TeamListUpdatePayload): Promise<TeamListUpdateContext> {
     const existingTeams = await this.service.getTeams()
-    const teamsToRemove = existingTeams.filter(team => existingTeams.find(t => t.number === team.number) === undefined)
-    const teamsToAdd = existingTeams.filter(team => existingTeams.find(t => t.number === team.number) === undefined)
+    const updatedTeams = data.teams
+    const teamsToRemove = existingTeams.filter(team => updatedTeams.find(t => t.number === team.number) === undefined)
+    const teamsToAdd = updatedTeams.filter(team => existingTeams.find(t => t.number === team.number) === undefined)
 
     return {
       teams: data.teams,

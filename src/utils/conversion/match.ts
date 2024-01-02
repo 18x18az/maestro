@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { Match, MatchStatus, Round } from '../../features/competition/match'
+import { Match, SittingStatus, Round } from '../../features/competition/match'
 
 type PrismaMatchInfo = Prisma.MatchGetPayload<{ include: { block: true, field: true } }>
 
@@ -17,7 +17,7 @@ export function parseMatch (match: PrismaMatchInfo): Match {
     },
     fieldId: match.fieldId !== null ? match.fieldId : undefined,
     fieldName: (match.field != null) ? match.field.name : undefined,
-    status: match.status as MatchStatus,
+    status: match.status as SittingStatus,
     block: match.block.name,
     round: match.round as Round,
     sitting: match.sitting,

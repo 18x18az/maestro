@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql'
+
 export enum Round {
   QUAL = 'qual',
   Ro16 = 'ro16',
@@ -5,6 +7,11 @@ export enum Round {
   SF = 'sf',
   F = 'f'
 }
+
+registerEnumType(Round, {
+  name: 'Round',
+  description: 'The round of the match'
+})
 
 export interface MatchIdentifier {
   round: Round
@@ -18,13 +25,22 @@ export enum BlockStatus {
   FINISHED = 'FINISHED'
 }
 
-export enum MatchStatus {
+registerEnumType(BlockStatus, {
+  name: 'BlockStatus',
+  description: 'The status of a block of matches'
+})
+
+export enum SittingStatus {
   NOT_STARTED = 'NOT_STARTED',
   QUEUED = 'QUEUED',
   SCORING = 'SCORING',
-  NEEDS_REPLAY = 'NEEDS_REPLAY',
   COMPLETE = 'COMPLETE'
 }
+
+registerEnumType(SittingStatus, {
+  name: 'MatchStatus',
+  description: 'The status of a match'
+})
 
 export interface Alliance {
   team1: string
@@ -39,7 +55,7 @@ export interface Match {
   blue: Alliance
   fieldId?: number
   fieldName?: string
-  status: MatchStatus
+  status: SittingStatus
   round: Round
   sitting: number
   time?: string

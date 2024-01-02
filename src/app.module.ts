@@ -12,6 +12,7 @@ import { TeamModule } from './features/team/team.module'
 import { SettingsModule } from './utils/settings/settings.module'
 import { StageModule } from './features'
 import { URLResolver } from 'graphql-scalars'
+import { MatchModule } from './features/competition/match'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { URLResolver } from 'graphql-scalars'
     SettingsModule,
     StageModule,
     TmModule,
+    MatchModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'sqlite',

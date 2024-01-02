@@ -1,24 +1,18 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
+import { Controller, Post, Request } from '@nestjs/common'
 import { QualService } from './qual.service'
-import { MatchInternal } from './match.internal'
 
 @Controller('matches')
 export class MatchController {
   constructor (
-    private readonly quals: QualService,
-    private readonly service: MatchInternal
+    private readonly quals: QualService
   ) {}
 
   @Post('quals')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadMatches (@UploadedFile() file: Express.Multer.File): Promise<void> {
-    const data = file.buffer.toString()
-    await this.quals.handleUpload(data)
-  }
-
-  @Post('proceed')
-  async proceed (): Promise<void> {
-    await this.service.startNextBlock()
+  async uploadMatches (@Request() request): Promise<void> {
+    const multipart = request.files()
+    const file = await multipart.next()
+    const buffer = await file.value.toBuffer()
+    const string = buffer.toString('utf-8')
+    await this.quals.handleUpload(string)
   }
 }

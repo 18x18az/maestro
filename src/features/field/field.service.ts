@@ -39,11 +39,11 @@ export class FieldService {
     return field.isCompetition
   }
 
-  async getEnabledFields (): Promise<number[]> {
+  async getEnabledFields (): Promise<FieldEntity[]> {
     return await this.repo.findEnabled()
   }
 
-  async getCompetitionFields (): Promise<number[]> {
+  async getCompetitionFields (): Promise<FieldEntity[]> {
     return await this.repo.findEnabledCompetition()
   }
 

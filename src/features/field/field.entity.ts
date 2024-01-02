@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { SittingEntity } from '../competition/match/sitting.entity'
 
 @Entity()
 export class FieldEntity {
@@ -16,4 +17,7 @@ export class FieldEntity {
 
   @Column({ default: false })
     isEnabled: boolean
+
+  @OneToMany(() => SittingEntity, sitting => sitting.field)
+    sittings: SittingEntity[]
 }

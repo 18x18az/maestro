@@ -3,6 +3,7 @@ import { Team, TeamCreate } from './team.object'
 import { TeamRepo } from './team.repo'
 import { Checkin } from './team.interface'
 import { EventResetEvent } from '../stage/event-reset.event'
+import { TeamEntity } from './team.entity'
 
 @Injectable()
 export class TeamService {
@@ -28,5 +29,9 @@ export class TeamService {
 
   async addTeams (teams: TeamCreate[]): Promise<Team[]> {
     return await this.repo.addTeams(teams)
+  }
+
+  async getTeamByNumber (number: string): Promise<TeamEntity> {
+    return await this.repo.getTeamByNumber(number)
   }
 }

@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { Match, MatchIdentifier, MatchStatus } from './match.interface'
+import { Injectable, Logger } from '@nestjs/common'
+import { Match, SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { ElimsMatch } from '@/utils'
 
@@ -11,25 +11,26 @@ export class MatchService {
     private readonly service: MatchInternal
   ) {}
 
-  async markQueued (match: number): Promise<void> {
-    this.logger.log(`Marking match ID ${match} as queued`)
-    await this.service.updateMatchStatus(match, MatchStatus.QUEUED)
+  // TODO these should be events
+  async markQueued (sitting: number): Promise<void> {
+    this.logger.log(`Marking sitting ID ${sitting} as queued`)
+    await this.service.updateSittingStatus(sitting, SittingStatus.QUEUED)
   }
 
-  async unmarkQueued (match: number): Promise<void> {
-    this.logger.log(`Unmarking match ID ${match} as queued`)
-    await this.service.updateMatchStatus(match, MatchStatus.NOT_STARTED)
+  async unmarkQueued (sitting: number): Promise<void> {
+    this.logger.log(`Unmarking sitting ID ${sitting} as queued`)
+    await this.service.updateSittingStatus(sitting, SittingStatus.NOT_STARTED)
   }
 
-  async markForReplay (match: number): Promise<void> {
-    this.logger.log(`Marking match ID ${match} for replay`)
-    await this.service.updateMatchStatus(match, MatchStatus.NEEDS_REPLAY)
-    await this.service.removeFieldAssignment(match)
-  }
+  // async markForReplay (sitting: number): Promise<void> {
+  //   this.logger.log(`Marking sitting ID ${sitting} for replay`)
+  //   await this.service.updateSittingStatus(sitting, SittingStatus.NEEDS_REPLAY)
+  //   await this.service.removeFieldAssignment(sitting)
+  // }
 
   async markScored (match: number): Promise<void> {
     this.logger.log(`Marking match ID ${match} as scored`)
-    await this.service.updateMatchStatus(match, MatchStatus.COMPLETE)
+    await this.service.updateSittingStatus(match, SittingStatus.COMPLETE)
   }
 
   async reconcileQueued (queuedMatches: Match[]): Promise<void> {
@@ -37,13 +38,13 @@ export class MatchService {
     await this.service.reconcileQueued(queuedMatches)
   }
 
-  async getUnqueuedMatches (): Promise<Match[]> {
-    return await this.service.getUnqueuedMatches()
-  }
+  // async getUnqueuedMatches (): Promise<Match[]> {
+  //   return await this.service.getUnqueuedMatches()
+  // }
 
   async markPlayed (match: number): Promise<void> {
     this.logger.log(`Marking match ID ${match} as played`)
-    await this.service.updateMatchStatus(match, MatchStatus.SCORING)
+    await this.service.updateSittingStatus(match, SittingStatus.SCORING)
   }
 
   async createElimsBlock (): Promise<number> {
@@ -56,46 +57,46 @@ export class MatchService {
     await this.service.createElimsMatch(match)
   }
 
-  async getMatch (match: number): Promise<Match | null> {
-    return await this.service.getMatch(match)
-  }
+  // async getMatch (match: number): Promise<Match | null> {
+  //   return await this.service.getMatch(match)
+  // }
 
-  async getMatchStatus (matchId: number): Promise<MatchStatus> {
-    const match = await this.service.getMatch(matchId)
+  // async getMatchStatus (matchId: number): Promise<MatchStatus> {
+  //   const match = await this.service.getMatch(matchId)
 
-    if (match === null) {
-      throw new BadRequestException(`Match ${matchId} not found`)
-    }
+  //   if (match === null) {
+  //     throw new BadRequestException(`Match ${matchId} not found`)
+  //   }
 
-    return match.status
-  }
+  //   return match.status
+  // }
 
-  async canBeQueued (matchId: number): Promise<boolean> {
-    const status = await this.getMatchStatus(matchId)
+  // async canBeQueued (matchId: number): Promise<boolean> {
+  //   const status = await this.getMatchStatus(matchId)
 
-    return status === MatchStatus.NOT_STARTED || status === MatchStatus.NEEDS_REPLAY
-  }
+  //   return status === MatchStatus.NOT_STARTED || status === MatchStatus.NEEDS_REPLAY
+  // }
 
-  async canBeResolved (matchId: number): Promise<boolean> {
-    const status = await this.getMatchStatus(matchId)
+  // async canBeResolved (matchId: number): Promise<boolean> {
+  //   const status = await this.getMatchStatus(matchId)
 
-    return status === MatchStatus.QUEUED || status === MatchStatus.SCORING
-  }
+  //   return status === MatchStatus.QUEUED || status === MatchStatus.SCORING
+  // }
 
-  async resolveMatch (matchId: number, resolution: MatchStatus): Promise<void> {
-    if (!await this.canBeResolved(matchId)) {
-      this.logger.warn(`Match ${matchId} cannot be resolved`)
-      throw new BadRequestException(`Match ${matchId} cannot be resolved`)
-    }
+  async resolveMatch (matchId: number, resolution: SittingStatus): Promise<void> {
+    // if (!await this.canBeResolved(matchId)) {
+    //   this.logger.warn(`Match ${matchId} cannot be resolved`)
+    //   throw new BadRequestException(`Match ${matchId} cannot be resolved`)
+    // }
 
     switch (resolution) {
-      case MatchStatus.COMPLETE:
+      case SittingStatus.COMPLETE:
         await this.markScored(matchId)
         break
-      case MatchStatus.NEEDS_REPLAY:
-        await this.markForReplay(matchId)
-        break
-      case MatchStatus.NOT_STARTED:
+      // case SittingStatus.NEEDS_REPLAY:
+      //   await this.markForReplay(matchId)
+      //   break
+      case SittingStatus.NOT_STARTED:
         await this.unmarkQueued(matchId)
         break
       default:
@@ -103,13 +104,13 @@ export class MatchService {
     }
   }
 
-  async canStartMatch (matchId: number): Promise<boolean> {
-    const status = await this.getMatchStatus(matchId)
+  // async canStartMatch (matchId: number): Promise<boolean> {
+  //   const status = await this.getMatchStatus(matchId)
 
-    return status === MatchStatus.QUEUED
-  }
+  //   return status === MatchStatus.QUEUED
+  // }
 
-  async findByIdent (identifier: MatchIdentifier): Promise<Match> {
-    return await this.service.findByIdent(identifier)
-  }
+  // async findByIdent (identifier: MatchIdentifier): Promise<Match> {
+  //   return await this.service.findByIdent(identifier)
+  // }
 }
