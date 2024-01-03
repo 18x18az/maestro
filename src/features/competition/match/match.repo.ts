@@ -118,6 +118,10 @@ export class MatchRepo {
     return await this.sittingRepository.find({ where: { blockId: block } })
   }
 
+  async getUnqueuedSittingsByBlock (block: number): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED } })
+  }
+
   async getRedTeams (contest: number): Promise<TeamEntity[]> {
     const c = await this.contestRepository.findOneOrFail({ relations: ['redTeams'], where: { id: contest } })
     return c.redTeams

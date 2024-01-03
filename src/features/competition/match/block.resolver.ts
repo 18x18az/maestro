@@ -30,6 +30,11 @@ export class BlockResolver {
     return await this.repo.getSittingsByBlock(block.id)
   }
 
+  @ResolveField(() => [Sitting])
+  async unqueuedSittings (@Parent() block: BlockEntity): Promise<SittingEntity[]> {
+    return await this.repo.getUnqueuedSittingsByBlock(block.id)
+  }
+
   @ResolveField(() => Date, { nullable: true })
   async startTime (@Parent() block: BlockEntity): Promise<Date | null> {
     return await this.repo.getBlockStartTime(block.id)
