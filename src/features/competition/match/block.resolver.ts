@@ -3,6 +3,8 @@ import { Block } from './block.object'
 import { MatchRepo } from './match.repo'
 import { BlockEntity } from './block.entity'
 import { MatchInternal } from './match.internal'
+import { Sitting } from './sitting.object'
+import { SittingEntity } from './sitting.entity'
 
 @Resolver(of => Block)
 export class BlockResolver {
@@ -21,6 +23,11 @@ export class BlockResolver {
   @Query(() => Block, { nullable: true })
   async nextBlock (): Promise<BlockEntity | null> {
     return await this.repo.getNextBlock()
+  }
+
+  @ResolveField(() => [Sitting])
+  async sittings (@Parent() block: BlockEntity): Promise<SittingEntity[]> {
+    return await this.repo.getSittingsByBlock(block.id)
   }
 
   @ResolveField(() => Date, { nullable: true })
