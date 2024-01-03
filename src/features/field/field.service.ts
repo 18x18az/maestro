@@ -43,13 +43,56 @@ export class FieldService {
     return await this.repo.findEnabled()
   }
 
+  private async enableOrCreateNFields (n: number): Promise<void> {
+    const allFields = await this.getFields()
+    const disabledCompetitionFields = allFields.filter(field => !field.isEnabled && field.isCompetition)
+    const numberToCreate = n - disabledCompetitionFields.length
+
+    if (numberToCreate > 0) {
+      this.logger.log(`Creating ${numberToCreate} fields`)
+      for (let i = 0; i < numberToCreate; i++) {
+        const newField = await this.addField()
+        disabledCompetitionFields.push(newField)
+      }
+    }
+
+    this.logger.log(`Enabling ${disabledCompetitionFields.length} fields`)
+    for (const field of disabledCompetitionFields.slice(0, n)) {
+      await this.updateField(field.id, { isEnabled: true })
+    }
+  }
+
+  async configureCompetitionFields (fieldNames: string[]): Promise<void> {
+    const existingCompetitionFields = await this.getCompetitionFields()
+    const neededFields = fieldNames.length - existingCompetitionFields.length
+
+    if (neededFields > 0) {
+      await this.enableOrCreateNFields(neededFields)
+    } else if (neededFields < 0) {
+      this.logger.log(`Disabling ${-neededFields} fields`)
+      for (const field of existingCompetitionFields.slice(neededFields)) {
+        await this.updateField(field.id, { isEnabled: false })
+      }
+    }
+
+    const competitionFields = await this.getCompetitionFields()
+    if (competitionFields.length !== fieldNames.length) {
+      throw new Error('Invalid number of competition fields')
+    }
+
+    for (let i = 0; i < fieldNames.length; i++) {
+      const field = competitionFields[i]
+      await this.updateField(field.id, { name: fieldNames[i] })
+    }
+  }
+
   async getCompetitionFields (): Promise<FieldEntity[]> {
     return await this.repo.findEnabledCompetition()
   }
 
   async addField (): Promise<FieldEntity> {
     this.logger.log('Adding field')
-    return await this.repo.createUnnamedField()
+    return await this.repo.createUnnamedField(true)
   }
 
   async updateField (id: number, update: FieldUpdate): Promise<FieldEntity> {

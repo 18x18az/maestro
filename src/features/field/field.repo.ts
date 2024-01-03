@@ -38,8 +38,8 @@ export class FieldRepo {
     return await this.fieldRepository.findBy({ isEnabled: true, isCompetition: true })
   }
 
-  async createUnnamedField (): Promise<FieldEntity> {
-    const created = this.fieldRepository.create({ name: 'Unnamed Field' })
+  async createUnnamedField (isCompetition: boolean): Promise<FieldEntity> {
+    const created = this.fieldRepository.create({ name: 'Unnamed Field', isCompetition })
     return await this.fieldRepository.save(created)
   }
 

@@ -31,6 +31,7 @@ export class QualService {
     const rawMatches = file.split('\n').slice(1).filter(line => line.length > 0)
 
     const fieldNames = [...new Set(rawMatches.map(line => line.split(',')[4]))]
+    await this.field.configureCompetitionFields(fieldNames)
     const fields = await this.field.getCompetitionFields()
 
     let lastTime: Date | undefined

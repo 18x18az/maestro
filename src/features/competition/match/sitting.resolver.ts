@@ -1,4 +1,4 @@
-import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Field, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Sitting } from './sitting.object'
 import { MatchRepo } from './match.repo'
 import { SittingEntity } from './sitting.entity'
@@ -8,6 +8,7 @@ import { Match } from './match.object'
 import { MatchEntity } from './match.entity'
 import { Contest } from './contest.object'
 import { ContestEntity } from './contest.entity'
+import { FieldEntity } from '../../field/field.entity'
 
 @Resolver(of => Sitting)
 export class SittingResolver {
@@ -31,5 +32,10 @@ export class SittingResolver {
   async contest (@Parent() sitting: SittingEntity): Promise<ContestEntity> {
     const match = await this.repo.getMatch(sitting.matchId)
     return await this.repo.getContest(match.contestId)
+  }
+
+  @ResolveField(() => Field, { nullable: true })
+  async field (@Parent() sitting: SittingEntity): Promise<FieldEntity | null> {
+    return await this.repo.getField(sitting.id)
   }
 }

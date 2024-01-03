@@ -8,6 +8,7 @@ import { BlockEntity, CreateQualBlock } from './block.entity'
 import { SittingEntity } from './sitting.entity'
 import { EventResetEvent } from '../../stage/event-reset.event'
 import { TeamEntity } from '../../team/team.entity'
+import { FieldEntity } from '../../field/field.entity'
 
 @Injectable()
 export class MatchRepo {
@@ -113,5 +114,10 @@ export class MatchRepo {
   async getBlueTeams (contest: number): Promise<TeamEntity[]> {
     const c = await this.contestRepository.findOneOrFail({ relations: ['blueTeams'], where: { id: contest } })
     return c.blueTeams
+  }
+
+  async getField (sitting: number): Promise<FieldEntity | null> {
+    const s = await this.sittingRepository.findOneOrFail({ relations: ['field'], where: { id: sitting } })
+    return s.field
   }
 }
