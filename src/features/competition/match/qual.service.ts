@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
-import { MatchInternal } from './match.internal'
 import { EventStage, StageService } from '../../stage'
 import { FieldService } from '../../field/field.service'
 import { CreateQualBlock } from './block.entity'
@@ -15,7 +14,6 @@ export class QualService {
   constructor (
     private readonly stage: StageService,
     private readonly repo: MatchRepo,
-    private readonly service: MatchInternal,
     private readonly field: FieldService,
     private readonly teams: TeamService
   ) {}
@@ -78,5 +76,7 @@ export class QualService {
     for (const block of blocksToCreate) {
       await this.repo.createQualBlock(block)
     }
+
+    await this.stage.setStage(EventStage.QUALIFICATIONS)
   }
 }
