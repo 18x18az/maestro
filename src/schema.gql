@@ -194,6 +194,12 @@ type Block {
 
   """Sittings in the block"""
   sittings: [Sitting!]!
+
+  """The time the first match is scheduled to start"""
+  startTime: DateTime
+
+  """The time the last match is scheduled to start"""
+  endTime: DateTime
 }
 
 """The status of a block of matches"""
@@ -231,6 +237,8 @@ type Query {
   stage: Stage!
   tournamentManager: TournamentManager!
   blocks: [Block!]!
+  currentBlock: Block
+  nextBlock: Block
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
@@ -242,6 +250,7 @@ type Mutation {
   """Reset the event. Only available in test mode."""
   reset: Stage!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+  startNextBlock: Block!
 }
 
 input FieldUpdate {

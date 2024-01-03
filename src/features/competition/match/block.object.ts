@@ -15,4 +15,10 @@ export class Block {
 
   @GField(() => [Sitting], { description: 'Sittings in the block' })
     sittings: Sitting[]
+
+  @GField(() => Date, { description: 'The time the first match is scheduled to start', nullable: true })
+    startTime?: Date
+
+  @GField(() => Date, { description: 'The time the last match is scheduled to start', nullable: true })
+    endTime?: Date
 }

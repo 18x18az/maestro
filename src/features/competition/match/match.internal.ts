@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
-import { Match, SittingStatus } from './match.interface'
+import { BlockStatus, Match, SittingStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
 import { EventStage, StageService } from '../../stage'
 
@@ -63,24 +63,19 @@ export class MatchInternal {
   }
 
   async startNextBlock (): Promise<void> {
-    // const block = await this.repo.getCurrentBlock()
+    const currentBlock = await this.repo.getCurrentBlock()
 
-    // if (block !== null) {
-    //   this.logger.log(`Ending block ${block.name}`)
-    //   await this.repo.endCurrentBlock()
-    //   await this.publishBlock()
-    //   return
-    // }
+    if (currentBlock !== null) {
+      throw new BadRequestException('Block already in progress')
+    }
 
-    // const nextBlockExists = await this.repo.startNextBlock()
+    const block = await this.repo.getNextBlock()
 
-    // if (nextBlockExists) {
-    //   this.logger.log('Next block exists, publishing')
-    //   await this.publishBlock()
-    // } else {
-    //   this.logger.log('No more blocks, advancing stage')
-    //   await this.stage.advanceStage()
-    // }
+    if (block === null) {
+      throw new BadRequestException('No next block to start')
+    }
+
+    await this.repo.markBlockStatus(block.id, BlockStatus.IN_PROGRESS)
   }
 
   async reconcileQueued (queuedMatches: Match[]): Promise<void> {
