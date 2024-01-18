@@ -5,6 +5,7 @@ import { FieldEntity } from './field.entity'
 import { FieldUpdate } from './field.mutation'
 import { FieldControlModel } from '../field-control/field-control.model'
 import { FieldControlService } from '../field-control/field-control.service'
+import { FindFieldsArgs } from './dto/find-fields.args'
 @Resolver(of => Field)
 export class FieldResolver {
   constructor (
@@ -13,8 +14,8 @@ export class FieldResolver {
   ) {}
 
   @Query(returns => [Field])
-  async fields (): Promise<FieldEntity[]> {
-    const fields = await this.fieldService.getFields()
+  async fields (@Args() args: FindFieldsArgs): Promise<FieldEntity[]> {
+    const fields = await this.fieldService.getFields(args)
     return fields
   }
 

@@ -4,6 +4,7 @@ import { FieldUpdate } from './field.mutation'
 import { FieldRepo } from './field.repo'
 import { EnableFieldEvent } from './enable-field.event'
 import { DisableFieldEvent } from './disable-field.event'
+import { FindFieldsArgs } from './dto/find-fields.args'
 
 @Injectable()
 export class FieldService {
@@ -16,7 +17,7 @@ export class FieldService {
   ) {}
 
   async onApplicationBootstrap (): Promise<void> {
-    const fields = await this.getFields()
+    const fields = await this.getAllFields()
     if (fields.length > 0) return
 
     this.logger.log('No fields found, initializing with default fields')
@@ -25,8 +26,12 @@ export class FieldService {
     }
   }
 
-  async getFields (): Promise<FieldEntity[]> {
+  async getAllFields (): Promise<FieldEntity[]> {
     return await this.repo.find()
+  }
+
+  async getFields (args: FindFieldsArgs): Promise<FieldEntity[]> {
+    return await this.repo.findWhere(args)
   }
 
   async isEnabled (fieldId: number): Promise<boolean> {
@@ -44,7 +49,7 @@ export class FieldService {
   }
 
   private async enableOrCreateNFields (n: number): Promise<void> {
-    const allFields = await this.getFields()
+    const allFields = await this.getAllFields()
     const disabledCompetitionFields = allFields.filter(field => !field.isEnabled && field.isCompetition)
     const numberToCreate = n - disabledCompetitionFields.length
 

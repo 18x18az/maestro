@@ -235,7 +235,7 @@ enum TmStatus {
 }
 
 type Query {
-  fields: [Field!]!
+  fields(isEnabled: Boolean, isCompetition: Boolean): [Field!]!
   teams: [Team!]!
   stage: Stage!
   tournamentManager: TournamentManager!

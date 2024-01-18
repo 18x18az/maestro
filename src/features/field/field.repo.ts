@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { FieldEntity } from './field.entity'
 import { Repository } from 'typeorm'
+import { FindFieldsArgs } from './dto/find-fields.args'
 
 @Injectable()
 export class FieldRepo {
@@ -24,6 +25,16 @@ export class FieldRepo {
 
   async find (): Promise<FieldEntity[]> {
     return await this.fieldRepository.find()
+  }
+
+  async findWhere (args: FindFieldsArgs): Promise<FieldEntity[]> {
+    return await this.fieldRepository.find({
+      where:
+      {
+        isEnabled: args.isEnabled,
+        isCompetition: args.isCompetition
+      }
+    })
   }
 
   async findByIdOrFail (id: number): Promise<FieldEntity> {
