@@ -12,12 +12,13 @@ import { CompetitionFieldResolver } from './competition-field.resolver'
 import { QueueSittingEvent } from './queue-sitting.event'
 import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
 import { UnqueueSittingEvent } from './unqueue-sitting.event'
+import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
 
 @Module({
   imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),
     TypeOrmModule.forFeature([CompetitionFieldEntity])],
   providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
-    CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent],
+    CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent],
   exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent]
 })
 export class CompetitionFieldModule {}

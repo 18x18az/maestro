@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
+import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
 
 interface UnqueueSittingPayload {
   sittingId: number
@@ -16,7 +17,8 @@ interface UnqueueSittingContext extends UnqueueSittingPayload {
 export class UnqueueSittingEvent extends EventService<UnqueueSittingPayload, UnqueueSittingContext, UnqueueSittingContext> {
   constructor (
     private readonly repo: CompetitionFieldRepo,
-    private readonly removeOnField: RemoveOnFieldSittingEvent
+    private readonly removeOnField: RemoveOnFieldSittingEvent,
+    private readonly removeOnTable: RemoveOnTableSittingEvent
   ) { super() }
 
   protected async getContext (data: UnqueueSittingPayload): Promise<UnqueueSittingContext> {
@@ -31,7 +33,7 @@ export class UnqueueSittingEvent extends EventService<UnqueueSittingPayload, Unq
     if (data.location === 'ON_FIELD') {
       await this.removeOnField.execute({ fieldId: data.fieldId })
     } else {
-      // await this.repo.removeOnTableSitting(data.fieldId)
+      await this.removeOnTable.execute({ fieldId: data.fieldId })
     }
     return data
   }
