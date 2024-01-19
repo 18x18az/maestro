@@ -27,7 +27,6 @@ export class RemoveOnTableSittingEvent extends EventService<RemoveOnTableSitting
   }
 
   protected async doExecute (data: RemoveOnTableSittingContext): Promise<RemoveOnTableSittingContext> {
-    this.logger.log(`Resolving sitting on field ${data.fieldId}`)
     await this.repo.removeOnTableSitting(data.fieldId)
     const updated = await this.repo.getCompetitionField(data.fieldId)
     if (updated === null) throw new Error('Field disappeared')

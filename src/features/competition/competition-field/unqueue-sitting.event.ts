@@ -30,6 +30,7 @@ export class UnqueueSittingEvent extends EventService<UnqueueSittingPayload, Unq
   }
 
   protected async doExecute (data: UnqueueSittingContext): Promise<UnqueueSittingContext> {
+    this.logger.log(`Unqueueing sitting ${data.sittingId} from ${data.location} of field ${data.fieldId}`)
     if (data.location === 'ON_FIELD') {
       await this.removeOnField.execute({ fieldId: data.fieldId })
     } else {

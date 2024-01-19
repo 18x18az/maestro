@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldEntity } from './competition-field.entity'
 import { CompetitionFieldRepo } from './competition-field.repo'
+import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
 
 export interface RemoveOnFieldSittingPayload {
   fieldId: number
@@ -13,7 +14,11 @@ export interface RemoveOnFieldSittingContext extends RemoveOnFieldSittingPayload
 
 @Injectable()
 export class RemoveOnFieldSittingEvent extends EventService<RemoveOnFieldSittingPayload, RemoveOnFieldSittingContext, RemoveOnFieldSittingContext> {
-  constructor (private readonly repo: CompetitionFieldRepo) { super() }
+  constructor (
+    private readonly repo: CompetitionFieldRepo,
+    private readonly removeOnTable: RemoveOnTableSittingEvent
+  ) { super() }
+
   protected async getContext (data: RemoveOnFieldSittingPayload): Promise<RemoveOnFieldSittingContext> {
     const field = await this.repo.getCompetitionField(data.fieldId)
 
@@ -27,8 +32,14 @@ export class RemoveOnFieldSittingEvent extends EventService<RemoveOnFieldSitting
   }
 
   protected async doExecute (data: RemoveOnFieldSittingContext): Promise<RemoveOnFieldSittingContext> {
-    this.logger.log(`Resolving sitting on field ${data.fieldId}`)
     await this.repo.removeOnFieldSitting(data.fieldId)
+    const onTable = data.field.onTableSittingId
+
+    if (onTable !== null) {
+      await this.removeOnTable.execute({ fieldId: data.fieldId })
+      await this.repo.putOnField(data.fieldId, onTable)
+    }
+
     const updated = await this.repo.getCompetitionField(data.fieldId)
     if (updated === null) throw new Error('Field disappeared')
     return {
