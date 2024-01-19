@@ -1,20 +1,23 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { CompetitionFieldService } from './competition-field.service'
 import { CompetitionFieldControlService } from './competition-field-control.service'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { MatchModule } from '../match'
-import { CompetitionFieldPublisher } from './competition-field.publisher'
-import { LifecycleService } from './lifecyle.service'
-import { VacancyService } from './vacancy.service'
-import { CompetitionFieldController } from './competition-field.controller'
-import { PrismaModule, PublishModule } from '@/utils'
 import { FieldModule } from '../../field/field.module'
-import { FieldControlModule } from '@/features/field-control'
+import { FieldControlModule } from '../../field-control/field-control.module'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { CompetitionFieldEntity } from './competition-field.entity'
+import { EnableCompetitionFieldEvent } from './enable-competition-field.event'
+import { CompetitionFieldResolver } from './competition-field.resolver'
+import { QueueSittingEvent } from './queue-sitting.event'
+import { RemoveOnFieldSittingEvent } from './remove-sitting.event'
+import { UnqueueSittingEvent } from './unqueue-sitting.event'
 
 @Module({
-  imports: [PrismaModule, MatchModule, FieldControlModule, PublishModule, FieldModule],
-  controllers: [CompetitionFieldController],
-  providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, CompetitionFieldPublisher, LifecycleService, VacancyService],
-  exports: [CompetitionFieldService]
+  imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),
+    TypeOrmModule.forFeature([CompetitionFieldEntity])],
+  providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
+    CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent],
+  exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent]
 })
 export class CompetitionFieldModule {}

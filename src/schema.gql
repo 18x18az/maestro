@@ -72,38 +72,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-"""Representation of a single field"""
-type Field {
-  """Unique identifier for the field"""
-  id: Int!
-
-  """Name of the field"""
-  name: String!
-
-  """Whether the field is enabled for use"""
-  isEnabled: Boolean!
-
-  """
-  Whether the field is allocated as a competition field. Can be true even if the field is disabled.
-  """
-  isCompetition: Boolean!
-
-  """
-  Whether or not the field can be used for skills. Can be true even if the field is disabled.
-  """
-  canRunSkills: Boolean!
-
-  """
-  Whether or not the field is allocated as a dedicated skills field. Can be true even if the field is disabled.
-  """
-  isSkills: Boolean!
-
-  """
-  The current state of field control on the field. Null if the field is disabled.
-  """
-  fieldControl: FieldControl
-}
-
 """
 A contest refers to a match or group of matches between two alliances. E.g. in Bo3 finals, F1 and F2 are both part of the same contest
 """
@@ -154,32 +122,6 @@ type Match {
 }
 
 """
-A sitting is an instance of a match being played. In case of a replay, another sitting is created for the same match.
-"""
-type Sitting {
-  """Unique identifier for the sitting"""
-  id: Float!
-
-  """The number of the sitting. Indexed from 1"""
-  number: Float!
-
-  """The match this sitting is a part of"""
-  match: Match!
-
-  """The contest this sitting is a part of"""
-  contest: Contest!
-
-  """The time the sitting is scheduled to be played"""
-  scheduled: DateTime
-
-  """The block this sitting is a part of"""
-  block: Block!
-
-  """The field this sitting will nominally be played on"""
-  field: Field
-}
-
-"""
 A block refers to a group of match sittings played in the same stretch of time, e.g. all quals played in the morning before lunch
 """
 type Block {
@@ -212,6 +154,86 @@ enum BlockStatus {
   FINISHED
 }
 
+"""
+A sitting is an instance of a match being played. In case of a replay, another sitting is created for the same match.
+"""
+type Sitting {
+  """Unique identifier for the sitting"""
+  id: Float!
+
+  """The number of the sitting. Indexed from 1"""
+  number: Float!
+
+  """The match this sitting is a part of"""
+  match: Match!
+
+  """The contest this sitting is a part of"""
+  contest: Contest!
+
+  """The time the sitting is scheduled to be played"""
+  scheduled: DateTime
+
+  """The block this sitting is a part of"""
+  block: Block!
+
+  """The field this sitting will nominally be played on"""
+  field: Field
+
+  """The status of the sitting"""
+  status: MatchStatus!
+}
+
+"""The status of a match"""
+enum MatchStatus {
+  NOT_STARTED
+  QUEUED
+  SCORING
+  COMPLETE
+}
+
+type CompetitionField {
+  fieldId: Float!
+  onFieldSitting: Sitting
+  onTableSitting: Sitting
+}
+
+"""Representation of a single field"""
+type Field {
+  """Unique identifier for the field"""
+  id: Int!
+
+  """Name of the field"""
+  name: String!
+
+  """Whether the field is enabled for use"""
+  isEnabled: Boolean!
+
+  """
+  Whether the field is allocated as a competition field. Can be true even if the field is disabled.
+  """
+  isCompetition: Boolean!
+
+  """
+  Whether or not the field can be used for skills. Can be true even if the field is disabled.
+  """
+  canRunSkills: Boolean!
+
+  """
+  Whether or not the field is allocated as a dedicated skills field. Can be true even if the field is disabled.
+  """
+  isSkills: Boolean!
+
+  """
+  The current state of field control on the field. Null if the field is disabled.
+  """
+  fieldControl: FieldControl
+
+  """
+  Information about competition matches associated with this field. Null if the field is not being used for competition matches.
+  """
+  competition: CompetitionField
+}
+
 type TournamentManager {
   """
   The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
@@ -236,24 +258,26 @@ enum TmStatus {
 
 type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean): [Field!]!
-  teams: [Team!]!
-  stage: Stage!
-  tournamentManager: TournamentManager!
   blocks: [Block!]!
   currentBlock: Block
   nextBlock: Block
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
+  teams: [Team!]!
+  stage: Stage!
+  tournamentManager: TournamentManager!
 }
 
 type Mutation {
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
+  unqueue(sittingId: Float!): CompetitionField!
+  startNextBlock: Block!
+  queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
-  startNextBlock: Block!
 }
 
 input FieldUpdate {

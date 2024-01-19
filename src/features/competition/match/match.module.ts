@@ -16,9 +16,10 @@ import { BlockResolver } from './block.resolver'
 import { ContestResolver } from './contest.resolver'
 import { MatchResolver } from './match.resolver'
 import { SittingResolver } from './sitting.resolver'
+import { CompetitionFieldModule } from '../competition-field'
 
 @Module({
-  imports: [TeamModule, StageModule, forwardRef(() => FieldModule),
+  imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
     TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity])
   ],
   controllers: [MatchController],

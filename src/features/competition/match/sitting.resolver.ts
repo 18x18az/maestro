@@ -1,4 +1,4 @@
-import { Field, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Field, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Sitting } from './sitting.object'
 import { MatchRepo } from './match.repo'
 import { SittingEntity } from './sitting.entity'
@@ -9,10 +9,15 @@ import { MatchEntity } from './match.entity'
 import { Contest } from './contest.object'
 import { ContestEntity } from './contest.entity'
 import { FieldEntity } from '../../field/field.entity'
+import { CompetitionFieldService } from '../competition-field/competition-field.service'
 
 @Resolver(of => Sitting)
 export class SittingResolver {
-  constructor (private readonly repo: MatchRepo) {}
+  constructor (
+    private readonly repo: MatchRepo,
+    private readonly competitionField: CompetitionFieldService
+  ) {}
+
   @Query(() => [Sitting])
   async sittings (): Promise<SittingEntity[]> {
     return await this.repo.getSittings()
@@ -37,5 +42,15 @@ export class SittingResolver {
   @ResolveField(() => Field, { nullable: true })
   async field (@Parent() sitting: SittingEntity): Promise<FieldEntity | null> {
     return await this.repo.getField(sitting.id)
+  }
+
+  @Mutation(() => Sitting)
+  async queueSitting (
+    @Args({ name: 'sittingId', type: () => Int }) sittingId: number,
+      @Args({ name: 'fieldId', type: () => Int }) fieldId: number
+  ): Promise<SittingEntity> {
+    await this.competitionField.queueSitting(sittingId, fieldId)
+    const sitting = await this.repo.getSitting(sittingId)
+    return sitting
   }
 }

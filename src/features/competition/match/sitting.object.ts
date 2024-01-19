@@ -3,6 +3,7 @@ import { Match } from './match.object'
 import { Contest } from './contest.object'
 import { Block } from './block.object'
 import { Field } from '../../field/field.object'
+import { SittingStatus } from './match.interface'
 
 @ObjectType({ description: 'A sitting is an instance of a match being played. In case of a replay, another sitting is created for the same match.' })
 export class Sitting {
@@ -26,4 +27,7 @@ export class Sitting {
 
   @GField(() => Field, { description: 'The field this sitting will nominally be played on', nullable: true })
     field: Field
+
+  @GField(() => SittingStatus, { description: 'The status of the sitting' })
+    status: SittingStatus
 }

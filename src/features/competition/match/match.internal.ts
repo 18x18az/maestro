@@ -3,6 +3,8 @@ import { MatchRepo } from './match.repo'
 import { BlockStatus, Match, SittingStatus } from './match.interface'
 import { ElimsMatch } from '@/utils'
 import { EventStage, StageService } from '../../stage'
+import { QueueSittingEvent } from '../competition-field/queue-sitting.event'
+import { UnqueueSittingEvent } from '../competition-field/unqueue-sitting.event'
 
 @Injectable()
 export class MatchInternal {
@@ -10,8 +12,20 @@ export class MatchInternal {
 
   constructor (
     private readonly repo: MatchRepo,
-    private readonly stage: StageService
+    private readonly stage: StageService,
+    private readonly queuedEvent: QueueSittingEvent,
+    private readonly unqueuedEvent: UnqueueSittingEvent
   ) {}
+
+  onModuleInit (): void {
+    this.queuedEvent.registerAfter(async (data) => {
+      await this.updateSittingStatus(data.sittingId, SittingStatus.QUEUED)
+    })
+
+    this.unqueuedEvent.registerAfter(async (data) => {
+      await this.updateSittingStatus(data.sittingId, SittingStatus.NOT_STARTED)
+    })
+  }
 
   async onApplicationBootstrap (): Promise<void> {
     const stage = await this.stage.getStage()
@@ -23,8 +37,8 @@ export class MatchInternal {
     }
   }
 
-  async updateSittingStatus (match: number, status: SittingStatus): Promise<void> {
-    await this.repo.updateSittingStatus(match, status)
+  async updateSittingStatus (sitting: number, status: SittingStatus): Promise<void> {
+    await this.repo.updateSittingStatus(sitting, status)
   }
 
   private async publishUnqueuedQuals (): Promise<void> {

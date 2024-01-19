@@ -37,8 +37,8 @@ export class MatchRepo {
     return block.id
   }
 
-  async updateSittingStatus (match: number, status: SittingStatus): Promise<void> {
-    // await this.matchRepository.update(match, { status })
+  async updateSittingStatus (sitting: number, status: SittingStatus): Promise<void> {
+    await this.sittingRepository.update(sitting, { status })
   }
 
   private async createQualMatch (block: BlockEntity, data: CreateQualMatch): Promise<void> {
@@ -104,6 +104,10 @@ export class MatchRepo {
 
   async getMatch (id: number): Promise<MatchEntity> {
     return await this.matchRepository.findOneByOrFail({ id })
+  }
+
+  async getSitting (id: number): Promise<SittingEntity> {
+    return await this.sittingRepository.findOneByOrFail({ id })
   }
 
   async getSittings (): Promise<SittingEntity[]> {

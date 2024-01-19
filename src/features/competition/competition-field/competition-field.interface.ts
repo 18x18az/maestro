@@ -1,4 +1,4 @@
-import { Field } from '../../field'
+import { FieldEntity } from '../../field/field.entity'
 import { Match } from '../match'
 
 export enum MATCH_STAGE {
@@ -12,7 +12,7 @@ export enum MATCH_STAGE {
 }
 
 export interface CompetitionFieldStatus {
-  field: Field
+  field: FieldEntity
   onDeck: Match | null
   onField: Match | null
   stage: MATCH_STAGE

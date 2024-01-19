@@ -7,9 +7,10 @@ import { EnableFieldEvent } from './enable-field.event'
 import { FieldRepo } from './field.repo'
 import { DisableFieldEvent } from './disable-field.event'
 import { FieldControlModule } from '../field-control/field-control.module'
+import { CompetitionFieldModule } from '../competition/competition-field'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([FieldEntity]), forwardRef(() => FieldControlModule)],
+  imports: [TypeOrmModule.forFeature([FieldEntity]), forwardRef(() => FieldControlModule), forwardRef(() => CompetitionFieldModule)],
   providers: [FieldResolver, FieldService, EnableFieldEvent, DisableFieldEvent, FieldRepo],
   exports: [FieldService, EnableFieldEvent, DisableFieldEvent]
 })

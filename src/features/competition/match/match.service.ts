@@ -22,12 +22,6 @@ export class MatchService {
     await this.service.updateSittingStatus(sitting, SittingStatus.NOT_STARTED)
   }
 
-  // async markForReplay (sitting: number): Promise<void> {
-  //   this.logger.log(`Marking sitting ID ${sitting} for replay`)
-  //   await this.service.updateSittingStatus(sitting, SittingStatus.NEEDS_REPLAY)
-  //   await this.service.removeFieldAssignment(sitting)
-  // }
-
   async markScored (match: number): Promise<void> {
     this.logger.log(`Marking match ID ${match} as scored`)
     await this.service.updateSittingStatus(match, SittingStatus.COMPLETE)
@@ -37,10 +31,6 @@ export class MatchService {
     this.logger.log(`Reconciling ${queuedMatches.length} queued matches`)
     await this.service.reconcileQueued(queuedMatches)
   }
-
-  // async getUnqueuedMatches (): Promise<Match[]> {
-  //   return await this.service.getUnqueuedMatches()
-  // }
 
   async markPlayed (match: number): Promise<void> {
     this.logger.log(`Marking match ID ${match} as played`)

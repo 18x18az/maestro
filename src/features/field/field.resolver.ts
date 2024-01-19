@@ -6,11 +6,14 @@ import { FieldUpdate } from './field.mutation'
 import { FieldControlModel } from '../field-control/field-control.model'
 import { FieldControlService } from '../field-control/field-control.service'
 import { FindFieldsArgs } from './dto/find-fields.args'
+import { CompetitionFieldService } from '../competition/competition-field/competition-field.service'
+import { CompetitionFieldEntity } from '../competition/competition-field/competition-field.entity'
 @Resolver(of => Field)
 export class FieldResolver {
   constructor (
     private readonly fieldService: FieldService,
-    private readonly fieldControlService: FieldControlService
+    private readonly fieldControlService: FieldControlService,
+    private readonly competitionFieldService: CompetitionFieldService
   ) {}
 
   @Query(returns => [Field])
@@ -39,6 +42,15 @@ export class FieldResolver {
     if (!field.isEnabled) return null
 
     return this.fieldControlService.getFieldControl(field.id)
+  }
+
+  @ResolveField()
+  async competition (@Parent() field: FieldEntity): Promise<CompetitionFieldEntity | null> {
+    if (!field.isCompetition) return null
+    if (!field.isEnabled) return null
+    if (field.skillsEnabled) return null
+
+    return await this.competitionFieldService.getCompetitionField(field.id)
   }
 
   @Mutation(() => Field)
