@@ -10,7 +10,7 @@ import { CompetitionFieldEntity } from './competition-field.entity'
 import { EnableCompetitionFieldEvent } from './enable-competition-field.event'
 import { CompetitionFieldResolver } from './competition-field.resolver'
 import { QueueSittingEvent } from './queue-sitting.event'
-import { RemoveOnFieldSittingEvent } from './remove-sitting.event'
+import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
 import { UnqueueSittingEvent } from './unqueue-sitting.event'
 
 @Module({

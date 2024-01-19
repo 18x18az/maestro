@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldRepo } from './competition-field.repo'
-import { RemoveOnFieldSittingEvent } from './remove-sitting.event'
+import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
 
 interface UnqueueSittingPayload {
   sittingId: number
