@@ -1,11 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MATCH_STAGE } from './competition-field.interface'
-import { CompetitionFieldRepo } from './competition-field.repo'
-import { MatchService, MatchStatus } from '../match'
-import { CONTROL_MODE, FieldControlService } from '@/features'
-import { StartFieldEvent } from '../../field-control/start-field.event'
-import { StopFieldEvent } from '../../field-control/stop-field.event'
 import { LoadFieldEvent } from '../../field-control/load-field.event'
+import { CONTROL_MODE } from '../../field-control/field-control.interface'
+import { QueueSittingEvent } from './queue-sitting.event'
+import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
+import { CompetitionFieldRepo } from './competition-field.repo'
 
 @Injectable()
 export class CompetitionFieldControlService {
@@ -14,60 +13,74 @@ export class CompetitionFieldControlService {
   private readonly cache: Map<number, MATCH_STAGE> = new Map()
 
   constructor (
-    private readonly repo: CompetitionFieldRepo,
-    private readonly matches: MatchService,
-    private readonly control: FieldControlService,
-    private readonly startField: StartFieldEvent,
-    private readonly stopField: StopFieldEvent,
-    private readonly loadField: LoadFieldEvent
+    private readonly loadField: LoadFieldEvent,
+    private readonly queueEvent: QueueSittingEvent,
+    private readonly removeEvent: RemoveOnTableSittingEvent,
+    private readonly repo: CompetitionFieldRepo
   ) {}
 
-  async remove (fieldId: number): Promise<void> {
+  async onModuleInit (): Promise<void> {
+    this.queueEvent.registerAfter(async (data) => {
+      await this.putOnField(data.fieldId)
+    })
+
+    this.removeEvent.registerBefore(async (data) => {
+      this.remove(data.fieldId)
+    })
+  }
+
+  async onApplicationBootstrap (): Promise<void> {
+    const fields = await this.repo.getAllFields()
+
+    for (const field of fields) {
+      if (field.onFieldSittingId !== null) {
+        await this.putOnField(field.fieldId)
+      }
+    }
+  }
+
+  get (fieldId: number): MATCH_STAGE {
+    const cached = this.cache.get(fieldId)
+    if (cached === undefined) {
+      return MATCH_STAGE.EMPTY
+    }
+    return cached
+  }
+
+  remove (fieldId: number): void {
     // Cannot remove a field that is not in the cache
     const cached = this.cache.get(fieldId)
     if (cached === undefined) {
-      throw new Error(`field ${fieldId} not in cache`)
+      throw new BadRequestException(`field ${fieldId} not in cache`)
     }
 
     // Cannot remove a field that is in the middle of a match
     if (cached === MATCH_STAGE.AUTON || cached === MATCH_STAGE.DRIVER) {
-      throw new Error(`field ${fieldId} is in a match`)
+      throw new BadRequestException(`field ${fieldId} is in a match`)
     }
 
     // Remove the field from the cache
     this.cache.delete(fieldId)
   }
 
-  private async canPutOnDeck (fieldId: number): Promise<boolean> {
-    // Ensure either auto hasn't started yet or it needs to be restarted
-    const current = await this.get(fieldId)
-    if (current !== MATCH_STAGE.QUEUED && current !== MATCH_STAGE.SCORING_AUTON) {
-      this.logger.log(`field ${fieldId} is not queued or scoring auton`)
-      return false
+  async putOnField (fieldId: number): Promise<void> {
+    const current = this.get(fieldId)
+
+    if (current !== MATCH_STAGE.EMPTY) {
+      throw new BadRequestException(`cannot put field ${fieldId} on field`)
     }
 
-    return true
-  }
-
-  async putOnDeck (fieldId: number): Promise<void> {
-    if (!await this.canPutOnDeck(fieldId)) {
-      throw new Error(`cannot put field ${fieldId} on deck`)
-    }
-
-    // If there is a cached value because auto is being restarted, remove it
-    this.cache.delete(fieldId)
-
-    // Load the field with a 15 second auton timer
+    this.cache.set(fieldId, MATCH_STAGE.QUEUED)
     await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: 15 * 1000 })
   }
 
   async canStartAuto (fieldId: number): Promise<boolean> {
     // Ensure that auto is loaded and ready to go
-    const current = await this.get(fieldId)
-    if (current !== MATCH_STAGE.QUEUED) {
-      this.logger.log(`field ${fieldId} is not ready to start auto`)
-      return false
-    }
+    // const current = await this.get(fieldId)
+    // if (current !== MATCH_STAGE.QUEUED) {
+    //   this.logger.log(`field ${fieldId} is not ready to start auto`)
+    //   return false
+    // }
 
     return true
   }
@@ -78,24 +91,24 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot start auto on field ${fieldId}`)
     }
 
-    await this.startField.execute({
-      fieldId,
-      _endCb: async () => {
-        await this.onAutoEnd(fieldId)
-        if (endCb !== undefined) {
-          await endCb(fieldId)
-        }
-      }
-    })
+    // await this.startField.execute({
+    //   fieldId,
+    //   _endCb: async () => {
+    //     await this.onAutoEnd(fieldId)
+    //     if (endCb !== undefined) {
+    //       await endCb(fieldId)
+    //     }
+    //   }
+    // })
     this.cache.set(fieldId, MATCH_STAGE.AUTON)
   }
 
   async canEndAuto (fieldId: number): Promise<boolean> {
-    const current = await this.get(fieldId)
-    if (current !== MATCH_STAGE.AUTON) {
-      this.logger.log(`field ${fieldId} is not in auton`)
-      return false
-    }
+    // const current = await this.get(fieldId)
+    // if (current !== MATCH_STAGE.AUTON) {
+    //   this.logger.log(`field ${fieldId} is not in auton`)
+    //   return false
+    // }
     return true
   }
 
@@ -114,16 +127,16 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot end auto on field ${fieldId}`)
     }
 
-    await this.stopField.execute({ fieldId })
+    // await this.stopField.execute({ fieldId })
   }
 
   async canStartDriver (fieldId: number): Promise<boolean> {
     // Ensure that driver is loaded and ready to go
-    const current = await this.get(fieldId)
-    if (current !== MATCH_STAGE.SCORING_AUTON) {
-      this.logger.log(`field ${fieldId} is not scoring auton`)
-      return false
-    }
+    // const current = await this.get(fieldId)
+    // if (current !== MATCH_STAGE.SCORING_AUTON) {
+    //   this.logger.log(`field ${fieldId} is not scoring auton`)
+    //   return false
+    // }
 
     return true
   }
@@ -134,25 +147,25 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot start driver on field ${fieldId}`)
     }
 
-    await this.startField.execute({
-      fieldId,
-      _endCb: async () => {
-        await this.onDriverEnd(fieldId)
-        if (endCb !== undefined) {
-          await endCb(fieldId)
-        }
-      }
-    })
+    // await this.startField.execute({
+    //   fieldId,
+    //   _endCb: async () => {
+    //     await this.onDriverEnd(fieldId)
+    //     if (endCb !== undefined) {
+    //       await endCb(fieldId)
+    //     }
+    //   }
+    // })
     this.cache.set(fieldId, MATCH_STAGE.DRIVER)
   }
 
   async canEndDriver (fieldId: number): Promise<boolean> {
-    const current = await this.get(fieldId)
+    // const current = await this.get(fieldId)
 
-    if (current !== MATCH_STAGE.DRIVER) {
-      this.logger.log(`field ${fieldId} is not in driver`)
-      return false
-    }
+    // if (current !== MATCH_STAGE.DRIVER) {
+    //   this.logger.log(`field ${fieldId} is not in driver`)
+    //   return false
+    // }
 
     return true
   }
@@ -163,17 +176,17 @@ export class CompetitionFieldControlService {
     }
 
     this.cache.set(fieldId, MATCH_STAGE.OUTRO)
-    const matchOnField = await this.repo.getMatchOnField(fieldId)
-    if (matchOnField === null) {
-      throw new Error(`no match on field ${fieldId} but it ended`)
-    }
-    await this.matches.markPlayed(matchOnField)
+    // const matchOnField = await this.repo.getMatchOnField(fieldId)
+    // if (matchOnField === null) {
+    //   throw new Error(`no match on field ${fieldId} but it ended`)
+    // }
+    // await this.matches.markPlayed(matchOnField)
   }
 
   async onOutroEnd (fieldId: number): Promise<void> {
-    if (await this.get(fieldId) !== MATCH_STAGE.OUTRO) {
-      throw new Error(`field ${fieldId} is not in outro`)
-    }
+    // if (await this.get(fieldId) !== MATCH_STAGE.OUTRO) {
+    //   throw new Error(`field ${fieldId} is not in outro`)
+    // }
 
     await this.remove(fieldId)
   }
@@ -183,40 +196,41 @@ export class CompetitionFieldControlService {
       throw new BadRequestException(`cannot end driver on field ${fieldId}`)
     }
 
-    await this.stopField.execute({ fieldId })
+    // await this.stopField.execute({ fieldId })
   }
 
-  async get (fieldId: number): Promise<MATCH_STAGE> {
-    // If there is no match on the field, return empty
-    const onFieldMatchId = await this.repo.getMatchOnField(fieldId)
-    if (onFieldMatchId === null) {
-      return MATCH_STAGE.EMPTY
-    }
+  // async get (fieldId: number): Promise<MATCH_STAGE> {
+  //   // If there is no match on the field, return empty
+  //   const onFieldMatchId = await this.repo.getMatchOnField(fieldId)
+  //   if (onFieldMatchId === null) {
+  //     return MATCH_STAGE.EMPTY
+  //   }
 
-    // If there is a cached stage, return it
-    const cached = this.cache.get(fieldId)
-    if (cached !== undefined) {
-      return cached
-    }
+  //   // If there is a cached stage, return it
+  //   const cached = this.cache.get(fieldId)
+  //   if (cached !== undefined) {
+  //     return cached
+  //   }
 
-    // Otherwise, determine stage from the database
-    const baseStatus = await this.matches.getMatchStatus(onFieldMatchId)
-    switch (baseStatus) {
-      case MatchStatus.QUEUED:
-        return MATCH_STAGE.QUEUED
-      case MatchStatus.SCORING:
-        return MATCH_STAGE.SCORING
-    }
+  //   // Otherwise, determine stage from the database
+  //   // const baseStatus = await this.matches.getMatchStatus(onFieldMatchId)
+  //   // switch (baseStatus) {
+  //   //   case SittingStatus.QUEUED:
+  //   //     return MATCH_STAGE.QUEUED
+  //   //   case SittingStatus.SCORING:
+  //   //     return MATCH_STAGE.SCORING
+  //   // }
 
-    throw new Error(`match with status ${baseStatus} should not be on field`)
-  }
+  //   // throw new Error(`match with status ${baseStatus} should not be on field`)
+  // }
 
   async isActive (fieldId: number): Promise<boolean> {
-    const stage = await this.get(fieldId)
-    return stage === MATCH_STAGE.AUTON || stage === MATCH_STAGE.DRIVER || stage === MATCH_STAGE.SCORING_AUTON
+    // const stage = await this.get(fieldId)
+    // return stage === MATCH_STAGE.AUTON || stage === MATCH_STAGE.DRIVER || stage === MATCH_STAGE.SCORING_AUTON
+    return false
   }
 
-  async isRunning (fieldId: number): Promise<boolean> {
-    return await this.control.isRunning(fieldId)
-  }
+  // async isRunning (fieldId: number): Promise<boolean> {
+  //   return await this.control.isRunning(fieldId)
+  // }
 }

@@ -11,6 +11,10 @@ export class CompetitionFieldRepo {
 
   constructor (@InjectRepository(CompetitionFieldEntity) private readonly repo: Repository<CompetitionFieldEntity>) {}
 
+  async getAllFields (): Promise<CompetitionFieldEntity[]> {
+    return await this.repo.find()
+  }
+
   async getOnFieldSitting (fieldId: number): Promise<SittingEntity | null> {
     const data = await this.repo.findOne({ where: { fieldId }, relations: ['onFieldSitting'] })
 
