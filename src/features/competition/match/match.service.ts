@@ -2,14 +2,22 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Match, SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { ElimsMatch } from '@/utils'
+import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
 
 @Injectable()
 export class MatchService {
   private readonly logger = new Logger(MatchService.name)
 
   constructor (
-    private readonly service: MatchInternal
+    private readonly service: MatchInternal,
+    private readonly driverEnd: DriverEndEvent
   ) {}
+
+  onModuleInit (): void {
+    this.driverEnd.registerOnComplete(async (data: DriverEndResult) => {
+      await this.markPlayed(data.sittingId)
+    })
+  }
 
   // TODO these should be events
   async markQueued (sitting: number): Promise<void> {
