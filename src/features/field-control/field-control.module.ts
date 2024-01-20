@@ -4,11 +4,12 @@ import { LoadFieldEvent } from './load-field.event'
 import { FieldModule } from '../field/field.module'
 import { FieldControlResolver } from './field-control.resolver'
 import { StartFieldEvent } from './start-field.event'
+import { StopFieldEvent } from './stop-field.event'
 
 @Module({
   imports: [forwardRef(() => FieldModule)],
-  providers: [FieldControlService, LoadFieldEvent, FieldControlResolver, StartFieldEvent],
-  exports: [FieldControlService, LoadFieldEvent, StartFieldEvent]
+  providers: [FieldControlService, LoadFieldEvent, FieldControlResolver, StartFieldEvent, StopFieldEvent],
+  exports: [FieldControlService, LoadFieldEvent, StartFieldEvent, StopFieldEvent]
 })
 
 export class FieldControlModule {}

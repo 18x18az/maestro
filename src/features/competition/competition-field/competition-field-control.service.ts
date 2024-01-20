@@ -6,19 +6,25 @@ import { QueueSittingEvent } from './queue-sitting.event'
 import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { StartFieldEvent } from '../../field-control/start-field.event'
+import { StopFieldEvent } from '../../field-control/stop-field.event'
+import { PeriodEndEvent } from './period-end.event'
+import { PeriodStartEvent } from './period-start.event'
+import { CompetitionFieldControlCache } from './competition-field-control.cache'
 
 @Injectable()
 export class CompetitionFieldControlService {
   private readonly logger: Logger = new Logger(CompetitionFieldControlService.name)
-
-  private readonly cache: Map<number, MATCH_STAGE> = new Map()
 
   constructor (
     private readonly loadField: LoadFieldEvent,
     private readonly queueEvent: QueueSittingEvent,
     private readonly removeEvent: RemoveOnTableSittingEvent,
     private readonly repo: CompetitionFieldRepo,
-    private readonly startEvent: StartFieldEvent
+    private readonly startEvent: StartFieldEvent,
+    private readonly stopEvent: StopFieldEvent,
+    private readonly periodEndEvent: PeriodEndEvent,
+    private readonly periodStartEvent: PeriodStartEvent,
+    private readonly cache: CompetitionFieldControlCache
   ) {}
 
   async onModuleInit (): Promise<void> {
@@ -27,15 +33,23 @@ export class CompetitionFieldControlService {
     })
 
     this.removeEvent.registerBefore(async (data) => {
-      this.remove(data.fieldId)
+      this.cache.remove(data.fieldId)
     })
 
     this.startEvent.registerBefore(async (data) => {
-      const current = this.get(data.fieldId)
+      const current = this.cache.get(data.fieldId)
 
       if (current === MATCH_STAGE.EMPTY) return
 
-      await this.startAuto(data.fieldId)
+      await this.periodStartEvent.execute({ fieldId: data.fieldId })
+    })
+
+    this.stopEvent.registerAfter(async (data) => {
+      const current = this.cache.get(data.fieldId)
+
+      if (current === MATCH_STAGE.EMPTY) return
+
+      await this.periodEndEvent.execute({ fieldId: data.fieldId })
     })
   }
 
@@ -49,32 +63,8 @@ export class CompetitionFieldControlService {
     }
   }
 
-  get (fieldId: number): MATCH_STAGE {
-    const cached = this.cache.get(fieldId)
-    if (cached === undefined) {
-      return MATCH_STAGE.EMPTY
-    }
-    return cached
-  }
-
-  remove (fieldId: number): void {
-    // Cannot remove a field that is not in the cache
-    const cached = this.cache.get(fieldId)
-    if (cached === undefined) {
-      throw new BadRequestException(`field ${fieldId} not in cache`)
-    }
-
-    // Cannot remove a field that is in the middle of a match
-    if (cached === MATCH_STAGE.AUTON || cached === MATCH_STAGE.DRIVER) {
-      throw new BadRequestException(`field ${fieldId} is in a match`)
-    }
-
-    // Remove the field from the cache
-    this.cache.delete(fieldId)
-  }
-
   async putOnField (fieldId: number): Promise<void> {
-    const current = this.get(fieldId)
+    const current = this.cache.get(fieldId)
 
     if (current !== MATCH_STAGE.EMPTY) {
       throw new BadRequestException(`cannot put field ${fieldId} on field`)
@@ -82,15 +72,5 @@ export class CompetitionFieldControlService {
 
     this.cache.set(fieldId, MATCH_STAGE.QUEUED)
     await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: 15 * 1000 })
-  }
-
-  async startAuto (fieldId: number): Promise<void> {
-    const current = this.get(fieldId)
-
-    if (current !== MATCH_STAGE.QUEUED) {
-      throw new BadRequestException(`cannot start field ${fieldId} from stage ${current}`)
-    }
-
-    this.cache.set(fieldId, MATCH_STAGE.AUTON)
   }
 }

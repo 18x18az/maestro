@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { FieldControlModel } from './field-control.model'
 import { FieldService } from '../field/field.service'
-import { CONTROL_MODE } from './field-control.interface'
 import { EnableFieldContext, EnableFieldEvent } from '../field/enable-field.event'
 import { DisableFieldEvent } from '../field/disable-field.event'
 @Injectable()
@@ -65,16 +64,5 @@ export class FieldControlService {
 
   public getFieldControls (): FieldControlModel[] {
     return Array.from(this.fields.values())
-  }
-
-  public async getState (fieldId: number): Promise<CONTROL_MODE | undefined> {
-    const field = await this.getOrCreateField(fieldId)
-    return field.getMode()
-  }
-
-  async start (fieldId: number): Promise<FieldControlModel> {
-    const field = await this.getOrCreateField(fieldId)
-    await field.start()
-    return field
   }
 }

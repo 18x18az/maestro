@@ -1,5 +1,6 @@
 import { BadRequestException, Logger } from '@nestjs/common'
 import { CONTROL_MODE } from './field-control.interface'
+import { StopFieldEvent } from './stop-field.event'
 
 export class FieldControlModel {
   private timer: null | NodeJS.Timeout = null
@@ -59,7 +60,7 @@ export class FieldControlModel {
     this.duration = duration
   }
 
-  public async start (): Promise<void> {
+  public start (stopEvent: StopFieldEvent): void {
     if (this.timer !== null) {
       this.logger.warn(`Attempted to start field ${this.fieldId} when already running`)
       throw new BadRequestException('Timer already started')
@@ -82,7 +83,7 @@ export class FieldControlModel {
     const timeRemaining = this.endTime.getTime() - Date.now()
 
     this.timer = setTimeout(() => {
-      void this.stop()
+      void stopEvent.execute({ fieldId: this.fieldId })
     }, timeRemaining)
   }
 }
