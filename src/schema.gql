@@ -270,6 +270,7 @@ type Query {
 }
 
 type Mutation {
+  startField(fieldId: Float!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   unqueue(sittingId: Float!): CompetitionField!
   startNextBlock: Block!

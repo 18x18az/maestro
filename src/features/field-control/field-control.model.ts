@@ -35,8 +35,6 @@ export class FieldControlModel {
       this.logger.warn(`Field ${this.fieldId} end time was null`)
     }
 
-    await this.publish()
-
     this.logger.log(`Field ${this.fieldId} stopped with ${timeRemaining}ms remaining`)
     return timeRemaining
   }
@@ -59,8 +57,6 @@ export class FieldControlModel {
 
     this.mode = mode
     this.duration = duration
-
-    await this.publish()
   }
 
   public async start (): Promise<void> {
@@ -82,24 +78,11 @@ export class FieldControlModel {
     this.logger.log(`Starting ${this.mode} timer for ${this.duration}ms on field ${this.fieldId}`)
 
     this.endTime = new Date(Date.now() + this.duration)
-    await this.publish()
 
     const timeRemaining = this.endTime.getTime() - Date.now()
 
     this.timer = setTimeout(() => {
       void this.stop()
     }, timeRemaining)
-  }
-
-  private async publish (): Promise<void> {
-    // if (this.state === undefined) {
-    //   throw new Error('State not set')
-    // }
-
-    // await this.publishCb(this.fieldId, {
-    //   mode: this.state,
-    //   endTime: this.endTime,
-    //   duration: this.duration
-    // })
   }
 }

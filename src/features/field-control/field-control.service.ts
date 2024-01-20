@@ -71,4 +71,10 @@ export class FieldControlService {
     const field = await this.getOrCreateField(fieldId)
     return field.getMode()
   }
+
+  async start (fieldId: number): Promise<FieldControlModel> {
+    const field = await this.getOrCreateField(fieldId)
+    await field.start()
+    return field
+  }
 }
