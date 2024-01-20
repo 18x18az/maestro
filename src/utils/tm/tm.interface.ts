@@ -1,5 +1,5 @@
 import { registerEnumType } from '@nestjs/graphql'
-import { Alliance, MatchIdentifier } from '../../features/competition/match'
+import { Alliance, Round } from '../../features/competition/match'
 
 export interface TeamInformation {
   number: string
@@ -13,6 +13,12 @@ export const TeamsTopic = 'teams'
 export interface TmReturn {
   matches: ElimsMatch[]
   results: MatchResult[]
+}
+
+export interface MatchIdentifier {
+  round: Round
+  contest: number
+  match: number
 }
 
 export interface MatchResult {

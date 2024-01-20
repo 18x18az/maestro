@@ -10,9 +10,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { FieldControlModule } from './features/field-control/field-control.module'
 import { TeamModule } from './features/team/team.module'
 import { SettingsModule } from './utils/settings/settings.module'
-import { StageModule } from './features'
 import { URLResolver } from 'graphql-scalars'
 import { MatchModule } from './features/competition/match'
+import { StageModule } from './features/stage/stage.module'
+import { ResultsModule } from './features/results/results.module'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MatchModule } from './features/competition/match'
     StageModule,
     TmModule,
     MatchModule,
+    ResultsModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'sqlite',

@@ -1,63 +1,64 @@
-import { ElimsMatch, MatchResult, PublishService, TmService } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
-import { MatchService } from '../competition/match'
-import { CompetitionControlService } from '../competition/competition/competition.service'
+import { ElimsMatch, MatchResult, TmService } from '../../utils'
+import { createHash } from 'crypto'
 
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
   private readonly savedResults: string[] = []
 
+  private lastResultHash = ''
+  private lastMatchHash = ''
+
+  private readonly resultCache: Map<string, [number, number]> = new Map()
+
   constructor (
     private readonly tm: TmService,
-    private readonly control: CompetitionControlService,
-    private readonly stage: StageService,
-    private readonly matches: MatchService,
-    private readonly publisher: PublishService
+    private readonly stage: StageService
   ) { }
+
+  async handleResults (results: MatchResult[]): Promise<void> {
+    if (results.length === 0) return
+    const resultsHash = createHash('sha256').update(JSON.stringify(results)).digest('hex')
+    if (resultsHash === this.lastResultHash) return
+
+    this.lastResultHash = resultsHash
+
+    for (const result of results) {
+      const { identifier, redScore, blueScore } = result
+      const identString = `${identifier.round}-${identifier.contest}-${identifier.match}`
+
+      const cached = this.resultCache.get(identString)
+
+      if (cached !== undefined && cached[0] === redScore && cached[1] === blueScore) continue
+
+      this.logger.log(`Match ${identString} updated to ${redScore}-${blueScore}`)
+      this.resultCache.set(identString, [redScore, blueScore])
+    }
+  }
+
+  async handleMatches (matches: ElimsMatch[]): Promise<void> {
+    if (matches.length === 0) return
+    const matchHash = createHash('sha256').update(JSON.stringify(matches)).digest('hex')
+    if (matchHash === this.lastMatchHash) return
+
+    this.lastMatchHash = matchHash
+    console.log('updated matches')
+  }
 
   @Cron('*/10 * * * * *')
   async handleCron (): Promise<void> {
-    if (this.stage.getStage() === EventStage.WAITING_FOR_TEAMS) {
-      return
-    }
+    const stage = await this.stage.getStage()
+    if (stage === EventStage.CHECKIN) return
 
-    const results = await this.tm.getMatchResults()
+    const { results, matches } = await this.tm.getMatchResults()
 
-    if (results.matches !== null) {
-      await this.handleMatches(results.matches)
-    }
+    await this.handleResults(results)
 
-    if (results.results !== null) {
-      await this.handleResults(results.results)
-    }
-  }
+    if (stage === EventStage.QUALIFICATIONS) return
 
-  private async handleResults (results: MatchResult[]): Promise<void> {
-    for (const result of results) {
-      const key = JSON.stringify(result.identifier)
-      if (this.savedResults.includes(key)) continue
-
-      this.logger.log(`Result for match ${JSON.stringify(result.identifier)}`)
-      await this.control.handleMatchResult(result)
-      this.savedResults.push(key)
-    }
-  }
-
-  private async handleMatches (matches: ElimsMatch[]): Promise<void> {
-    if (matches.length === 0) {
-      return
-    }
-    const currentStage = this.stage.getStage()
-    if (currentStage === EventStage.ALLIANCE_SELECTION) {
-      this.logger.log('Matches received while alliance selection in process, alliance selection over')
-      await this.matches.createElimsBlock()
-      await this.stage.advanceStage()
-    }
-    for (const match of matches) {
-      await this.matches.createElimsMatch(match)
-    }
+    await this.handleMatches(matches)
   }
 }

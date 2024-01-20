@@ -1,7 +1,5 @@
-import { HttpService } from '@nestjs/axios'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { StorageService } from '../storage'
-import { catchError, firstValueFrom } from 'rxjs'
 import { parse, HTMLElement } from 'node-html-parser'
 import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
@@ -19,7 +17,6 @@ export class TmInternal {
   private status: TmStatus = TmStatus.INITIALIZING
 
   constructor (
-    private readonly request: HttpService,
     private readonly storage: StorageService,
     private readonly connectedEvent: TmConnectedEvent,
     private readonly teamCreate: TeamListUpdateEvent,
@@ -88,13 +85,8 @@ export class TmInternal {
   }
 
   private async tryURL (url: URL): Promise<boolean> {
-    const { data } = await firstValueFrom(
-      this.request.get(url.href).pipe(
-        catchError(async () => {
-          return await Promise.resolve({ data: null })
-        })
-      )
-    )
+    const response = await fetch(url)
+    const data = await response.text()
 
     if (data === null) {
       return false
@@ -124,16 +116,10 @@ export class TmInternal {
       return null
     }
 
-    const url = `${this.tmUrl.href}/${resource}`
+    const url = `${this.tmUrl.href}${resource}`
 
-    const { data } = await firstValueFrom(
-      this.request.get(url).pipe(
-        catchError(async () => {
-          await this.onDisconnect()
-          return await Promise.resolve({ data: null })
-        })
-      )
-    )
+    const response = await fetch(url)
+    const data = await response.text()
 
     if (data === null) {
       await this.onDisconnect()

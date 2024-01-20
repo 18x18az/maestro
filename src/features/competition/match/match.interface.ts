@@ -13,12 +13,6 @@ registerEnumType(Round, {
   description: 'The round of the match'
 })
 
-export interface MatchIdentifier {
-  round: Round
-  matchNumber: number
-  sitting: number
-}
-
 export enum BlockStatus {
   NOT_STARTED = 'NOT_STARTED',
   IN_PROGRESS = 'IN_PROGRESS',
