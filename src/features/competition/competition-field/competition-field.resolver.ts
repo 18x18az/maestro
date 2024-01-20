@@ -5,11 +5,14 @@ import { Sitting } from '../match/sitting.object'
 import { SittingEntity } from '../match/sitting.entity'
 import { CompetitionFieldEntity } from './competition-field.entity'
 import { UnqueueSittingEvent } from './unqueue-sitting.event'
+import { MATCH_STAGE } from './competition-field.interface'
+import { CompetitionFieldControlCache } from './competition-field-control.cache'
 
 @Resolver(of => CompetitionField)
 export class CompetitionFieldResolver {
   constructor (
     private readonly repo: CompetitionFieldRepo,
+    private readonly cache: CompetitionFieldControlCache,
     private readonly unqueueEvent: UnqueueSittingEvent
   ) {}
 
@@ -21,6 +24,11 @@ export class CompetitionFieldResolver {
   @ResolveField(() => Sitting, { nullable: true })
   async onTableSitting (@Parent() field: CompetitionField): Promise<SittingEntity | null> {
     return await this.repo.getOnTableSitting(field.fieldId)
+  }
+
+  @ResolveField(() => MATCH_STAGE)
+  async stage (@Parent() field: CompetitionField): Promise<MATCH_STAGE> {
+    return this.cache.get(field.fieldId)
   }
 
   @Mutation(() => CompetitionField)

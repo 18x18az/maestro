@@ -193,8 +193,15 @@ enum MatchStatus {
 
 type CompetitionField {
   fieldId: Float!
+
+  """The match currently on the field"""
   onFieldSitting: Sitting
+
+  """The match currently on the queueing table (on deck) for the field"""
   onTableSitting: Sitting
+
+  """The current stage of the match on the field"""
+  stage: String!
 }
 
 """Representation of a single field"""

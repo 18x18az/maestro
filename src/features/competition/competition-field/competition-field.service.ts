@@ -6,6 +6,7 @@ import { EnableCompetitionFieldEvent } from './enable-competition-field.event'
 import { FieldEntity } from '../../field/field.entity'
 import { DisableFieldEvent } from '../../field/disable-field.event'
 import { QueueSittingEvent } from './queue-sitting.event'
+import { CompetitionFieldControlCache } from './competition-field-control.cache'
 
 @Injectable()
 export class CompetitionFieldService {
@@ -15,7 +16,8 @@ export class CompetitionFieldService {
     private readonly enableFieldEvent: EnableFieldEvent,
     private readonly enableCompFieldEvent: EnableCompetitionFieldEvent,
     private readonly disableFieldEvent: DisableFieldEvent,
-    private readonly queueEvent: QueueSittingEvent
+    private readonly queueEvent: QueueSittingEvent,
+    private readonly cache: CompetitionFieldControlCache
   ) {}
 
   async getCompetitionField (fieldId: number): Promise<CompetitionFieldEntity | null> {
