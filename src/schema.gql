@@ -119,6 +119,12 @@ type Match {
 
   """Sittings of the match"""
   sittings: [Sitting!]!
+
+  """The score of the red alliance"""
+  redScore: Int
+
+  """The score of the blue alliance"""
+  blueScore: Int
 }
 
 """

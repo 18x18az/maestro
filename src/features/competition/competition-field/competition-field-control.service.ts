@@ -67,7 +67,7 @@ export class CompetitionFieldControlService {
     const current = this.cache.get(fieldId)
 
     if (current !== MATCH_STAGE.EMPTY) {
-      throw new BadRequestException(`cannot put field ${fieldId} on field`)
+      throw new BadRequestException(`${fieldId} already has a sitting on field`)
     }
 
     this.cache.set(fieldId, MATCH_STAGE.QUEUED)

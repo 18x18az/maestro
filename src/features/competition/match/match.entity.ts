@@ -35,4 +35,10 @@ export class MatchEntity {
 
   @Column({ default: false })
     resolved: boolean
+
+  @Column({ nullable: true })
+    redScore: number
+
+  @Column({ nullable: true })
+    blueScore: number
 }

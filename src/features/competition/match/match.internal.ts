@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
 import { BlockStatus, SittingStatus } from './match.interface'
-import { StageService } from '../../stage'
 import { QueueSittingEvent } from '../competition-field/queue-sitting.event'
 import { UnqueueSittingEvent } from '../competition-field/unqueue-sitting.event'
+import { MatchResultEvent } from './match-result.event'
+import { SittingScoredEvent } from './sitting-scored.event'
 
 @Injectable()
 export class MatchInternal {
@@ -11,9 +12,10 @@ export class MatchInternal {
 
   constructor (
     private readonly repo: MatchRepo,
-    private readonly stage: StageService,
     private readonly queuedEvent: QueueSittingEvent,
-    private readonly unqueuedEvent: UnqueueSittingEvent
+    private readonly unqueuedEvent: UnqueueSittingEvent,
+    private readonly matchResultEvent: MatchResultEvent,
+    private readonly sittingScoredEvent: SittingScoredEvent
   ) {}
 
   onModuleInit (): void {
@@ -23,6 +25,14 @@ export class MatchInternal {
 
     this.unqueuedEvent.registerAfter(async (data) => {
       await this.updateSittingStatus(data.sittingId, SittingStatus.NOT_STARTED)
+    })
+
+    this.matchResultEvent.registerAfter(async (data) => {
+      const pendingSitting = await this.repo.getPendingSitting(data.matchId)
+
+      if (pendingSitting === null) return
+
+      await this.sittingScoredEvent.execute({ sitting: pendingSitting })
     })
   }
 

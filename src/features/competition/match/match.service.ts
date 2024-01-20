@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common'
 import { SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
+import { MatchIdentifier } from '../../../utils'
+import { MatchRepo } from './match.repo'
 
 @Injectable()
 export class MatchService {
@@ -9,7 +11,8 @@ export class MatchService {
 
   constructor (
     private readonly service: MatchInternal,
-    private readonly driverEnd: DriverEndEvent
+    private readonly driverEnd: DriverEndEvent,
+    private readonly repo: MatchRepo
   ) {}
 
   onModuleInit (): void {
@@ -37,5 +40,9 @@ export class MatchService {
   async markPlayed (match: number): Promise<void> {
     this.logger.log(`Marking match ID ${match} as played`)
     await this.service.updateSittingStatus(match, SittingStatus.SCORING)
+  }
+
+  async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
+    return await this.repo.getMatchScore(match)
   }
 }

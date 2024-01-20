@@ -3,6 +3,8 @@ import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
 import { ElimsMatch, MatchResult, TmService } from '../../utils'
 import { createHash } from 'crypto'
+import { MatchService } from '../competition/match'
+import { MatchResultEvent } from '../competition/match/match-result.event'
 
 @Injectable()
 export class ResultsInternal {
@@ -16,7 +18,9 @@ export class ResultsInternal {
 
   constructor (
     private readonly tm: TmService,
-    private readonly stage: StageService
+    private readonly stage: StageService,
+    private readonly matches: MatchService,
+    private readonly resultEvent: MatchResultEvent
   ) { }
 
   async handleResults (results: MatchResult[]): Promise<void> {
@@ -26,17 +30,21 @@ export class ResultsInternal {
 
     this.lastResultHash = resultsHash
 
-    for (const result of results) {
+    const updates = results.map(async result => {
       const { identifier, redScore, blueScore } = result
       const identString = `${identifier.round}-${identifier.contest}-${identifier.match}`
 
       const cached = this.resultCache.get(identString)
-
-      if (cached !== undefined && cached[0] === redScore && cached[1] === blueScore) continue
-
-      this.logger.log(`Match ${identString} updated to ${redScore}-${blueScore}`)
+      if (cached !== undefined && cached[0] === redScore && cached[1] === blueScore) return
       this.resultCache.set(identString, [redScore, blueScore])
-    }
+
+      const saved = await this.matches.getMatchScore(identifier)
+      if (saved !== null && saved.redScore === redScore && saved.blueScore === blueScore) return
+
+      await this.resultEvent.execute({ identifier, redScore, blueScore })
+    })
+
+    await Promise.all(updates)
   }
 
   async handleMatches (matches: ElimsMatch[]): Promise<void> {

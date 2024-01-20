@@ -6,7 +6,8 @@ import { EnableCompetitionFieldEvent } from './enable-competition-field.event'
 import { FieldEntity } from '../../field/field.entity'
 import { DisableFieldEvent } from '../../field/disable-field.event'
 import { QueueSittingEvent } from './queue-sitting.event'
-import { CompetitionFieldControlCache } from './competition-field-control.cache'
+import { SittingCompleteEvent } from '../match/sitting-complete.event'
+import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
 
 @Injectable()
 export class CompetitionFieldService {
@@ -17,7 +18,8 @@ export class CompetitionFieldService {
     private readonly enableCompFieldEvent: EnableCompetitionFieldEvent,
     private readonly disableFieldEvent: DisableFieldEvent,
     private readonly queueEvent: QueueSittingEvent,
-    private readonly cache: CompetitionFieldControlCache
+    private readonly sittingCompleteEvent: SittingCompleteEvent,
+    private readonly removeOnFieldEvent: RemoveOnFieldSittingEvent
   ) {}
 
   async getCompetitionField (fieldId: number): Promise<CompetitionFieldEntity | null> {
@@ -45,6 +47,13 @@ export class CompetitionFieldService {
   async onModuleInit (): Promise<void> {
     this.enableFieldEvent.registerAfter(this.handleEnableField.bind(this))
     this.disableFieldEvent.registerBefore(this.handleDisableField.bind(this))
+    this.sittingCompleteEvent.registerAfter(async (data) => {
+      const { fieldId, location } = await this.repo.getSittingLocation(data.sitting)
+
+      if (location === 'ON_TABLE') throw new Error('Sitting is on table')
+
+      await this.removeOnFieldEvent.execute({ fieldId })
+    })
   }
 
   async queueSitting (sittingId: number, fieldId: number): Promise<CompetitionFieldEntity> {

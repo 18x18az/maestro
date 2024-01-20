@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateQualMatch, MatchEntity } from './match.entity'
 import { Repository } from 'typeorm'
@@ -9,6 +9,7 @@ import { SittingEntity } from './sitting.entity'
 import { EventResetEvent } from '../../stage/event-reset.event'
 import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
+import { MatchIdentifier } from '../../../utils'
 
 @Injectable()
 export class MatchRepo {
@@ -161,5 +162,51 @@ export class MatchRepo {
 
   async markBlockStatus (block: number, status: BlockStatus): Promise<void> {
     await this.blockRepository.update(block, { status })
+  }
+
+  async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) {
+      this.logger.warn(`Could not find contest ${match.round}-${match.contest}`)
+      return null
+    }
+
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
+
+    if (matchEntity === null) {
+      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
+      return null
+    }
+
+    if (matchEntity.redScore === null || matchEntity.blueScore === null) {
+      return null
+    }
+
+    return matchEntity
+  }
+
+  async getMatchId (match: MatchIdentifier): Promise<number> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) throw new BadRequestException(`Could not find contest ${match.round}-${match.contest}`)
+
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
+
+    if (matchEntity === null) throw new BadRequestException(`Could not find match ${match.round}-${match.contest}-${match.match}`)
+
+    return matchEntity.id
+  }
+
+  async updateMatchScore (match: number, redScore: number, blueScore: number): Promise<void> {
+    await this.matchRepository.update(match, { redScore, blueScore })
+  }
+
+  async getPendingSitting (match: number): Promise<number | null> {
+    const sitting = await this.sittingRepository.findOne({ where: { matchId: match, status: SittingStatus.SCORING } })
+
+    if (sitting === null) return null
+
+    return sitting.id
   }
 }

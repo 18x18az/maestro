@@ -15,4 +15,10 @@ export class Match {
 
   @GField(() => [Sitting], { description: 'Sittings of the match' })
     sittings: Sitting[]
+
+  @GField(() => Int, { nullable: true, description: 'The score of the red alliance' })
+    redScore?: number
+
+  @GField(() => Int, { nullable: true, description: 'The score of the blue alliance' })
+    blueScore?: number
 }
