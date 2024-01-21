@@ -4,7 +4,6 @@ import { LoadFieldEvent } from '../../field-control/load-field.event'
 import { CONTROL_MODE } from '../../field-control/field-control.interface'
 import { QueueSittingEvent } from './queue-sitting.event'
 import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
-import { CompetitionFieldRepo } from './competition-field.repo'
 import { StartFieldEvent } from '../../field-control/start-field.event'
 import { StopFieldEvent } from '../../field-control/stop-field.event'
 import { PeriodEndEvent } from './period-end.event'
@@ -21,7 +20,6 @@ export class CompetitionFieldControlService {
     private readonly loadField: LoadFieldEvent,
     private readonly queueEvent: QueueSittingEvent,
     private readonly removeEvent: RemoveOnTableSittingEvent,
-    private readonly repo: CompetitionFieldRepo,
     private readonly startEvent: StartFieldEvent,
     private readonly stopEvent: StopFieldEvent,
     private readonly periodEndEvent: PeriodEndEvent,
