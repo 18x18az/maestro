@@ -10,6 +10,8 @@ import { StopFieldEvent } from '../../field-control/stop-field.event'
 import { PeriodEndEvent } from './period-end.event'
 import { PeriodStartEvent } from './period-start.event'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
+import { EnableFieldEvent } from '../../field/enable-field.event'
+import { TimingService } from './timing.service'
 
 @Injectable()
 export class CompetitionFieldControlService {
@@ -24,7 +26,9 @@ export class CompetitionFieldControlService {
     private readonly stopEvent: StopFieldEvent,
     private readonly periodEndEvent: PeriodEndEvent,
     private readonly periodStartEvent: PeriodStartEvent,
-    private readonly cache: CompetitionFieldControlCache
+    private readonly cache: CompetitionFieldControlCache,
+    private readonly enableEvent: EnableFieldEvent,
+    private readonly timing: TimingService
   ) {}
 
   onModuleInit (): void {
@@ -53,10 +57,18 @@ export class CompetitionFieldControlService {
 
       await this.periodEndEvent.execute({ fieldId: data.fieldId })
     })
+
+    this.enableEvent.registerOnComplete(async (data) => {
+      const current = await this.cache.get(data.id)
+      if (current === MATCH_STAGE.EMPTY) return
+
+      this.logger.log(`Loaded with match on field ${data.id}`)
+      await this.loadField.execute({ fieldId: data.id, mode: CONTROL_MODE.AUTO, duration: await this.timing.getAutonLength() })
+    })
   }
 
   private async putOnField (fieldId: number): Promise<void> {
     this.cache.set(fieldId, MATCH_STAGE.QUEUED)
-    await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: 15 * 1000 })
+    await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: await this.timing.getAutonLength() })
   }
 }

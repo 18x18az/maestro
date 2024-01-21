@@ -1,4 +1,4 @@
-import { Args, Field, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Field, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql'
 import { FieldControl } from './field-control.object'
 import { FieldControlStatus } from './field-control.interface'
 import { FieldService } from '../field/field.service'
@@ -24,7 +24,7 @@ export class FieldControlResolver {
   }
 
   @Mutation(() => FieldControl)
-  async startField (@Args('fieldId') fieldId: number): Promise<FieldControlModel> {
+  async startField (@Args({ type: () => Int, name: 'fieldId' }) fieldId: number): Promise<FieldControlModel> {
     const result = await this.startEvent.execute({ fieldId })
     return result._control
   }

@@ -20,13 +20,15 @@ import { CompetitionFieldControlCache } from './competition-field-control.cache'
 import { DriverStartEvent } from './driver-start.event'
 import { AutonEndEvent } from './auton-end.event'
 import { DriverEndEvent } from './driver-end.event'
+import { TimingService } from './timing.service'
 
 @Module({
   imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),
     TypeOrmModule.forFeature([CompetitionFieldEntity])],
   providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
     CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent,
-    PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent],
+    PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent,
+    TimingService],
   exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent, DriverEndEvent]
 })
 export class CompetitionFieldModule {}
