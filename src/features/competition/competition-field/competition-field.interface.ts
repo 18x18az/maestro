@@ -1,6 +1,6 @@
 import { registerEnumType } from '@nestjs/graphql'
 import { FieldEntity } from '../../field/field.entity'
-import { Match } from '../match'
+import { Match } from '../match/match.interface'
 
 export enum MATCH_STAGE {
   EMPTY = 'EMPTY',

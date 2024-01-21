@@ -28,7 +28,7 @@ export class CompetitionFieldResolver {
 
   @ResolveField(() => MATCH_STAGE)
   async stage (@Parent() field: CompetitionField): Promise<MATCH_STAGE> {
-    return this.cache.get(field.fieldId)
+    return await this.cache.get(field.fieldId)
   }
 
   @Mutation(() => CompetitionField)

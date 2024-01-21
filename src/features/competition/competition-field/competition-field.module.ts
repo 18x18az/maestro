@@ -2,7 +2,6 @@ import { Module, forwardRef } from '@nestjs/common'
 import { CompetitionFieldService } from './competition-field.service'
 import { CompetitionFieldControlService } from './competition-field-control.service'
 import { CompetitionFieldRepo } from './competition-field.repo'
-import { MatchModule } from '../match'
 import { FieldModule } from '../../field/field.module'
 import { FieldControlModule } from '../../field-control/field-control.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -21,6 +20,7 @@ import { DriverStartEvent } from './driver-start.event'
 import { AutonEndEvent } from './auton-end.event'
 import { DriverEndEvent } from './driver-end.event'
 import { TimingService } from './timing.service'
+import { MatchModule } from '../match/match.module'
 
 @Module({
   imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),

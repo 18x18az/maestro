@@ -59,6 +59,7 @@ export class CompetitionFieldControlService {
     this.enableEvent.registerOnComplete(async (data) => {
       const current = await this.cache.get(data.id)
       if (current === MATCH_STAGE.EMPTY) return
+      if (current === MATCH_STAGE.SCORING) return
 
       this.logger.log(`Loaded with match on field ${data.id}`)
       await this.loadField.execute({ fieldId: data.id, mode: CONTROL_MODE.AUTO, duration: await this.timing.getAutonLength() })

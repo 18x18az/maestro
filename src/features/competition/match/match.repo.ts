@@ -9,7 +9,7 @@ import { SittingEntity } from './sitting.entity'
 import { EventResetEvent } from '../../stage/event-reset.event'
 import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
-import { MatchIdentifier } from '../../../utils/tm'
+import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 
 @Injectable()
 export class MatchRepo {

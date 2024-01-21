@@ -3,7 +3,7 @@ import { SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
 import { MatchRepo } from './match.repo'
-import { MatchIdentifier } from '../../../utils/tm'
+import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 
 @Injectable()
 export class MatchService {

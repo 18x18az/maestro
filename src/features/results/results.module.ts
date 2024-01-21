@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common'
 import { ResultsInternal } from './results.internal'
 import { StageModule } from '../stage'
-import { MatchModule } from '../competition/match'
-import { TmModule } from '../../utils/tm'
+import { TmModule } from '../../utils/tm/tm.module'
+import { MatchModule } from '../competition/match/match.module'
 
 @Module({
   imports: [TmModule, StageModule, MatchModule],

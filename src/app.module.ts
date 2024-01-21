@@ -9,12 +9,12 @@ import { FieldControlModule } from './features/field-control/field-control.modul
 import { TeamModule } from './features/team/team.module'
 import { SettingsModule } from './utils/settings/settings.module'
 import { URLResolver } from 'graphql-scalars'
-import { MatchModule } from './features/competition/match'
 import { StageModule } from './features/stage/stage.module'
 import { ResultsModule } from './features/results/results.module'
 import { CompetitionModule } from './features/competition/competition/competition.module'
-import { TmModule } from './utils/tm'
 import { BeaconService } from './utils/discovery'
+import { MatchModule } from './features/competition/match/match.module'
+import { TmModule } from './utils/tm/tm.module'
 
 @Module({
   imports: [

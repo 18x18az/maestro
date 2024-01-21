@@ -1,5 +1,5 @@
 import { registerEnumType } from '@nestjs/graphql'
-import { Alliance, Round } from '../../features/competition/match'
+import { Alliance, Round } from '../../features/competition/match/match.interface'
 
 export interface TeamInformation {
   number: string

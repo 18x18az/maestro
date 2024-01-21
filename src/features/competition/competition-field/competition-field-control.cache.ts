@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldRepo } from './competition-field.repo'
+import { SittingStatus } from '../match/match.interface'
 
 @Injectable()
 export class CompetitionFieldControlCache {
@@ -12,7 +13,15 @@ export class CompetitionFieldControlCache {
     const cached = this.cache.get(fieldId)
     if (cached === undefined) {
       const onField = await this.repo.getOnFieldSitting(fieldId)
-      const result = onField === null ? MATCH_STAGE.EMPTY : MATCH_STAGE.QUEUED
+      const status = onField === null ? null : onField.status
+
+      let result = MATCH_STAGE.EMPTY
+      if (status === SittingStatus.QUEUED) {
+        result = MATCH_STAGE.QUEUED
+      } else if (status === SittingStatus.SCORING) {
+        result = MATCH_STAGE.SCORING
+      }
+
       this.set(fieldId, result)
       return result
     }

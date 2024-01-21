@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { MatchRepo } from './match.repo'
-import { MatchIdentifier } from '../../../utils/tm'
+import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 
 interface MatchResultPayload {
   identifier: MatchIdentifier
