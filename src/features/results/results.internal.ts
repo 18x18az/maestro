@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { EventStage, StageService } from '../stage'
-import { ElimsMatch, MatchResult, TmService } from '../../utils'
 import { createHash } from 'crypto'
 import { MatchService } from '../competition/match'
 import { MatchResultEvent } from '../competition/match/match-result.event'
+import { ElimsMatch, MatchResult, TmService } from '../../utils/tm'
 
 @Injectable()
 export class ResultsInternal {

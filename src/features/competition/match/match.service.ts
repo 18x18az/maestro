@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common'
 import { SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
-import { MatchIdentifier } from '../../../utils'
 import { MatchRepo } from './match.repo'
+import { MatchIdentifier } from '../../../utils/tm'
 
 @Injectable()
 export class MatchService {

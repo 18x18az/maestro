@@ -1,8 +1,6 @@
 import { ConfigModule } from '@nestjs/config'
 import { Module } from '@nestjs/common'
-import { PigeonModule, Transport } from '@alecmmiller/pigeon-mqtt-nest'
 import { ScheduleModule } from '@nestjs/schedule'
-import { BeaconService, TmModule } from './utils'
 import { GraphQLModule } from '@nestjs/graphql'
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius'
 import { join } from 'path'
@@ -15,6 +13,8 @@ import { MatchModule } from './features/competition/match'
 import { StageModule } from './features/stage/stage.module'
 import { ResultsModule } from './features/results/results.module'
 import { CompetitionModule } from './features/competition/competition/competition.module'
+import { TmModule } from './utils/tm'
+import { BeaconService } from './utils/discovery'
 
 @Module({
   imports: [
@@ -25,6 +25,7 @@ import { CompetitionModule } from './features/competition/competition/competitio
       graphiql: true,
       resolvers: { URL: URLResolver }
     }),
+    ScheduleModule.forRoot(),
     FieldControlModule,
     CompetitionModule,
     TeamModule,
@@ -42,19 +43,8 @@ import { CompetitionModule } from './features/competition/competition/competitio
         entities: ['dist/**/*.entity.js']
       })
     })
-  ]
-})
-export class WithoutPigeonModule {}
-
-@Module({
-  imports: [
-    WithoutPigeonModule,
-    PigeonModule.forRoot({
-      transport: Transport.WS,
-      port: 1883
-    }),
-    ScheduleModule.forRoot()
   ],
   providers: [BeaconService]
 })
+
 export class AppModule {}

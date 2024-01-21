@@ -1,6 +1,0 @@
-export enum BaseStatus {
-  NOT_CONFIGURED = 'NOT_CONFIGURED',
-  OFFLINE = 'OFFLINE',
-  NOMINAL = 'NOMINAL',
-  DEGRADED = 'DEGRADED'
-}

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { StorageService } from '../../utils'
 import { EventStage } from './stage.interface'
+import { StorageService } from '../../utils/storage'
 
 @Injectable()
 export class StageInternal {

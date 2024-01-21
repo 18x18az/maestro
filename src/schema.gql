@@ -2,48 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Stage {
-  """The current stage of the event"""
-  stage: EventStage!
-}
-
-"""The current stage of the event"""
-enum EventStage {
-  WAITING_FOR_TEAMS
-  CHECKIN
-  QUALIFICATIONS
-  ALLIANCE_SELECTION
-  ELIMS
-  TEARDOWN
-}
-
-type Team {
-  """Number of the team"""
-  number: String!
-
-  """Name of the team"""
-  name: String!
-
-  """Location of the team"""
-  location: String!
-
-  """School of the team"""
-  school: String!
-
-  """Checkin status of the team"""
-  checkin: Checkin!
-
-  """Unique identifier for the team"""
-  id: Int!
-}
-
-"""The checkin status of a team"""
-enum Checkin {
-  NOT_HERE
-  CHECKED_IN
-  NO_SHOW
-}
-
 type FieldControl {
   """
   The current mode of the field, null if undefined. Will still return a value even if it is not currently running.
@@ -71,6 +29,33 @@ enum CONTROL_MODE {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Team {
+  """Number of the team"""
+  number: String!
+
+  """Name of the team"""
+  name: String!
+
+  """Location of the team"""
+  location: String!
+
+  """School of the team"""
+  school: String!
+
+  """Checkin status of the team"""
+  checkin: Checkin!
+
+  """Unique identifier for the team"""
+  id: Int!
+}
+
+"""The checkin status of a team"""
+enum Checkin {
+  NOT_HERE
+  CHECKED_IN
+  NO_SHOW
+}
 
 """
 A contest refers to a match or group of matches between two alliances. E.g. in Bo3 finals, F1 and F2 are both part of the same contest
@@ -255,6 +240,21 @@ type Field {
   Information about competition matches associated with this field. Null if the field is not being used for competition matches.
   """
   competition: CompetitionField
+}
+
+type Stage {
+  """The current stage of the event"""
+  stage: EventStage!
+}
+
+"""The current stage of the event"""
+enum EventStage {
+  WAITING_FOR_TEAMS
+  CHECKIN
+  QUALIFICATIONS
+  ALLIANCE_SELECTION
+  ELIMS
+  TEARDOWN
 }
 
 type TournamentManager {
