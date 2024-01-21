@@ -21,6 +21,7 @@ import { AutonEndEvent } from './auton-end.event'
 import { DriverEndEvent } from './driver-end.event'
 import { TimingService } from './timing.service'
 import { MatchModule } from '../match/match.module'
+import { AutonResetEvent } from './auton-reset.event'
 
 @Module({
   imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),
@@ -28,7 +29,7 @@ import { MatchModule } from '../match/match.module'
   providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
     CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent,
     PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent,
-    TimingService],
+    TimingService, AutonResetEvent],
   exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent, DriverEndEvent]
 })
 export class CompetitionFieldModule {}

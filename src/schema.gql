@@ -305,6 +305,7 @@ type Mutation {
   startField(fieldId: Int!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   unqueue(sittingId: Int!): CompetitionField!
+  resetAuton(fieldId: Int!): CompetitionField!
   startNextBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
 

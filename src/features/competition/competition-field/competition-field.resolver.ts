@@ -7,13 +7,15 @@ import { CompetitionFieldEntity } from './competition-field.entity'
 import { UnqueueSittingEvent } from './unqueue-sitting.event'
 import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
+import { AutonResetEvent } from './auton-reset.event'
 
 @Resolver(of => CompetitionField)
 export class CompetitionFieldResolver {
   constructor (
     private readonly repo: CompetitionFieldRepo,
     private readonly cache: CompetitionFieldControlCache,
-    private readonly unqueueEvent: UnqueueSittingEvent
+    private readonly unqueueEvent: UnqueueSittingEvent,
+    private readonly resetEvent: AutonResetEvent
   ) {}
 
   @ResolveField(() => Sitting, { nullable: true })
@@ -35,6 +37,14 @@ export class CompetitionFieldResolver {
   async unqueue (@Args({ name: 'sittingId', type: () => Int }) sittingId: number): Promise<CompetitionFieldEntity> {
     const result = await this.unqueueEvent.execute({ sittingId })
     const field = await this.repo.getCompetitionField(result.fieldId)
+    if (field === null) throw new Error('Field disappeared')
+    return field
+  }
+
+  @Mutation(() => CompetitionField)
+  async resetAuton (@Args({ name: 'fieldId', type: () => Int }) fieldId: number): Promise<CompetitionFieldEntity> {
+    const response = await this.resetEvent.execute({ fieldId })
+    const field = await this.repo.getCompetitionField(response.fieldId)
     if (field === null) throw new Error('Field disappeared')
     return field
   }
