@@ -15,4 +15,10 @@ export class CompetitionField {
 
   @Field(() => MATCH_STAGE, { description: 'The current stage of the match on the field' })
     stage: MATCH_STAGE
+
+  @Field({ description: 'Whether the field is the current live field' })
+    isLive: boolean
+
+  @Field({ description: 'Whether the field is currently on deck' })
+    isOnDeck: boolean
 }

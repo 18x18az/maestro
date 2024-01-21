@@ -8,14 +8,16 @@ import { UnqueueSittingEvent } from './unqueue-sitting.event'
 import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
 import { AutonResetEvent } from './auton-reset.event'
+import { CompetitionControlService } from '../competition/competition.service'
 
-@Resolver(of => CompetitionField)
+@Resolver(() => CompetitionField)
 export class CompetitionFieldResolver {
   constructor (
     private readonly repo: CompetitionFieldRepo,
     private readonly cache: CompetitionFieldControlCache,
     private readonly unqueueEvent: UnqueueSittingEvent,
-    private readonly resetEvent: AutonResetEvent
+    private readonly resetEvent: AutonResetEvent,
+    private readonly competitionInfo: CompetitionControlService
   ) {}
 
   @ResolveField(() => Sitting, { nullable: true })
@@ -31,6 +33,18 @@ export class CompetitionFieldResolver {
   @ResolveField(() => MATCH_STAGE)
   async stage (@Parent() field: CompetitionField): Promise<MATCH_STAGE> {
     return await this.cache.get(field.fieldId)
+  }
+
+  @ResolveField(() => Boolean)
+  async isLive (@Parent() field: CompetitionField): Promise<boolean> {
+    const liveField = await this.competitionInfo.getLiveField()
+    return liveField?.id === field.fieldId
+  }
+
+  @ResolveField(() => Boolean)
+  async isOnDeck (@Parent() field: CompetitionField): Promise<boolean> {
+    const onDeckField = await this.competitionInfo.getOnDeckField()
+    return onDeckField?.id === field.fieldId
   }
 
   @Mutation(() => CompetitionField)

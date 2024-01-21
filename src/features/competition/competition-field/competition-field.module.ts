@@ -22,10 +22,16 @@ import { DriverEndEvent } from './driver-end.event'
 import { TimingService } from './timing.service'
 import { MatchModule } from '../match/match.module'
 import { AutonResetEvent } from './auton-reset.event'
+import { CompetitionModule } from '../competition/competition.module'
 
 @Module({
-  imports: [forwardRef(() => MatchModule), forwardRef(() => FieldControlModule), forwardRef(() => FieldModule),
-    TypeOrmModule.forFeature([CompetitionFieldEntity])],
+  imports: [
+    forwardRef(() => CompetitionModule),
+    forwardRef(() => MatchModule),
+    forwardRef(() => FieldControlModule),
+    forwardRef(() => FieldModule),
+    TypeOrmModule.forFeature([CompetitionFieldEntity])
+  ],
   providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
     CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent,
     PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent,

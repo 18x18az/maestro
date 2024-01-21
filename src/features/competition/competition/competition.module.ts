@@ -10,7 +10,11 @@ import { OnDeckRemovedEvent } from './on-deck-removed.event'
 import { MatchModule } from '../match/match.module'
 
 @Module({
-  imports: [forwardRef(() => CompetitionFieldModule), forwardRef(() => MatchModule), FieldModule],
+  imports: [
+    forwardRef(() => CompetitionFieldModule),
+    forwardRef(() => MatchModule),
+    forwardRef(() => FieldModule)
+  ],
   providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent],
   exports: [CompetitionControlService]
 })
