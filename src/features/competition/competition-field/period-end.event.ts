@@ -22,7 +22,7 @@ export class PeriodEndEvent extends EventService<PeriodEndPayload, PeriodEndCont
   ) { super() }
 
   protected async getContext (data: PeriodEndPayload): Promise<PeriodEndContext> {
-    const current = this.cache.get(data.fieldId)
+    const current = await this.cache.get(data.fieldId)
     return { ...data, current }
   }
 

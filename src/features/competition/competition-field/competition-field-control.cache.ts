@@ -1,15 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { MATCH_STAGE } from './competition-field.interface'
+import { CompetitionFieldRepo } from './competition-field.repo'
 
 @Injectable()
 export class CompetitionFieldControlCache {
   private readonly cache: Map<number, MATCH_STAGE> = new Map()
 
-  public get (fieldId: number): MATCH_STAGE {
+  constructor (private readonly repo: CompetitionFieldRepo) {}
+
+  public async get (fieldId: number): Promise<MATCH_STAGE> {
     const cached = this.cache.get(fieldId)
     if (cached === undefined) {
-      this.set(fieldId, MATCH_STAGE.EMPTY)
-      return MATCH_STAGE.EMPTY
+      const onField = await this.repo.getOnFieldSitting(fieldId)
+      const result = onField === null ? MATCH_STAGE.EMPTY : MATCH_STAGE.QUEUED
+      this.set(fieldId, result)
+      return result
     }
     return cached
   }

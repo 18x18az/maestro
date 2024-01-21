@@ -279,6 +279,14 @@ enum TmStatus {
   CONNECTED
 }
 
+type Competition {
+  """The field that is currently live"""
+  liveField: Field
+
+  """The field that is currently on deck"""
+  onDeckField: Field
+}
+
 type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean): [Field!]!
   blocks: [Block!]!
@@ -289,13 +297,14 @@ type Query {
   sittings: [Sitting!]!
   teams: [Team!]!
   stage: Stage!
+  competitionInformation: Competition!
   tournamentManager: TournamentManager!
 }
 
 type Mutation {
   startField(fieldId: Float!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
-  unqueue(sittingId: Float!): CompetitionField!
+  unqueue(sittingId: Int!): CompetitionField!
   startNextBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
 

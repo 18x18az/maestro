@@ -1,4 +1,4 @@
-import { Args, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql'
 import { CompetitionField } from './competition-field.object'
 import { CompetitionFieldRepo } from './competition-field.repo'
 import { Sitting } from '../match/sitting.object'
@@ -32,7 +32,7 @@ export class CompetitionFieldResolver {
   }
 
   @Mutation(() => CompetitionField)
-  async unqueue (@Args('sittingId') sittingId: number): Promise<CompetitionFieldEntity> {
+  async unqueue (@Args({ name: 'sittingId', type: () => Int }) sittingId: number): Promise<CompetitionFieldEntity> {
     const result = await this.unqueueEvent.execute({ sittingId })
     const field = await this.repo.getCompetitionField(result.fieldId)
     if (field === null) throw new Error('Field disappeared')

@@ -14,6 +14,7 @@ import { URLResolver } from 'graphql-scalars'
 import { MatchModule } from './features/competition/match'
 import { StageModule } from './features/stage/stage.module'
 import { ResultsModule } from './features/results/results.module'
+import { CompetitionModule } from './features'
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ResultsModule } from './features/results/results.module'
       resolvers: { URL: URLResolver }
     }),
     FieldControlModule,
+    CompetitionModule,
     TeamModule,
     SettingsModule,
     StageModule,

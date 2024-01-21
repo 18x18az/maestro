@@ -57,6 +57,7 @@ export class CompetitionFieldService {
   }
 
   async queueSitting (sittingId: number, fieldId: number): Promise<CompetitionFieldEntity> {
+    console.log('queueSitting', sittingId, fieldId)
     const result = await this.queueEvent.execute({ sittingId, fieldId })
     return result.field
   }

@@ -22,7 +22,7 @@ export class PeriodStartEvent extends EventService<PeriodStartPayload, PeriodSta
   ) { super() }
 
   protected async getContext (data: PeriodStartPayload): Promise<PeriodStartContext> {
-    const current = this.cache.get(data.fieldId)
+    const current = await this.cache.get(data.fieldId)
     return { ...data, current }
   }
 

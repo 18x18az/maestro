@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { MATCH_STAGE } from './competition-field.interface'
 import { LoadFieldEvent } from '../../field-control/load-field.event'
 import { CONTROL_MODE } from '../../field-control/field-control.interface'
@@ -27,8 +27,10 @@ export class CompetitionFieldControlService {
     private readonly cache: CompetitionFieldControlCache
   ) {}
 
-  async onModuleInit (): Promise<void> {
+  onModuleInit (): void {
     this.queueEvent.registerAfter(async (data) => {
+      if (data.location === 'ON_TABLE') return
+
       await this.putOnField(data.fieldId)
     })
 
@@ -37,7 +39,7 @@ export class CompetitionFieldControlService {
     })
 
     this.startEvent.registerBefore(async (data) => {
-      const current = this.cache.get(data.fieldId)
+      const current = await this.cache.get(data.fieldId)
 
       if (current === MATCH_STAGE.EMPTY) return
 
@@ -45,7 +47,7 @@ export class CompetitionFieldControlService {
     })
 
     this.stopEvent.registerAfter(async (data) => {
-      const current = this.cache.get(data.fieldId)
+      const current = await this.cache.get(data.fieldId)
 
       if (current === MATCH_STAGE.EMPTY) return
 
@@ -53,23 +55,7 @@ export class CompetitionFieldControlService {
     })
   }
 
-  async onApplicationBootstrap (): Promise<void> {
-    const fields = await this.repo.getAllFields()
-
-    for (const field of fields) {
-      if (field.onFieldSittingId !== null) {
-        await this.putOnField(field.fieldId)
-      }
-    }
-  }
-
-  async putOnField (fieldId: number): Promise<void> {
-    const current = this.cache.get(fieldId)
-
-    if (current !== MATCH_STAGE.EMPTY) {
-      throw new BadRequestException(`${fieldId} already has a sitting on field`)
-    }
-
+  private async putOnField (fieldId: number): Promise<void> {
     this.cache.set(fieldId, MATCH_STAGE.QUEUED)
     await this.loadField.execute({ fieldId, mode: CONTROL_MODE.AUTO, duration: 15 * 1000 })
   }

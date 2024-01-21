@@ -49,6 +49,7 @@ export class SittingResolver {
     @Args({ name: 'sittingId', type: () => Int }) sittingId: number,
       @Args({ name: 'fieldId', type: () => Int }) fieldId: number
   ): Promise<SittingEntity> {
+    console.log('queueSitting', sittingId, fieldId)
     await this.competitionField.queueSitting(sittingId, fieldId)
     const sitting = await this.repo.getSitting(sittingId)
     return sitting
