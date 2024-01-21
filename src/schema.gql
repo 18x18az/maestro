@@ -310,6 +310,7 @@ type Mutation {
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
+  putOnDeck(fieldId: Int!): Competition!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
 }
 
