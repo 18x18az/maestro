@@ -207,7 +207,17 @@ type CompetitionField {
   onTableSitting: Sitting
 
   """The current stage of the match on the field"""
-  stage: String!
+  stage: MatchStage!
+}
+
+enum MatchStage {
+  EMPTY
+  QUEUED
+  AUTON
+  SCORING_AUTON
+  DRIVER
+  OUTRO
+  SCORING
 }
 
 """Representation of a single field"""

@@ -13,6 +13,6 @@ export class CompetitionField {
   @Field({ nullable: true, description: 'The match currently on the queueing table (on deck) for the field' })
     onTableSitting: Sitting
 
-  @Field({ description: 'The current stage of the match on the field' })
+  @Field(() => MATCH_STAGE, { description: 'The current stage of the match on the field' })
     stage: MATCH_STAGE
 }
