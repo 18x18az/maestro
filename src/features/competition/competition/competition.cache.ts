@@ -13,11 +13,11 @@ export class CompetitionControlCache {
     return this.onDeckField
   }
 
-  async setLiveField (fieldId: number | null): Promise<void> {
+  setLiveField (fieldId: number | null): void {
     this.liveField = fieldId
   }
 
-  async setOnDeckField (fieldId: number | null): Promise<void> {
+  setOnDeckField (fieldId: number | null): void {
     this.onDeckField = fieldId
   }
 }

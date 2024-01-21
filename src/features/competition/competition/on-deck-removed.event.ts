@@ -3,23 +3,24 @@ import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldService } from '../competition-field/competition-field.service'
 import { CompetitionControlCache } from './competition.cache'
 
-interface OnDeckEventPayload {
+interface OnDeckRemovedEventContext {
   fieldId: number
-}
-
-interface OnDeckEventContext extends OnDeckEventPayload {
   sittingId: number
 }
 
 @Injectable()
-export class OnDeckEvent extends EventService<OnDeckEventPayload, OnDeckEventContext, OnDeckEventContext> {
+export class OnDeckRemovedEvent extends EventService<{}, OnDeckRemovedEventContext, OnDeckRemovedEventContext> {
   constructor (
     private readonly fieldService: CompetitionFieldService,
     private readonly cache: CompetitionControlCache
   ) { super() }
 
-  protected async getContext (data: OnDeckEventPayload): Promise<OnDeckEventContext> {
-    const fieldInfo = await this.fieldService.getCompetitionField(data.fieldId)
+  protected async getContext (): Promise<OnDeckRemovedEventContext> {
+    const onDeckField = this.cache.getOnDeckField()
+
+    if (onDeckField === null) throw new BadRequestException('No field is on deck')
+
+    const fieldInfo = await this.fieldService.getCompetitionField(onDeckField)
 
     if (fieldInfo === null) throw new BadRequestException('Field does not exist')
 
@@ -28,14 +29,14 @@ export class OnDeckEvent extends EventService<OnDeckEventPayload, OnDeckEventCon
     if (sittingId === null) throw new BadRequestException('Field is not occupied')
 
     return {
-      ...data,
+      fieldId: onDeckField,
       sittingId
     }
   }
 
-  protected async doExecute (data: OnDeckEventContext): Promise<OnDeckEventContext> {
-    this.logger.log(`Putting field ${data.fieldId} on deck`)
-    this.cache.setOnDeckField(data.fieldId)
+  protected async doExecute (data: OnDeckRemovedEventContext): Promise<OnDeckRemovedEventContext> {
+    this.logger.log(`Removing field ${data.fieldId} from on deck`)
+    this.cache.setOnDeckField(null)
     return data
   }
 }

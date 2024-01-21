@@ -38,7 +38,6 @@ export class QueueSittingEvent extends EventService<QueueSittingPayload, QueueSi
   }
 
   protected async doExecute (data: QueueSittingContext): Promise<QueueSittingResult> {
-    console.log('QueueSittingEvent.doExecute')
     const { field } = data
     let location: 'ON_TABLE' | 'ON_FIELD' = 'ON_TABLE'
     if (field.onFieldSittingId === null) {
