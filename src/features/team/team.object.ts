@@ -28,6 +28,9 @@ class TeamInfo extends TeamCreate {
 export class Team extends TeamInfo {
   @Field(() => Int, { description: 'Unique identifier for the team' })
     id: number
+
+  @Field(() => Int, { description: 'Rank of the team', nullable: true })
+    rank: number
 }
 
 @InputType()

@@ -1,15 +1,24 @@
-import { Query, Resolver } from '@nestjs/graphql'
+import { Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Team } from './team.object'
-import { TeamService } from './team.service'
 import { TeamRepo } from './team.repo'
+import { TeamEntity } from './team.entity'
+import { RankingService } from '../ranking/ranking.service'
 
-@Resolver(of => Team)
+@Resolver(() => Team)
 export class TeamResolver {
-  constructor (private readonly teamService: TeamService, private readonly repo: TeamRepo) {}
+  constructor (
+    private readonly repo: TeamRepo,
+    private readonly rankService: RankingService
+  ) {}
 
   @Query(() => [Team])
-  async teams (): Promise<Team[]> {
+  async teams (): Promise<TeamEntity[]> {
     return await this.repo.getTeams()
+  }
+
+  @ResolveField(() => Int)
+  async rank (@Parent() team: TeamEntity): Promise<number | null> {
+    return this.rankService.getRanking(team.number)
   }
 
   // TODO team update

@@ -7,7 +7,7 @@ import { EnableFieldEvent } from './enable-field.event'
 import { FieldRepo } from './field.repo'
 import { DisableFieldEvent } from './disable-field.event'
 import { FieldControlModule } from '../field-control/field-control.module'
-import { CompetitionFieldModule } from '../competition/competition-field'
+import { CompetitionFieldModule } from '../competition/competition-field/competition-field.module'
 
 @Module({
   imports: [

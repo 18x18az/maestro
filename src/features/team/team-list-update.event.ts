@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { EventService } from '../../utils/classes/event-service'
 import { Checkin } from './team.interface'
-import { Team, TeamCreate } from './team.object'
+import { TeamCreate } from './team.object'
 import { TeamService } from './team.service'
+import { TeamEntity } from './team.entity'
 
 export interface TeamListUpdatePayload {
   teams: TeamCreate[]
@@ -10,7 +11,7 @@ export interface TeamListUpdatePayload {
 
 export interface TeamListUpdateContext extends TeamListUpdatePayload {
   teamsToAdd: TeamCreate[]
-  teamsToRemove: Team[]
+  teamsToRemove: TeamEntity[]
 }
 
 @Injectable()

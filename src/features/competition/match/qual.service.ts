@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
-import { EventStage, StageService } from '../../stage'
 import { FieldService } from '../../field/field.service'
 import { CreateQualBlock } from './block.entity'
 import { CreateQualMatch } from './match.entity'
 import { Round } from './match.interface'
 import { TeamService } from '../../team/team.service'
+import { StageService } from '../../stage/stage.service'
+import { EventStage } from '../../stage/stage.interface'
 
 @Injectable()
 export class QualService {

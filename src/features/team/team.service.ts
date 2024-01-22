@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Team, TeamCreate } from './team.object'
+import { TeamCreate } from './team.object'
 import { TeamRepo } from './team.repo'
 import { Checkin } from './team.interface'
 import { EventResetEvent } from '../stage/event-reset.event'
@@ -19,15 +19,15 @@ export class TeamService {
   //   return { id: teamId, number: '1234', checkin: Checkin.NOT_HERE }
   // }
 
-  async getTeams (): Promise<Team[]> {
+  async getTeams (): Promise<TeamEntity[]> {
     return await this.repo.getTeams()
   }
 
-  async markCheckinStatus (teamId: number, status: Checkin): Promise<Team> {
+  async markCheckinStatus (teamId: number, status: Checkin): Promise<TeamEntity> {
     return await this.repo.markCheckinStatus(teamId, status)
   }
 
-  async addTeams (teams: TeamCreate[]): Promise<Team[]> {
+  async addTeams (teams: TeamCreate[]): Promise<TeamEntity[]> {
     return await this.repo.addTeams(teams)
   }
 
