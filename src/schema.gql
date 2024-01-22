@@ -312,6 +312,7 @@ type Query {
 
 type Mutation {
   startField(fieldId: Int!): FieldControl!
+  stopField(fieldId: Int!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
