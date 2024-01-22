@@ -12,7 +12,7 @@ async function bootstrap (): Promise<void> {
   app.enableCors()
   app.setGlobalPrefix('api')
   await app.register(fastifyMultipart)
-  await app.listen(3002)
+  await app.listen(3002, '0.0.0.0')
 }
 
 void bootstrap()

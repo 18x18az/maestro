@@ -4,6 +4,9 @@ import { Field } from '../field/field.object'
 
 @ObjectType()
 export class FieldControl {
+  @GField(() => Number, { description: 'The ID of the field that this control object is associated with' })
+    fieldId: number
+
   @GField(() => CONTROL_MODE, { nullable: true, description: 'The current mode of the field, null if undefined. Will still return a value even if it is not currently running.' })
     mode: CONTROL_MODE
 

@@ -3,6 +3,9 @@
 # ------------------------------------------------------
 
 type FieldControl {
+  """The ID of the field that this control object is associated with"""
+  fieldId: Float!
+
   """
   The current mode of the field, null if undefined. Will still return a value even if it is not currently running.
   """
