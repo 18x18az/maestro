@@ -8,6 +8,7 @@ import { FieldModule } from '../../field/field.module'
 import { OnLiveEvent } from './on-live.event'
 import { OnDeckRemovedEvent } from './on-deck-removed.event'
 import { MatchModule } from '../match/match.module'
+import { LiveRemovedEvent } from './live-removed.event'
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { MatchModule } from '../match/match.module'
     forwardRef(() => MatchModule),
     forwardRef(() => FieldModule)
   ],
-  providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent],
+  providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent, LiveRemovedEvent],
   exports: [CompetitionControlService]
 })
 export class CompetitionModule {}

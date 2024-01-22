@@ -317,6 +317,7 @@ type Mutation {
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
   putOnDeck(fieldId: Int!): Competition!
+  clearLive: Competition!
   putLive: Competition!
   startNextBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
