@@ -21,6 +21,7 @@ import { TmModule } from './utils/tm/tm.module'
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<MercuriusDriverConfig>({
       driver: MercuriusDriver,
+      subscription: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       graphiql: true,
       resolvers: { URL: URLResolver }

@@ -344,3 +344,7 @@ input TournamentManagerSetup {
   """
   url: URL!
 }
+
+type Subscription {
+  fieldControl(fieldId: Int!): FieldControl!
+}
