@@ -8,6 +8,7 @@ import { DisableFieldEvent } from '../../field/disable-field.event'
 import { QueueSittingEvent } from './queue-sitting.event'
 import { SittingCompleteEvent } from '../match/sitting-complete.event'
 import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
+import { SittingStatus } from '../match/match.interface'
 
 @Injectable()
 export class CompetitionFieldService {
@@ -59,5 +60,23 @@ export class CompetitionFieldService {
   async queueSitting (sittingId: number, fieldId: number): Promise<CompetitionFieldEntity> {
     const result = await this.queueEvent.execute({ sittingId, fieldId })
     return result.field
+  }
+
+  async getNextField (fieldId: number): Promise<number> {
+    const fields = await this.repo.getAllFields()
+    const numFields = fields.length
+    const index = fields.findIndex((f) => f.fieldId === fieldId)
+
+    if (index === -1) throw new Error('Field does not exist')
+    const nextIndex = (index + 1) % numFields
+    return fields[nextIndex].fieldId
+  }
+
+  async getMatchStatus (fieldId: number): Promise<SittingStatus | null> {
+    const sitting = await this.repo.getOnFieldSitting(fieldId)
+
+    if (sitting === null) return null
+
+    return sitting.status
   }
 }
