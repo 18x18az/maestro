@@ -23,6 +23,7 @@ import { TimingService } from './timing.service'
 import { MatchModule } from '../match/match.module'
 import { AutonResetEvent } from './auton-reset.event'
 import { CompetitionModule } from '../competition/competition.module'
+import { ReplayMatchEvent } from './replay-match.event'
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { CompetitionModule } from '../competition/competition.module'
   providers: [CompetitionFieldService, CompetitionFieldControlService, CompetitionFieldRepo, EnableCompetitionFieldEvent,
     CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent,
     PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent,
-    TimingService, AutonResetEvent],
-  exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent, DriverEndEvent]
+    TimingService, AutonResetEvent, ReplayMatchEvent],
+  exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent, DriverEndEvent, ReplayMatchEvent]
 })
 export class CompetitionFieldModule {}

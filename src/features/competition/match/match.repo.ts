@@ -209,4 +209,18 @@ export class MatchRepo {
 
     return sitting.id
   }
+
+  async replaySitting (sitting: number): Promise<void> {
+    const sittingEntity = await this.sittingRepository.findOne({ where: { id: sitting } })
+    if (sittingEntity === null) throw new Error('Sitting not found')
+    sittingEntity.status = SittingStatus.COMPLETE
+    const nextSittingNumber = sittingEntity.number + 1
+
+    const newSitting = new SittingEntity()
+    newSitting.blockId = sittingEntity.blockId
+    newSitting.number = nextSittingNumber
+    newSitting.matchId = sittingEntity.matchId
+    await this.sittingRepository.save(newSitting)
+    await this.sittingRepository.save(sittingEntity)
+  }
 }

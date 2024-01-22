@@ -5,6 +5,7 @@ import { QueueSittingEvent } from '../competition-field/queue-sitting.event'
 import { UnqueueSittingEvent } from '../competition-field/unqueue-sitting.event'
 import { MatchResultEvent } from './match-result.event'
 import { SittingScoredEvent } from './sitting-scored.event'
+import { ReplayMatchEvent } from '../competition-field/replay-match.event'
 
 @Injectable()
 export class MatchInternal {
@@ -15,7 +16,8 @@ export class MatchInternal {
     private readonly queuedEvent: QueueSittingEvent,
     private readonly unqueuedEvent: UnqueueSittingEvent,
     private readonly matchResultEvent: MatchResultEvent,
-    private readonly sittingScoredEvent: SittingScoredEvent
+    private readonly sittingScoredEvent: SittingScoredEvent,
+    private readonly replayEvent: ReplayMatchEvent
   ) {}
 
   onModuleInit (): void {
@@ -33,6 +35,10 @@ export class MatchInternal {
       if (pendingSitting === null) return
 
       await this.sittingScoredEvent.execute({ sitting: pendingSitting })
+    })
+
+    this.replayEvent.registerAfter(async (data) => {
+      await this.repo.replaySitting(data.sittingId)
     })
   }
 

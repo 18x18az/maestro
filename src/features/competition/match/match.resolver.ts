@@ -5,7 +5,7 @@ import { MatchEntity } from './match.entity'
 import { Sitting } from './sitting.object'
 import { SittingEntity } from './sitting.entity'
 
-@Resolver(of => Match)
+@Resolver(() => Match)
 export class MatchResolver {
   constructor (private readonly repo: MatchRepo) {}
 

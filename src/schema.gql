@@ -319,6 +319,7 @@ type Mutation {
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
+  replay(sittingId: Int!): CompetitionField!
   putOnDeck(fieldId: Int!): Competition!
   clearLive: Competition!
   putLive: Competition!

@@ -9,6 +9,7 @@ import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
 import { AutonResetEvent } from './auton-reset.event'
 import { CompetitionControlService } from '../competition/competition.service'
+import { ReplayMatchEvent } from './replay-match.event'
 
 @Resolver(() => CompetitionField)
 export class CompetitionFieldResolver {
@@ -17,7 +18,8 @@ export class CompetitionFieldResolver {
     private readonly cache: CompetitionFieldControlCache,
     private readonly unqueueEvent: UnqueueSittingEvent,
     private readonly resetEvent: AutonResetEvent,
-    private readonly competitionInfo: CompetitionControlService
+    private readonly competitionInfo: CompetitionControlService,
+    private readonly replayMatch: ReplayMatchEvent
   ) {}
 
   @ResolveField(() => Sitting, { nullable: true })
@@ -58,6 +60,14 @@ export class CompetitionFieldResolver {
   @Mutation(() => CompetitionField)
   async resetAuton (@Args({ name: 'fieldId', type: () => Int }) fieldId: number): Promise<CompetitionFieldEntity> {
     const response = await this.resetEvent.execute({ fieldId })
+    const field = await this.repo.getCompetitionField(response.fieldId)
+    if (field === null) throw new Error('Field disappeared')
+    return field
+  }
+
+  @Mutation(() => CompetitionField)
+  async replay (@Args({ name: 'sittingId', type: () => Int }) sittingId: number): Promise<CompetitionFieldEntity> {
+    const response = await this.replayMatch.execute({ sittingId })
     const field = await this.repo.getCompetitionField(response.fieldId)
     if (field === null) throw new Error('Field disappeared')
     return field
