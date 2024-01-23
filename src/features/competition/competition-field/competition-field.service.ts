@@ -9,6 +9,10 @@ import { QueueSittingEvent } from './queue-sitting.event'
 import { SittingCompleteEvent } from '../match/sitting-complete.event'
 import { RemoveOnFieldSittingEvent } from './remove-on-field-sitting.event'
 import { SittingStatus } from '../match/match.interface'
+import { MatchService } from '../match/match.service'
+import { AutomationEnabledEvent } from '../competition/automation-enabled.event'
+import { TableEmptyEvent } from './table-empty.event'
+import { AutomationService } from '../competition/automation.service'
 
 @Injectable()
 export class CompetitionFieldService {
@@ -20,7 +24,11 @@ export class CompetitionFieldService {
     private readonly disableFieldEvent: DisableFieldEvent,
     private readonly queueEvent: QueueSittingEvent,
     private readonly sittingCompleteEvent: SittingCompleteEvent,
-    private readonly removeOnFieldEvent: RemoveOnFieldSittingEvent
+    private readonly removeOnFieldEvent: RemoveOnFieldSittingEvent,
+    private readonly automationEnabledEvent: AutomationEnabledEvent,
+    private readonly matchService: MatchService,
+    private readonly tableEmptyEvent: TableEmptyEvent,
+    private readonly automation: AutomationService
   ) {}
 
   async getCompetitionField (fieldId: number): Promise<CompetitionFieldEntity | null> {
@@ -55,6 +63,38 @@ export class CompetitionFieldService {
 
       await this.removeOnFieldEvent.execute({ fieldId })
     })
+
+    this.automationEnabledEvent.registerAfter(async () => {
+      this.logger.log('Filling all fields')
+      const fields = await this.repo.getAllFields()
+      for (const field of fields) {
+        await this.fillField(field.fieldId)
+      }
+    })
+
+    this.queueEvent.registerOnComplete(async (data) => {
+      const onTable = await this.repo.getOnTableSitting(data.fieldId)
+      if (onTable !== null) return
+      await this.tableEmptyEvent.execute({ fieldId: data.fieldId })
+    })
+
+    this.tableEmptyEvent.registerOnComplete(async (data) => {
+      if (!this.automation.getAutomationEnabled()) return
+      await this.fillField(data.fieldId)
+    })
+  }
+
+  async fillField (fieldId: number): Promise<void> {
+    this.logger.log(`Filling field ${fieldId}`)
+    const sitting = await this.repo.getOnTableSitting(fieldId)
+
+    if (sitting !== null) return
+
+    const nextSitting = await this.matchService.getNextSitting(fieldId)
+
+    if (nextSitting === null) return
+
+    await this.queueSitting(nextSitting, fieldId)
   }
 
   async queueSitting (sittingId: number, fieldId: number): Promise<CompetitionFieldEntity> {

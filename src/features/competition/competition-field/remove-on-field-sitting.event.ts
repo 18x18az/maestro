@@ -40,8 +40,8 @@ export class RemoveOnFieldSittingEvent extends EventService<RemoveOnFieldSitting
     const onTable = data.field.onTableSittingId
 
     if (onTable !== null) {
-      await this.removeOnTable.execute({ fieldId: data.fieldId })
       await this.repo.putOnField(data.fieldId, onTable)
+      await this.removeOnTable.execute({ fieldId: data.fieldId })
       this.cache.set(data.fieldId, MATCH_STAGE.QUEUED)
     }
 

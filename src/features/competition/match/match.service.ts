@@ -45,4 +45,8 @@ export class MatchService {
   async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
     return await this.repo.getMatchScore(match)
   }
+
+  async getNextSitting (fieldId: number): Promise<number | null> {
+    return await this.repo.getNextSitting(fieldId)
+  }
 }

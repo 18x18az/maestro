@@ -15,7 +15,11 @@ export class SittingEntity {
   @Column({ type: 'datetime', nullable: true })
     scheduled: Date
 
+  @Column({ nullable: true })
+    fieldId: number
+
   @ManyToOne(() => FieldEntity, field => field.sittings, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'fieldId', referencedColumnName: 'id' })
     field: FieldEntity
 
   @Column()

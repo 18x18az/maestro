@@ -202,12 +202,12 @@ export class MatchRepo {
     await this.matchRepository.update(match, { redScore, blueScore })
   }
 
-  async getPendingSitting (match: number): Promise<number | null> {
-    const sitting = await this.sittingRepository.findOne({ where: { matchId: match, status: SittingStatus.SCORING } })
+  async getPendingSitting (matchId: number): Promise<number | null> {
+    const pendingSitting = await this.sittingRepository.findOne({ where: { matchId, status: SittingStatus.SCORING } })
 
-    if (sitting === null) return null
+    if (pendingSitting === null) return null
 
-    return sitting.id
+    return pendingSitting.id
   }
 
   async replaySitting (sitting: number): Promise<void> {
@@ -222,5 +222,23 @@ export class MatchRepo {
     newSitting.matchId = sittingEntity.matchId
     await this.sittingRepository.save(newSitting)
     await this.sittingRepository.save(sittingEntity)
+  }
+
+  async getNextSitting (fieldId: number): Promise<number | null> {
+    const currentBlock = await this.getCurrentBlock()
+
+    if (currentBlock === null) return null
+
+    const blockId = currentBlock.id
+
+    const sitting = await this.sittingRepository.findOne({ where: { fieldId, status: SittingStatus.NOT_STARTED, blockId } })
+
+    if (sitting !== null) return sitting.id
+
+    const replaySitting = await this.sittingRepository.findOne({ where: { fieldId: undefined, status: SittingStatus.NOT_STARTED, blockId } })
+
+    if (replaySitting !== null) return replaySitting.id
+
+    return null
   }
 }

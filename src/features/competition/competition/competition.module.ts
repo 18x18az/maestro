@@ -11,6 +11,7 @@ import { LiveRemovedEvent } from './live-removed.event'
 import { CompetitionFieldModule } from '../competition-field/competition-field.module'
 import { AutomationDisabledEvent } from './automation-disabled.event'
 import { AutomationEnabledEvent } from './automation-enabled.event'
+import { AutomationService } from './automation.service'
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AutomationEnabledEvent } from './automation-enabled.event'
     forwardRef(() => FieldModule)
   ],
   providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent,
-    LiveRemovedEvent, AutomationDisabledEvent, AutomationEnabledEvent],
-  exports: [CompetitionControlService]
+    LiveRemovedEvent, AutomationDisabledEvent, AutomationEnabledEvent, AutomationService],
+  exports: [CompetitionControlService, AutomationEnabledEvent, AutomationService]
 })
 export class CompetitionModule {}

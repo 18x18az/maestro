@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldEntity } from './competition-field.entity'
 import { CompetitionFieldRepo } from './competition-field.repo'
-import { CompetitionFieldControlCache } from './competition-field-control.cache'
+import { TableEmptyEvent } from './table-empty.event'
 
 interface QueueSittingPayload {
   sittingId: number
@@ -21,7 +21,7 @@ interface QueueSittingResult extends QueueSittingContext {
 export class QueueSittingEvent extends EventService<QueueSittingPayload, QueueSittingContext, QueueSittingResult> {
   constructor (
     private readonly repo: CompetitionFieldRepo,
-    private readonly cache: CompetitionFieldControlCache
+    private readonly tableEmptyEvent: TableEmptyEvent
   ) { super() }
 
   protected async getContext (data: QueueSittingPayload): Promise<QueueSittingContext> {

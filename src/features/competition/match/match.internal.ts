@@ -32,7 +32,10 @@ export class MatchInternal {
     this.matchResultEvent.registerAfter(async (data) => {
       const pendingSitting = await this.repo.getPendingSitting(data.matchId)
 
-      if (pendingSitting === null) return
+      if (pendingSitting === null) {
+        this.logger.warn(`No pending sitting found for match ID ${data.matchId}`)
+        return
+      }
 
       await this.sittingScoredEvent.execute({ sitting: pendingSitting })
     })
