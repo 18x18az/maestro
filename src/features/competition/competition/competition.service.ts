@@ -8,6 +8,8 @@ import { SittingStatus } from '../match/match.interface'
 import { OnDeckEvent } from './on-deck.event'
 import { Competition } from './competition.object'
 import { MatchResultEvent } from '../match/match-result.event'
+import { DriverEndEvent } from '../competition-field/driver-end.event'
+import { LiveRemovedEvent } from './live-removed.event'
 
 @Injectable()
 export class CompetitionControlService {
@@ -19,7 +21,9 @@ export class CompetitionControlService {
     private readonly compFields: CompetitionFieldService,
     private readonly onDeckRemoved: OnDeckRemovedEvent,
     private readonly onDeck: OnDeckEvent,
-    private readonly matchScored: MatchResultEvent
+    private readonly matchScored: MatchResultEvent,
+    private readonly driverEnd: DriverEndEvent,
+    private readonly liveRemoved: LiveRemovedEvent
   ) {}
 
   onModuleInit (): void {
@@ -44,6 +48,12 @@ export class CompetitionControlService {
       if (status !== SittingStatus.QUEUED) return
 
       await this.onDeck.execute({ fieldId: nextFieldId })
+    })
+
+    this.driverEnd.registerAfter(async () => {
+      setTimeout(() => {
+        void this.liveRemoved.execute({})
+      }, 3000)
     })
   }
 
