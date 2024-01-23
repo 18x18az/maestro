@@ -7,6 +7,7 @@ import { CompetitionFieldService } from '../competition-field/competition-field.
 import { SittingStatus } from '../match/match.interface'
 import { OnDeckEvent } from './on-deck.event'
 import { Competition } from './competition.object'
+import { MatchResultEvent } from '../match/match-result.event'
 
 @Injectable()
 export class CompetitionControlService {
@@ -17,13 +18,27 @@ export class CompetitionControlService {
     private readonly fieldService: FieldService,
     private readonly compFields: CompetitionFieldService,
     private readonly onDeckRemoved: OnDeckRemovedEvent,
-    private readonly onDeck: OnDeckEvent
+    private readonly onDeck: OnDeckEvent,
+    private readonly matchScored: MatchResultEvent
   ) {}
 
   onModuleInit (): void {
     this.onDeckRemoved.registerOnComplete(async (data) => {
       const removedFieldId = data.fieldId
       const nextFieldId = await this.compFields.getNextField(removedFieldId)
+      const status = await this.compFields.getMatchStatus(nextFieldId)
+
+      if (status !== SittingStatus.QUEUED) return
+
+      await this.onDeck.execute({ fieldId: nextFieldId })
+    })
+
+    this.matchScored.registerOnComplete(async (data) => {
+      const currentId = this.cache.getLiveField()
+
+      if (currentId === null) return
+
+      const nextFieldId = await this.compFields.getNextField(currentId)
       const status = await this.compFields.getMatchStatus(nextFieldId)
 
       if (status !== SittingStatus.QUEUED) return
