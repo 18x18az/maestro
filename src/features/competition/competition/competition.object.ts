@@ -8,4 +8,7 @@ export class Competition {
 
   @GField(() => Field, { nullable: true, description: 'The field that is currently on deck' })
     onDeckField?: Field
+
+  @GField(() => Boolean, { description: 'Whether automation is currently enabled for match queueing' })
+    automationEnabled: boolean
 }

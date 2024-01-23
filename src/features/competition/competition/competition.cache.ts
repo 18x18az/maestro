@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common'
 export class CompetitionControlCache {
   private liveField: number | null = null
   private onDeckField: number | null = null
+  private automationEnabled = false
 
   getLiveField (): number | null {
     return this.liveField
@@ -19,5 +20,13 @@ export class CompetitionControlCache {
 
   setOnDeckField (fieldId: number | null): void {
     this.onDeckField = fieldId
+  }
+
+  getAutomationEnabled (): boolean {
+    return this.automationEnabled
+  }
+
+  setAutomationEnabled (enabled: boolean): void {
+    this.automationEnabled = enabled
   }
 }

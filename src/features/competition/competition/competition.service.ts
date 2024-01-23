@@ -6,6 +6,7 @@ import { OnDeckRemovedEvent } from './on-deck-removed.event'
 import { CompetitionFieldService } from '../competition-field/competition-field.service'
 import { SittingStatus } from '../match/match.interface'
 import { OnDeckEvent } from './on-deck.event'
+import { Competition } from './competition.object'
 
 @Injectable()
 export class CompetitionControlService {
@@ -45,5 +46,11 @@ export class CompetitionControlService {
     if (id === null) return null
 
     return await this.fieldService.getField(id)
+  }
+
+  getCompetitionInformation (): Competition {
+    return {
+      automationEnabled: this.cache.getAutomationEnabled()
+    }
   }
 }
