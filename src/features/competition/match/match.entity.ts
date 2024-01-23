@@ -27,7 +27,7 @@ export class MatchEntity {
   @JoinColumn({ name: 'contestId', referencedColumnName: 'id' })
     contest: ContestEntity
 
-  @OneToMany(() => SittingEntity, sitting => sitting.match)
+  @OneToMany(() => SittingEntity, sitting => sitting.match, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     sittings: SittingEntity[]
 
   @Column({ type: 'int', default: 1 })

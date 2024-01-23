@@ -18,13 +18,13 @@ export class CompetitionFieldEntity {
     onFieldSittingId: number | null
 
   @JoinColumn({ name: 'onFieldSittingId' })
-  @OneToOne(() => SittingEntity, { nullable: true })
+  @OneToOne(() => SittingEntity, { nullable: true, onDelete: 'CASCADE' })
     onFieldSitting: SittingEntity | null
 
   @Column({ nullable: true })
     onTableSittingId: number | null
 
   @JoinColumn({ name: 'onTableSittingId' })
-  @OneToOne(() => SittingEntity, { nullable: true })
+  @OneToOne(() => SittingEntity, { nullable: true, onDelete: 'CASCADE' })
     onTableSitting: SittingEntity | null
 }

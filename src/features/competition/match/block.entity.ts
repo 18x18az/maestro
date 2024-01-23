@@ -19,6 +19,6 @@ export class BlockEntity {
   @Column({ type: 'simple-enum', enum: BlockStatus, default: BlockStatus.NOT_STARTED })
     status: BlockStatus
 
-  @OneToMany(() => SittingEntity, sitting => sitting.block)
+  @OneToMany(() => SittingEntity, sitting => sitting.block, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     sittings: SittingEntity[]
 }

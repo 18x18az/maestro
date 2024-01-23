@@ -15,7 +15,7 @@ export class ContestEntity {
   @Column({ type: 'int' })
     number: number
 
-  @OneToMany(() => MatchEntity, match => match.contest)
+  @OneToMany(() => MatchEntity, match => match.contest, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     matches: MatchEntity[]
 
   @ManyToMany(() => TeamEntity, team => team.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
