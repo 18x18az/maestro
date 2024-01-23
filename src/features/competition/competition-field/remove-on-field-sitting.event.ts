@@ -5,6 +5,7 @@ import { CompetitionFieldRepo } from './competition-field.repo'
 import { RemoveOnTableSittingEvent } from './remove-on-table-sitting.event'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
 import { MATCH_STAGE } from './competition-field.interface'
+import { OnFieldEvent } from './on-field.event'
 
 export interface RemoveOnFieldSittingPayload {
   fieldId: number
@@ -19,7 +20,8 @@ export class RemoveOnFieldSittingEvent extends EventService<RemoveOnFieldSitting
   constructor (
     private readonly repo: CompetitionFieldRepo,
     private readonly removeOnTable: RemoveOnTableSittingEvent,
-    private readonly cache: CompetitionFieldControlCache
+    private readonly cache: CompetitionFieldControlCache,
+    private readonly onFieldEvent: OnFieldEvent
   ) { super() }
 
   protected async getContext (data: RemoveOnFieldSittingPayload): Promise<RemoveOnFieldSittingContext> {
@@ -40,9 +42,8 @@ export class RemoveOnFieldSittingEvent extends EventService<RemoveOnFieldSitting
     const onTable = data.field.onTableSittingId
 
     if (onTable !== null) {
-      await this.repo.putOnField(data.fieldId, onTable)
+      await this.onFieldEvent.execute({ fieldId: data.fieldId, sittingId: onTable })
       await this.removeOnTable.execute({ fieldId: data.fieldId })
-      this.cache.set(data.fieldId, MATCH_STAGE.QUEUED)
     }
 
     const updated = await this.repo.getCompetitionField(data.fieldId)

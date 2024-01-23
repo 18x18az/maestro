@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventService } from '../../../utils/classes/event-service'
 import { CompetitionFieldEntity } from './competition-field.entity'
 import { CompetitionFieldRepo } from './competition-field.repo'
-import { TableEmptyEvent } from './table-empty.event'
+import { OnFieldEvent } from './on-field.event'
 
 interface QueueSittingPayload {
   sittingId: number
@@ -21,7 +21,7 @@ interface QueueSittingResult extends QueueSittingContext {
 export class QueueSittingEvent extends EventService<QueueSittingPayload, QueueSittingContext, QueueSittingResult> {
   constructor (
     private readonly repo: CompetitionFieldRepo,
-    private readonly tableEmptyEvent: TableEmptyEvent
+    private readonly onFieldEvent: OnFieldEvent
   ) { super() }
 
   protected async getContext (data: QueueSittingPayload): Promise<QueueSittingContext> {
@@ -43,7 +43,7 @@ export class QueueSittingEvent extends EventService<QueueSittingPayload, QueueSi
     if (field.onFieldSittingId === null) {
       this.logger.log(`Putting sitting ${data.sittingId} on field ${data.fieldId}`)
       location = 'ON_FIELD'
-      await this.repo.putOnField(data.fieldId, data.sittingId)
+      await this.onFieldEvent.execute(data)
     } else if (field.onTableSittingId === null) {
       this.logger.log(`Putting sitting ${data.sittingId} on table ${data.fieldId}`)
       await this.repo.putOnTable(data.fieldId, data.sittingId)
