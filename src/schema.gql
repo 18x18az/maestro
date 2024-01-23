@@ -142,6 +142,9 @@ type Block {
 
   """The time the last match is scheduled to start"""
   endTime: DateTime
+
+  """Whether the block can be concluded"""
+  canConclude: Boolean!
 }
 
 """The status of a block of matches"""
@@ -328,6 +331,7 @@ type Mutation {
   putLive: Competition!
   setAutomationEnabled(enabled: Boolean!): Competition!
   startNextBlock: Block!
+  concludeBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
 
   """Reset the event. Only available in test mode."""

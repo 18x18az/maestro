@@ -160,6 +160,16 @@ export class MatchRepo {
     return sitting.scheduled
   }
 
+  async canConcludeBlock (block: number): Promise<boolean> {
+    const sittings = await this.sittingRepository.find({ where: { blockId: block } })
+
+    for (const sitting of sittings) {
+      if (sitting.status !== SittingStatus.COMPLETE) return false
+    }
+
+    return true
+  }
+
   async markBlockStatus (block: number, status: BlockStatus): Promise<void> {
     await this.blockRepository.update(block, { status })
   }

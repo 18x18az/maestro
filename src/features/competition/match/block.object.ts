@@ -24,4 +24,7 @@ export class Block {
 
   @GField(() => Date, { description: 'The time the last match is scheduled to start', nullable: true })
     endTime?: Date
+
+  @GField(() => Boolean, { description: 'Whether the block can be concluded' })
+    canConclude: boolean
 }

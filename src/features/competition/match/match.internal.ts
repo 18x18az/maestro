@@ -6,6 +6,7 @@ import { UnqueueSittingEvent } from '../competition-field/unqueue-sitting.event'
 import { MatchResultEvent } from './match-result.event'
 import { SittingScoredEvent } from './sitting-scored.event'
 import { ReplayMatchEvent } from '../competition-field/replay-match.event'
+import { BlockEntity } from './block.entity'
 
 @Injectable()
 export class MatchInternal {
@@ -63,5 +64,16 @@ export class MatchInternal {
     }
 
     await this.repo.markBlockStatus(block.id, BlockStatus.IN_PROGRESS)
+  }
+
+  async concludeBlock (): Promise<BlockEntity> {
+    const currentBlock = await this.repo.getCurrentBlock()
+
+    if (currentBlock === null) {
+      throw new BadRequestException('No block in progress')
+    }
+
+    await this.repo.markBlockStatus(currentBlock.id, BlockStatus.FINISHED)
+    return currentBlock
   }
 }

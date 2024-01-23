@@ -6,7 +6,7 @@ import { MatchInternal } from './match.internal'
 import { Sitting } from './sitting.object'
 import { SittingEntity } from './sitting.entity'
 
-@Resolver(of => Block)
+@Resolver(() => Block)
 export class BlockResolver {
   constructor (private readonly repo: MatchRepo, private readonly service: MatchInternal) {}
 
@@ -45,9 +45,19 @@ export class BlockResolver {
     return await this.repo.getBlockEndTime(block.id)
   }
 
+  @ResolveField(() => Boolean)
+  async canConclude (@Parent() block: BlockEntity): Promise<boolean> {
+    return await this.repo.canConcludeBlock(block.id)
+  }
+
   @Mutation(() => Block)
   async startNextBlock (): Promise<BlockEntity | null> {
     await this.service.startNextBlock()
     return await this.repo.getCurrentBlock()
+  }
+
+  @Mutation(() => Block)
+  async concludeBlock (): Promise<BlockEntity | null> {
+    return await this.service.concludeBlock()
   }
 }
