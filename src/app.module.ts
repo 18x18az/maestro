@@ -14,6 +14,7 @@ import { CompetitionModule } from './features/competition/competition/competitio
 import { BeaconService } from './utils/discovery'
 import { MatchModule } from './features/competition/match/match.module'
 import { ResultsModule } from './features/results/results.module'
+import { DisplayModule } from './features/display'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ResultsModule } from './features/results/results.module'
     FieldControlModule,
     CompetitionModule,
     TeamModule,
+    DisplayModule,
     SettingsModule,
     StageModule,
     ResultsModule,

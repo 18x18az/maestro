@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { SittingEntity } from '../competition/match/sitting.entity'
+import { DisplayEntity } from '../display/display.entity'
 
 @Entity()
 export class FieldEntity {
@@ -20,4 +21,7 @@ export class FieldEntity {
 
   @OneToMany(() => SittingEntity, sitting => sitting.field)
     sittings: SittingEntity[]
+
+  @OneToMany(() => DisplayEntity, display => display.field)
+    displays: DisplayEntity[]
 }

@@ -8,7 +8,7 @@ import { FieldControlService } from '../field-control/field-control.service'
 import { FindFieldsArgs } from './dto/find-fields.args'
 import { CompetitionFieldService } from '../competition/competition-field/competition-field.service'
 import { CompetitionFieldEntity } from '../competition/competition-field/competition-field.entity'
-@Resolver(of => Field)
+@Resolver(() => Field)
 export class FieldResolver {
   constructor (
     private readonly fieldService: FieldService,
@@ -16,7 +16,7 @@ export class FieldResolver {
     private readonly competitionFieldService: CompetitionFieldService
   ) {}
 
-  @Query(returns => [Field])
+  @Query(() => [Field])
   async fields (@Args() args: FindFieldsArgs): Promise<FieldEntity[]> {
     const fields = await this.fieldService.getFields(args)
     return fields

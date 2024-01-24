@@ -305,6 +305,18 @@ type Competition {
   automationEnabled: Boolean!
 }
 
+"""Control of remote displays"""
+type Display {
+  """Unique identifier for the display"""
+  uuid: String!
+
+  """Name of the display"""
+  name: String!
+
+  """The field that the display is currently assigned to"""
+  field: Field
+}
+
 type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean): [Field!]!
   competitionInformation: Competition!
@@ -317,6 +329,8 @@ type Query {
   teams: [Team!]!
   stage: Stage!
   tournamentManager: TournamentManager!
+  displays: [Display!]!
+  display(uuid: String!): Display!
 }
 
 type Mutation {
