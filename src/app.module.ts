@@ -14,7 +14,7 @@ import { CompetitionModule } from './features/competition/competition/competitio
 import { BeaconService } from './utils/discovery'
 import { MatchModule } from './features/competition/match/match.module'
 import { ResultsModule } from './features/results/results.module'
-import { DisplayModule } from './features/display'
+import { DisplayModule } from './features/display/display.module'
 
 @Module({
   imports: [

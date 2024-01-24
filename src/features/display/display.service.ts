@@ -37,18 +37,12 @@ export class DisplayService {
     return await this.repo.getDisplays()
   }
 
-  async setDisplayName (uuid: string, displayName: string): Promise<void> {
+  async renameDisplay (uuid: string, displayName: string): Promise<DisplayEntity> {
     this.logger.log(
       `Setting name of display ${uuid} to: "${displayName}"`
     )
-    // try {
-    //   await this.database.setDisplayName(uuid, displayName)
-    // } catch {
-    //   this.logger.warn(
-    //     `Display with UUID "${uuid}" was not found`
-    //   )
-    //   throw new BadRequestException()
-    // }
+
+    return await this.repo.renameDisplay(uuid, displayName)
   }
 
   async assignFieldId (uuid: string, fieldId: number): Promise<void> {

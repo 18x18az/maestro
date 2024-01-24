@@ -1,4 +1,4 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Display } from './display.object'
 import { DisplayEntity } from './display.entity'
 import { DisplayService } from './display.service'
@@ -15,5 +15,10 @@ export class DisplayResolver {
   @Query(() => Display)
   async display (@Args({ name: 'uuid' }) uuid: string): Promise<DisplayEntity> {
     return await this.service.getDisplay(uuid)
+  }
+
+  @Mutation(() => Display)
+  async renameDisplay (@Args({ name: 'uuid' }) uuid: string, @Args({ name: 'name' }) name: string): Promise<DisplayEntity> {
+    return await this.service.renameDisplay(uuid, name)
   }
 }
