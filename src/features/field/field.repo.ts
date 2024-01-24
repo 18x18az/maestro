@@ -57,4 +57,8 @@ export class FieldRepo {
   async save (field: FieldEntity): Promise<FieldEntity> {
     return await this.fieldRepository.save(field)
   }
+
+  async delete (id: number): Promise<void> {
+    await this.fieldRepository.delete(id)
+  }
 }

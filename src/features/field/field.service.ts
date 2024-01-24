@@ -126,4 +126,9 @@ export class FieldService {
   async getField (id: number): Promise<FieldEntity> {
     return await this.repo.findByIdOrFail(id)
   }
+
+  async deleteField (id: number): Promise<void> {
+    this.logger.log(`Deleting field ${id}`)
+    await this.repo.delete(id)
+  }
 }

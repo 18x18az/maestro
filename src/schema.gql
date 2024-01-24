@@ -323,6 +323,7 @@ type Mutation {
   startField(fieldId: Int!): FieldControl!
   stopField(fieldId: Int!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
+  deleteField(fieldId: Int!): [Field!]!
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
   replay(sittingId: Int!): CompetitionField!

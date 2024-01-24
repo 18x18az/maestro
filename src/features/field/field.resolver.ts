@@ -60,4 +60,12 @@ export class FieldResolver {
   ): Promise<FieldEntity> {
     return await this.fieldService.updateField(fieldId, update)
   }
+
+  @Mutation(() => [Field])
+  async deleteField (
+    @Args({ name: 'fieldId', type: () => Int }) fieldId: number
+  ): Promise<FieldEntity[]> {
+    await this.fieldService.deleteField(fieldId)
+    return await this.fieldService.getAllFields()
+  }
 }
