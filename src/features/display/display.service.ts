@@ -45,17 +45,12 @@ export class DisplayService {
     return await this.repo.renameDisplay(uuid, displayName)
   }
 
-  async assignFieldId (uuid: string, fieldId: number): Promise<void> {
-    // this.logger.log(
-    //   `Assigning display ${uuid} to field: "${fieldId}"`
-    // )
-    // try {
-    //   await this.database.setFieldId(uuid, fieldId)
-    // } catch {
-    //   this.logger.warn(
-    //     `Display with UUID "${uuid}" was not found`
-    //   )
-    //   throw new BadRequestException()
-    // }
+  async assignFieldId (uuid: string, fieldId: number | null): Promise<DisplayEntity> {
+    const name = fieldId === null ? 'null' : String(fieldId)
+    this.logger.log(
+      `Assigning field ${name} to display ${uuid}`
+    )
+
+    return await this.repo.assignFieldId(uuid, fieldId)
   }
 }

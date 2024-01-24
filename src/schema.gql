@@ -353,6 +353,7 @@ type Mutation {
   reset: Stage!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   renameDisplay(uuid: String!, name: String!): Display!
+  setDisplayField(uuid: String!, fieldId: Int): Display!
 }
 
 input FieldUpdate {

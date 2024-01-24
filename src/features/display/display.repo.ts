@@ -28,4 +28,11 @@ export class DisplayRepo {
     display.name = displayName
     return await this.displayRepository.save(display)
   }
+
+  async assignFieldId (uuid: string, fieldId: number | null): Promise<DisplayEntity> {
+    const display = await this.getDisplay(uuid)
+    if (display === null) throw new BadRequestException('Display not found')
+    display.fieldId = fieldId
+    return await this.displayRepository.save(display)
+  }
 }

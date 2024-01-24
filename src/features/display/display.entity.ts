@@ -10,9 +10,9 @@ export class DisplayEntity {
     name: string
 
   @Column({ nullable: true })
-    fieldId: number
+    fieldId: number | null
 
   @ManyToOne(() => FieldEntity, field => field.displays, { nullable: true })
   @JoinColumn({ name: 'fieldId', referencedColumnName: 'id' })
-    field: FieldEntity
+    field?: FieldEntity
 }
