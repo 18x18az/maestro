@@ -4,6 +4,7 @@ import { MatchInternal } from './match.internal'
 import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
 import { MatchRepo } from './match.repo'
 import { MatchIdentifier } from '../../../utils/tm/tm.interface'
+import { MatchEntity } from './match.entity'
 
 @Injectable()
 export class MatchService {
@@ -48,5 +49,9 @@ export class MatchService {
 
   async getNextSitting (fieldId: number): Promise<number | null> {
     return await this.repo.getNextSitting(fieldId)
+  }
+
+  async getMatch (matchId: number): Promise<MatchEntity | null> {
+    return await this.repo.getMatch(matchId)
   }
 }

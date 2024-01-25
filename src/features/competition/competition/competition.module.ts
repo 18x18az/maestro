@@ -21,6 +21,6 @@ import { AutomationService } from './automation.service'
   ],
   providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent,
     LiveRemovedEvent, AutomationDisabledEvent, AutomationEnabledEvent, AutomationService],
-  exports: [CompetitionControlService, AutomationEnabledEvent, AutomationService]
+  exports: [CompetitionControlService, AutomationEnabledEvent, AutomationService, OnLiveEvent]
 })
 export class CompetitionModule {}

@@ -1,17 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { createHash } from 'crypto'
-import { MatchResultEvent } from '../competition/match/match-result.event'
+import { MatchResultContext, MatchResultEvent } from '../competition/match/match-result.event'
 import { TmService } from '../../utils/tm/tm.service'
 import { MatchService } from '../competition/match/match.service'
 import { ElimsMatch, MatchResult } from '../../utils/tm/tm.interface'
 import { StageService } from '../stage/stage.service'
 import { EventStage } from '../stage/stage.interface'
+import { CompetitionControlService } from '../competition/competition/competition.service'
+import { OnLiveEvent } from '../competition/competition/on-live.event'
 
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
   private readonly savedResults: string[] = []
+
+  private displayedMatchId: number | null = null
+  private nextMatchId: number | null = null
 
   private lastResultHash = ''
   private lastMatchHash = ''
@@ -22,8 +27,36 @@ export class ResultsInternal {
     private readonly tm: TmService,
     private readonly stage: StageService,
     private readonly matches: MatchService,
-    private readonly resultEvent: MatchResultEvent
+    private readonly resultEvent: MatchResultEvent,
+    private readonly competition: CompetitionControlService,
+    private readonly onLive: OnLiveEvent
   ) { }
+
+  onModuleInit (): void {
+    this.resultEvent.registerOnComplete(this.handleResultComplete.bind(this))
+    this.onLive.registerOnComplete(this.promoteResults.bind(this))
+  }
+
+  async handleResultComplete (match: MatchResultContext): Promise<void> {
+    if (await this.competition.getLiveField() === null) {
+      this.nextMatchId = match.matchId
+    } else {
+      this.displayedMatchId = match.matchId
+    }
+  }
+
+  promoteResults (): void {
+    this.displayedMatchId = this.nextMatchId
+    this.nextMatchId = null
+  }
+
+  getDisplayedMatchId (): number | null {
+    return this.displayedMatchId
+  }
+
+  getNextMatchId (): number | null {
+    return this.nextMatchId
+  }
 
   async handleResults (results: MatchResult[]): Promise<void> {
     if (results.length === 0) return

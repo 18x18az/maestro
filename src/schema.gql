@@ -305,6 +305,11 @@ type Competition {
   automationEnabled: Boolean!
 }
 
+type Results {
+  displayedResults: Match
+  nextResults: Match
+}
+
 """Control of remote displays"""
 type Display {
   """Unique identifier for the display"""
@@ -331,6 +336,7 @@ type Query {
   tournamentManager: TournamentManager!
   displays: [Display!]!
   display(uuid: String!): Display!
+  results: Results!
 }
 
 type Mutation {

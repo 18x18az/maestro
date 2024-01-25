@@ -9,7 +9,7 @@ interface MatchResultPayload {
   blueScore: number
 }
 
-interface MatchResultContext extends MatchResultPayload {
+export interface MatchResultContext extends MatchResultPayload {
   matchId: number
 }
 
