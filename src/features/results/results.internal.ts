@@ -15,7 +15,6 @@ import { TeamEntity } from '../team/team.entity'
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
-  private readonly savedResults: string[] = []
   private readonly savedMatches: string[] = []
 
   private displayedMatchId: number | null = null
@@ -108,11 +107,12 @@ export class ResultsInternal {
       const { identifier, red, blue } = match
       const identString = `${identifier.round}-${identifier.contest}-${identifier.match}`
 
-      const cached = this.resultCache.get(identString)
-      if (cached !== undefined) return
+      const cached = this.savedMatches.find(m => m === identString)
+      if (cached !== undefined) continue
+      this.savedMatches.push(identString)
 
       const existing = await this.matches.getMatchByIdentifier(identifier)
-      if (existing !== null) return
+      if (existing !== null) continue
 
       this.logger.log(`Creating match ${identString}`)
 
