@@ -374,6 +374,7 @@ type Mutation {
   allianceSelectionAccept: AllianceSelection!
   allianceSelectionDecline: AllianceSelection!
   allianceSelectionUndo: AllianceSelection!
+  allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
 
   """Reset the event. Only available in test mode."""

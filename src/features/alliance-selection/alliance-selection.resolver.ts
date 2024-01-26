@@ -44,6 +44,12 @@ export class AllianceSelectionResolver {
     return this.service.getStatus()
   }
 
+  @Mutation(() => AllianceSelection)
+  allianceSelectionCancel (): AllianceSelectionStatus | null {
+    this.service.cancel()
+    return this.service.getStatus()
+  }
+
   @ResolveField(() => Team, { nullable: true })
   async picking (@Parent() status: AllianceSelectionStatus): Promise<TeamEntity | null> {
     if (status.picking === null) return null

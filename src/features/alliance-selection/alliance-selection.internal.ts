@@ -215,7 +215,7 @@ export class AllianceSelectionInternal {
     this.doProcess()
   }
 
-  async cancel (): Promise<void> {
+  cancel (): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
