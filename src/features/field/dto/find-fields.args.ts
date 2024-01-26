@@ -7,4 +7,7 @@ export class FindFieldsArgs {
 
   @GField({ nullable: true })
     isCompetition?: boolean
+
+  @GField({ nullable: true })
+    skillsEnabled?: boolean
 }

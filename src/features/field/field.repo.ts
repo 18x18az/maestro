@@ -32,7 +32,8 @@ export class FieldRepo {
       where:
       {
         isEnabled: args.isEnabled,
-        isCompetition: args.isCompetition
+        isCompetition: args.isCompetition,
+        skillsEnabled: args.skillsEnabled
       }
     })
   }

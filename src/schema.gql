@@ -323,7 +323,7 @@ type Display {
 }
 
 type Query {
-  fields(isEnabled: Boolean, isCompetition: Boolean): [Field!]!
+  fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   competitionInformation: Competition!
   blocks: [Block!]!
   currentBlock: Block
