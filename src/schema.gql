@@ -349,6 +349,11 @@ type AllianceSelection {
   remaining: [Team!]!
 }
 
+type Timeout {
+  """The time that the timeout will end, null if there is no timeout."""
+  endTime: DateTime
+}
+
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
@@ -363,6 +368,7 @@ type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
+  timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
   results: Results!
@@ -396,6 +402,8 @@ type Mutation {
   setAutomationEnabled(enabled: Boolean!): Competition!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
+  startTimeout: Timeout!
+  cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
   clearResults: Results!

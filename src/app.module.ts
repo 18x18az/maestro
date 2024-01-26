@@ -16,6 +16,7 @@ import { MatchModule } from './features/competition/match/match.module'
 import { ResultsModule } from './features/results/results.module'
 import { DisplayModule } from './features/display/display.module'
 import { AllianceSelectionModule } from './features/alliance-selection'
+import { TimeoutModule } from './features/competition/timeout/timeout.module'
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AllianceSelectionModule } from './features/alliance-selection'
     AllianceSelectionModule,
     ScheduleModule.forRoot(),
     FieldControlModule,
+    TimeoutModule,
     CompetitionModule,
     TeamModule,
     DisplayModule,
