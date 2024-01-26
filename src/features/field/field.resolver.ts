@@ -68,4 +68,12 @@ export class FieldResolver {
     await this.fieldService.deleteField(fieldId)
     return await this.fieldService.getAllFields()
   }
+
+  @Mutation(() => [Field])
+  async setSkillsEnabled (
+    @Args({ name: 'enabled', type: () => Boolean }) enabled: boolean
+  ): Promise<FieldEntity[]> {
+    await this.fieldService.setSkillsEnabled(enabled)
+    return await this.fieldService.getAllFields()
+  }
 }

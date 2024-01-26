@@ -131,4 +131,9 @@ export class FieldService {
     this.logger.log(`Deleting field ${id}`)
     await this.repo.delete(id)
   }
+
+  async setSkillsEnabled (enabled: boolean): Promise<void> {
+    this.logger.log(`Setting skills enabled to ${enabled.toString()}`)
+    await this.repo.setSkillsEnabled(enabled)
+  }
 }

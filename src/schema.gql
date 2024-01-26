@@ -344,6 +344,7 @@ type Mutation {
   stopField(fieldId: Int!): FieldControl!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   deleteField(fieldId: Int!): [Field!]!
+  setSkillsEnabled(enabled: Boolean!): [Field!]!
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
   replay(sittingId: Int!): CompetitionField!

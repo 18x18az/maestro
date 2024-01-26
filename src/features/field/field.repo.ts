@@ -61,4 +61,13 @@ export class FieldRepo {
   async delete (id: number): Promise<void> {
     await this.fieldRepository.delete(id)
   }
+
+  async setSkillsEnabled (enabled: boolean): Promise<void> {
+    // set skills enabled for all competition fields
+    const competitionFields = await this.fieldRepository.findBy({ isCompetition: true })
+    for (const field of competitionFields) {
+      field.skillsEnabled = enabled
+      await this.fieldRepository.save(field)
+    }
+  }
 }
