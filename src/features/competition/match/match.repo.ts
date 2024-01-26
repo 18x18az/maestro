@@ -251,4 +251,9 @@ export class MatchRepo {
 
     return null
   }
+
+  async getContestByMatch (match: number): Promise<ContestEntity> {
+    const matchEntity = await this.matchRepository.findOneOrFail({ relations: ['contest'], where: { id: match } })
+    return matchEntity.contest
+  }
 }
