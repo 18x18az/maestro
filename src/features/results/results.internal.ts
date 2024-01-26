@@ -29,7 +29,8 @@ export class ResultsInternal {
     private readonly matches: MatchService,
     private readonly resultEvent: MatchResultEvent,
     private readonly competition: CompetitionControlService,
-    private readonly onLive: OnLiveEvent
+    private readonly onLive: OnLiveEvent,
+    private readonly stageService: StageService
   ) { }
 
   onModuleInit (): void {
@@ -86,6 +87,10 @@ export class ResultsInternal {
     if (matches.length === 0) return
     const matchHash = createHash('sha256').update(JSON.stringify(matches)).digest('hex')
     if (matchHash === this.lastMatchHash) return
+
+    const currentStage = await this.stageService.getStage()
+
+    if (currentStage === EventStage.ALLIANCE_SELECTION) await this.stageService.setStage(EventStage.ELIMS)
 
     this.lastMatchHash = matchHash
     console.log('updated matches')
