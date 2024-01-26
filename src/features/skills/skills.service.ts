@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { CONTROL_MODE } from '../field-control'
-import { SkillsPublisher } from './skills.publisher'
-import { StartFieldEvent } from '../field-control/start-field.event'
 import { LoadFieldEvent } from '../field-control/load-field.event'
+import { CONTROL_MODE } from '../field-control/field-control.interface'
+import { FieldService } from '../field/field.service'
 import { StopFieldEvent, StopFieldResult } from '../field-control/stop-field.event'
-import { StopSkillsEvent } from './stop-skills.event'
 
 interface SkillsMatch {
   fieldId: number
   type: CONTROL_MODE
+  stopTime?: number
 }
 @Injectable()
 export class SkillsService {
@@ -17,24 +16,13 @@ export class SkillsService {
   private readonly skillsMatches: SkillsMatch[] = []
 
   constructor (
-    private readonly publisher: SkillsPublisher,
-    private readonly startField: StartFieldEvent,
     private readonly stopField: StopFieldEvent,
     private readonly loadField: LoadFieldEvent,
-    private readonly stopSkillsEvent: StopSkillsEvent
+    private readonly fieldService: FieldService
   ) {}
 
-  onApplicationInit (): void {
-    this.stopField.registerAfter(this.handleFieldControlStop.bind(this))
-  }
-
-  async handleFieldControlStop (data: StopFieldResult): Promise<void> {
-    const match = this.skillsMatches.find(m => m.fieldId === data.fieldId)
-
-    if (match === undefined) return
-
-    await this.stopSkillsEvent.execute(data)
-    this.skillsMatches.splice(this.skillsMatches.indexOf(match), 1)
+  onModuleInit (): void {
+    this.stopField.registerOnComplete(this.handleFieldControlStop.bind(this))
   }
 
   private async queueSkillsMatch (fieldId: number, type: CONTROL_MODE): Promise<void> {
@@ -57,7 +45,29 @@ export class SkillsService {
   }
 
   async startSkillsMatch (fieldId: number): Promise<void> {
-    await this.startField.execute({ fieldId })
-    await this.publisher.publishStopTime(fieldId, null)
+
+  }
+
+  async getSkillsMatch (fieldId: number): Promise<SkillsMatch | undefined> {
+    const match = this.skillsMatches.find(m => m.fieldId === fieldId)
+
+    if (match === undefined) return undefined
+
+    const field = await this.fieldService.getField(fieldId)
+    if (!field.skillsEnabled) {
+      this.skillsMatches.splice(this.skillsMatches.indexOf(match), 1)
+      return undefined
+    }
+
+    return match
+  }
+
+  async handleFieldControlStop (event: StopFieldResult): Promise<void> {
+    const match = await this.getSkillsMatch(event.fieldId)
+
+    if (match === undefined) return
+
+    match.stopTime = event.stopTime
+    this.logger.log(`Skills match for field ${event.fieldId} stopped at ${event.stopTime}`)
   }
 }

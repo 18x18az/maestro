@@ -1,16 +1,12 @@
-import { Module } from '@nestjs/common'
-import { FieldControlModule } from '../field-control'
-import { FieldModule } from '../field'
-import { SkillsController } from './skills.controller'
+import { Module, forwardRef } from '@nestjs/common'
 import { SkillsService } from './skills.service'
-import { PublishModule } from '../../utils'
-import { SkillsPublisher } from './skills.publisher'
-import { StopSkillsEvent } from './stop-skills.event'
+import { FieldModule } from '../field/field.module'
+import { FieldControlModule } from '../field-control/field-control.module'
+import { SkillsResolver } from './skills.resolver'
 
 @Module({
-  imports: [FieldControlModule, FieldModule, PublishModule],
-  controllers: [SkillsController],
-  providers: [SkillsService, SkillsPublisher, StopSkillsEvent],
-  exports: [StopSkillsEvent]
+  imports: [forwardRef(() => FieldControlModule), forwardRef(() => FieldModule)],
+  providers: [SkillsService, SkillsResolver],
+  exports: [SkillsService]
 })
 export class SkillsModule {}

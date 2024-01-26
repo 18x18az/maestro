@@ -220,6 +220,11 @@ enum MatchStage {
   SCORING
 }
 
+type Skills {
+  stopTime: Float
+  fieldId: Float!
+}
+
 """Representation of a single field"""
 type Field {
   """Unique identifier for the field"""
@@ -255,6 +260,11 @@ type Field {
   Information about competition matches associated with this field. Null if the field is not being used for competition matches.
   """
   competition: CompetitionField
+
+  """
+  Information about skills matches associated with this field. Null if the field is not being used for skills matches.
+  """
+  skills: Skills
 }
 
 type TournamentManager {
@@ -324,6 +334,7 @@ type Display {
 
 type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
+  field(fieldId: Int!): Field!
   competitionInformation: Competition!
   blocks: [Block!]!
   currentBlock: Block
@@ -359,6 +370,8 @@ type Mutation {
   """Reset the event. Only available in test mode."""
   reset: Stage!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+  queueDriverSkills(fieldId: Int!): Skills!
+  queueProgrammingSkills(fieldId: Int!): Skills!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
 }

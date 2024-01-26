@@ -1,6 +1,7 @@
 import { Field as GField, Int, ObjectType } from '@nestjs/graphql'
 import { FieldControl } from '../field-control/field-control.object'
 import { CompetitionField } from '../competition/competition-field/competition-field.object'
+import { Skills } from '../skills/skills.object'
 
 @ObjectType({ description: 'Representation of a single field' })
 export class Field {
@@ -27,4 +28,7 @@ export class Field {
 
   @GField({ nullable: true, description: 'Information about competition matches associated with this field. Null if the field is not being used for competition matches.' })
     competition?: CompetitionField
+
+  @GField({ nullable: true, description: 'Information about skills matches associated with this field. Null if the field is not being used for skills matches.' })
+    skills?: Skills
 }

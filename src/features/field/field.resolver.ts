@@ -8,18 +8,26 @@ import { FieldControlService } from '../field-control/field-control.service'
 import { FindFieldsArgs } from './dto/find-fields.args'
 import { CompetitionFieldService } from '../competition/competition-field/competition-field.service'
 import { CompetitionFieldEntity } from '../competition/competition-field/competition-field.entity'
+import { SkillsService } from '../skills/skills.service'
+import { Skills } from '../skills/skills.object'
 @Resolver(() => Field)
 export class FieldResolver {
   constructor (
     private readonly fieldService: FieldService,
     private readonly fieldControlService: FieldControlService,
-    private readonly competitionFieldService: CompetitionFieldService
+    private readonly competitionFieldService: CompetitionFieldService,
+    private readonly skillsService: SkillsService
   ) {}
 
   @Query(() => [Field])
   async fields (@Args() args: FindFieldsArgs): Promise<FieldEntity[]> {
     const fields = await this.fieldService.getFields(args)
     return fields
+  }
+
+  @Query(() => Field)
+  async field (@Args({ name: 'fieldId', type: () => Int }) fieldId: number): Promise<FieldEntity> {
+    return await this.fieldService.getField(fieldId)
   }
 
   @ResolveField()
@@ -75,5 +83,10 @@ export class FieldResolver {
   ): Promise<FieldEntity[]> {
     await this.fieldService.setSkillsEnabled(enabled)
     return await this.fieldService.getAllFields()
+  }
+
+  @ResolveField(() => Skills)
+  async skills (@Parent() field: FieldEntity): Promise<Skills | undefined> {
+    return await this.skillsService.getSkillsMatch(field.id)
   }
 }
