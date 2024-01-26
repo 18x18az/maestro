@@ -29,6 +29,7 @@ export class SkillsService {
     const match = this.skillsMatches.find(m => m.fieldId === fieldId)
     if (match !== undefined) {
       match.type = type
+      match.stopTime = undefined
     } else {
       this.skillsMatches.push({ fieldId, type })
     }
