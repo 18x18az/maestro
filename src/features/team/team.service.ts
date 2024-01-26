@@ -34,4 +34,8 @@ export class TeamService {
   async getTeamByNumber (number: string): Promise<TeamEntity> {
     return await this.repo.getTeamByNumber(number)
   }
+
+  async getTeam (id: number): Promise<TeamEntity> {
+    return await this.repo.getTeam(id)
+  }
 }

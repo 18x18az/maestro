@@ -38,4 +38,8 @@ export class TeamRepo {
   async getTeamByNumber (number: string): Promise<TeamEntity> {
     return await this.teamRepository.findOneByOrFail({ number })
   }
+
+  async getTeam (teamId: number): Promise<TeamEntity> {
+    return await this.teamRepository.findOneByOrFail({ id: teamId })
+  }
 }

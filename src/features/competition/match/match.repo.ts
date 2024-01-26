@@ -33,11 +33,6 @@ export class MatchRepo {
     await this.sittingRepository.clear()
   }
 
-  async createElimsBlock (): Promise<number> {
-    const block = await this.blockRepository.save(new BlockEntity())
-    return block.id
-  }
-
   async updateSittingStatus (sitting: number, status: SittingStatus): Promise<void> {
     await this.sittingRepository.update(sitting, { status })
   }
@@ -81,6 +76,16 @@ export class MatchRepo {
 
   async getCurrentBlock (): Promise<BlockEntity | null> {
     return await this.blockRepository.findOne({ where: { status: BlockStatus.IN_PROGRESS } })
+  }
+
+  async getElimsBlock (): Promise<BlockEntity> {
+    let block = await this.blockRepository.findOne({ where: { name: 'Eliminations' } })
+    if (block === null) {
+      block = new BlockEntity()
+      block.name = 'Eliminations'
+      await this.blockRepository.save(block)
+    }
+    return block
   }
 
   async getNextBlock (): Promise<BlockEntity | null> {
@@ -255,5 +260,47 @@ export class MatchRepo {
   async getContestByMatch (match: number): Promise<ContestEntity> {
     const matchEntity = await this.matchRepository.findOneOrFail({ relations: ['contest'], where: { id: match } })
     return matchEntity.contest
+  }
+
+  async getMatchByIdentifier (match: MatchIdentifier): Promise<MatchEntity | null> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) {
+      return null
+    }
+
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
+
+    if (matchEntity === null) {
+      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
+      return null
+    }
+
+    return matchEntity
+  }
+
+  async createElimsMatch (match: MatchIdentifier, red: TeamEntity[], blue: TeamEntity[]): Promise<void> {
+    let contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) {
+      contest = new ContestEntity()
+      contest.round = match.round
+      contest.number = match.contest
+      contest.redTeams = red
+      contest.blueTeams = blue
+      await this.contestRepository.save(contest)
+    }
+
+    const matchEntity = new MatchEntity()
+    matchEntity.contest = contest
+    matchEntity.number = match.match
+    await this.matchRepository.save(matchEntity)
+
+    const sitting = new SittingEntity()
+    sitting.match = matchEntity
+
+    const block = await this.getElimsBlock()
+    sitting.block = block
+    await this.sittingRepository.save(sitting)
   }
 }

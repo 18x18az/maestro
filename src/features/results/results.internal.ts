@@ -9,11 +9,14 @@ import { StageService } from '../stage/stage.service'
 import { EventStage } from '../stage/stage.interface'
 import { CompetitionControlService } from '../competition/competition/competition.service'
 import { OnLiveEvent } from '../competition/competition/on-live.event'
+import { TeamService } from '../team/team.service'
+import { TeamEntity } from '../team/team.entity'
 
 @Injectable()
 export class ResultsInternal {
   private readonly logger = new Logger(ResultsInternal.name)
   private readonly savedResults: string[] = []
+  private readonly savedMatches: string[] = []
 
   private displayedMatchId: number | null = null
   private nextMatchId: number | null = null
@@ -30,7 +33,8 @@ export class ResultsInternal {
     private readonly resultEvent: MatchResultEvent,
     private readonly competition: CompetitionControlService,
     private readonly onLive: OnLiveEvent,
-    private readonly stageService: StageService
+    private readonly stageService: StageService,
+    private readonly teams: TeamService
   ) { }
 
   onModuleInit (): void {
@@ -92,8 +96,41 @@ export class ResultsInternal {
 
     if (currentStage === EventStage.ALLIANCE_SELECTION) await this.stageService.setStage(EventStage.ELIMS)
 
+    this.logger.log('Match list updated')
+
     this.lastMatchHash = matchHash
-    console.log('updated matches')
+
+    for (const match of matches) {
+      const { identifier, red, blue } = match
+      const identString = `${identifier.round}-${identifier.contest}-${identifier.match}`
+
+      const cached = this.resultCache.get(identString)
+      if (cached !== undefined) return
+
+      const existing = await this.matches.getMatchByIdentifier(identifier)
+      if (existing !== null) return
+
+      this.logger.log(`Creating match ${identString}`)
+
+      const redTeams: TeamEntity[] = []
+      const blueTeams: TeamEntity[] = []
+
+      const redTeam1 = await this.teams.getTeamByNumber(red.team1)
+      redTeams.push(redTeam1)
+      if (red.team2 !== undefined) {
+        const redTeam2 = await this.teams.getTeamByNumber(red.team2)
+        redTeams.push(redTeam2)
+      }
+
+      const blueTeam1 = await this.teams.getTeamByNumber(blue.team1)
+      blueTeams.push(blueTeam1)
+      if (blue.team2 !== undefined) {
+        const blueTeam2 = await this.teams.getTeamByNumber(blue.team2)
+        blueTeams.push(blueTeam2)
+      }
+
+      await this.matches.createElimsMatch(identifier, redTeams, blueTeams)
+    }
   }
 
   @Cron('*/10 * * * * *')
