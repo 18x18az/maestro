@@ -1,4 +1,4 @@
-import { Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Results } from './results.object'
 import { MatchEntity } from '../competition/match/match.entity'
 import { Match } from '../competition/match/match.object'
@@ -33,5 +33,17 @@ export class ResultsResolver {
     if (matchId === null) return undefined
 
     return await this.match.getMatch(matchId) ?? undefined
+  }
+
+  @Mutation(() => Results)
+  clearResults (): Results {
+    this.service.clearResults()
+    return {}
+  }
+
+  @Mutation(() => Results)
+  promoteResults (): Results {
+    this.service.promoteResults()
+    return {}
   }
 }

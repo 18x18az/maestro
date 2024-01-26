@@ -50,6 +50,10 @@ export class ResultsInternal {
     }
   }
 
+  clearResults (): void {
+    this.displayedMatchId = null
+  }
+
   promoteResults (): void {
     this.displayedMatchId = this.nextMatchId
     this.nextMatchId = null
