@@ -8,6 +8,6 @@ import { MatchModule } from '../competition/match/match.module'
 @Module({
   imports: [forwardRef(() => TmModule), forwardRef(() => MatchModule)],
   providers: [RankingCache, RankingService, RankingsUpdateEvent],
-  exports: [RankingService]
+  exports: [RankingService, RankingsUpdateEvent]
 })
 export class RankingModule {}

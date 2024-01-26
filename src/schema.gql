@@ -332,30 +332,60 @@ type Display {
   field: Field
 }
 
+type AllianceSelection {
+  """The team that is currently picking"""
+  picking: Team
+
+  """The team that has been picked"""
+  picked: Team
+
+  """The teams that are still eligible to be picked"""
+  pickable: [Team!]!
+
+  """The alliances that have been formed"""
+  alliances: [[Team!]!]!
+
+  """The teams that are not yet part of an alliance"""
+  remaining: [Team!]!
+}
+
 type Query {
-  fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
-  field(fieldId: Int!): Field!
-  competitionInformation: Competition!
+  allianceSelection: AllianceSelection
+  tournamentManager: TournamentManager!
+  teams: [Team!]!
+  stage: Stage!
   blocks: [Block!]!
   currentBlock: Block
   nextBlock: Block
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
-  teams: [Team!]!
-  stage: Stage!
-  tournamentManager: TournamentManager!
+  fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
+  field(fieldId: Int!): Field!
+  competitionInformation: Competition!
   displays: [Display!]!
   display(uuid: String!): Display!
   results: Results!
 }
 
 type Mutation {
-  startField(fieldId: Int!): FieldControl!
-  stopField(fieldId: Int!): FieldControl!
+  startAllianceSelection: AllianceSelection!
+  allianceSelectionPick(teamId: Int!): AllianceSelection!
+  allianceSelectionAccept: AllianceSelection!
+  allianceSelectionDecline: AllianceSelection!
+  allianceSelectionUndo: AllianceSelection!
+  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+
+  """Reset the event. Only available in test mode."""
+  reset: Stage!
+  startNextBlock: Block!
+  concludeBlock: Block!
+  queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   deleteField(fieldId: Int!): [Field!]!
   setSkillsEnabled(enabled: Boolean!): [Field!]!
+  startField(fieldId: Int!): FieldControl!
+  stopField(fieldId: Int!): FieldControl!
   unqueue(sittingId: Int!): CompetitionField!
   resetAuton(fieldId: Int!): CompetitionField!
   replay(sittingId: Int!): CompetitionField!
@@ -363,17 +393,17 @@ type Mutation {
   clearLive: Competition!
   putLive: Competition!
   setAutomationEnabled(enabled: Boolean!): Competition!
-  startNextBlock: Block!
-  concludeBlock: Block!
-  queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
-
-  """Reset the event. Only available in test mode."""
-  reset: Stage!
-  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
+}
+
+input TournamentManagerSetup {
+  """
+  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL!
 }
 
 input FieldUpdate {
@@ -390,13 +420,6 @@ input FieldUpdate {
   Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
   """
   canRunSkills: Boolean
-}
-
-input TournamentManagerSetup {
-  """
-  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
-  """
-  url: URL!
 }
 
 type Subscription {

@@ -28,4 +28,8 @@ export class RankingService {
   getRanking (team: string): number | null {
     return this.cache.getRanking(team)
   }
+
+  getRankings (): string[] {
+    return this.cache.getRankings()
+  }
 }

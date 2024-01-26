@@ -19,4 +19,8 @@ export class RankingCache {
   updateRankings (rankings: string[]): void {
     this.rankings = rankings
   }
+
+  getRankings (): string[] {
+    return this.rankings
+  }
 }
