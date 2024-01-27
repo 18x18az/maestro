@@ -1,49 +1,38 @@
-import { Injectable } from '@nestjs/common'
-import { DisplayConfig } from './display.interface'
-import { PrismaService } from '@/utils'
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { DisplayEntity } from './display.entity'
+import { Repository } from 'typeorm'
 
 @Injectable()
-export class DisplayDatabase {
-  constructor (
-    private readonly prisma: PrismaService
-  ) {}
+export class DisplayRepo {
+  constructor (@InjectRepository(DisplayEntity) private readonly displayRepository: Repository<DisplayEntity>) { }
 
-  /** @throws {RecordNotFound} Will throw if display with {@link uuid} is not found */
-  async setDisplayName (uuid: string, name: string): Promise<void> {
-    await this.prisma.display.update({
-      data: { name },
-      where: { uuid }
-    })
+  async getDisplay (uuid: string): Promise<DisplayEntity | null> {
+    return await this.displayRepository.findOneBy({ uuid })
   }
 
-  /** @throws {RecordNotFound} Will throw if display with {@link uuid} is not found */
-  async setFieldId (uuid: string, fieldId: number): Promise<void> {
-    await this.prisma.display.update({
-      data: { fieldId },
-      where: { uuid }
-    })
+  async createDisplay (uuid: string): Promise<DisplayEntity> {
+    const display = new DisplayEntity()
+    display.uuid = uuid
+    display.name = 'Unnamed Display'
+    return await this.displayRepository.save(display)
   }
 
-  /** @throws Will throw if an entry with {@link uuid} already exists */
-  async createDisplay (uuid: string): Promise<void> {
-    await this.prisma.display.create({
-      data: { uuid, name: 'unnamed' }
-    })
+  async getDisplays (): Promise<DisplayEntity[]> {
+    return await this.displayRepository.find()
   }
 
-  async getDisplay (uuid: string): Promise<DisplayConfig | null> {
-    return await this.prisma.display.findUnique({ where: { uuid } })
+  async renameDisplay (uuid: string, displayName: string): Promise<DisplayEntity> {
+    const display = await this.getDisplay(uuid)
+    if (display === null) throw new BadRequestException('Display not found')
+    display.name = displayName
+    return await this.displayRepository.save(display)
   }
 
-  async getAllDisplays (): Promise<DisplayConfig[]> {
-    return await this.prisma.display.findMany()
-  }
-
-  async getFieldId (uuid: string): Promise<number | undefined | null> {
-    return (await this.getDisplay(uuid))?.fieldId
-  }
-
-  async getName (uuid: string): Promise<string | undefined> {
-    return (await this.getDisplay(uuid))?.name
+  async assignFieldId (uuid: string, fieldId: number | null): Promise<DisplayEntity> {
+    const display = await this.getDisplay(uuid)
+    if (display === null) throw new BadRequestException('Display not found')
+    display.fieldId = fieldId
+    return await this.displayRepository.save(display)
   }
 }

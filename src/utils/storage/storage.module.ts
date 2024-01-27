@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common'
 import { StorageService } from './storage.service'
-import { PrismaModule } from '../prisma'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { EphemeralEntity } from './ephemeral.entity'
+import { PersistentEntity } from './persistent.entity'
 
 @Module({
-  imports: [PrismaModule],
+  imports: [TypeOrmModule.forFeature([EphemeralEntity, PersistentEntity])],
   providers: [StorageService],
-  exports: [StorageService, PrismaModule]
+  exports: [StorageService]
 })
 export class StorageModule { }

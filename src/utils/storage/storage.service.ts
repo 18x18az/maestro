@@ -1,16 +1,22 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../prisma'
+import { InjectRepository } from '@nestjs/typeorm'
+import { PersistentEntity } from './persistent.entity'
+import { Repository } from 'typeorm'
+import { EphemeralEntity } from './ephemeral.entity'
 
 @Injectable()
 export class StorageService {
-  constructor (private readonly prisma: PrismaService) { }
+  constructor (
+    @InjectRepository(PersistentEntity) private readonly persistentRepository: Repository<PersistentEntity>,
+    @InjectRepository(EphemeralEntity) private readonly ephemeralRepository: Repository<EphemeralEntity>
+  ) { }
 
   async setEphemeral (ident: string, value: string): Promise<void> {
-    await this.prisma.genericEphemeral.upsert({ where: { key: ident }, update: { value }, create: { key: ident, value } })
+    await this.ephemeralRepository.save({ key: ident, value })
   }
 
   async getEphemeral (ident: string, fallback: string): Promise<string> {
-    const existing = await this.prisma.genericEphemeral.findUnique({ where: { key: ident } })
+    const existing = await this.ephemeralRepository.findOneBy({ key: ident })
 
     if (existing === null) {
       await this.setEphemeral(ident, fallback)
@@ -21,11 +27,11 @@ export class StorageService {
   }
 
   async setPersistent (ident: string, value: string): Promise<void> {
-    await this.prisma.genericPersistent.upsert({ where: { key: ident }, update: { value }, create: { key: ident, value } })
+    await this.persistentRepository.save({ key: ident, value })
   }
 
   async getPersistent (ident: string, fallback: string): Promise<string> {
-    const existing = await this.prisma.genericPersistent.findUnique({ where: { key: ident } })
+    const existing = await this.persistentRepository.findOneBy({ key: ident })
 
     if (existing === null) {
       await this.setPersistent(ident, fallback)
@@ -36,6 +42,6 @@ export class StorageService {
   }
 
   async clearEphemeral (): Promise<void> {
-    await this.prisma.genericEphemeral.deleteMany({})
+    await this.ephemeralRepository.clear()
   }
 }

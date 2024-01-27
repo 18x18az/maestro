@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common'
-import { AllianceSelectionController } from './alliance-selection.controller'
 import { AllianceSelectionInternal } from './alliance-selection.internal'
-import { PublishModule, TmModule } from '@/utils'
-import { AllianceSelectionPublisher } from './alliance-selection.publisher'
+import { StageModule } from '../stage/stage.module'
+import { RankingModule } from '../ranking/ranking.module'
+import { AllianceSelectionResolver } from './alliance-selection.resolver'
+import { TeamModule } from '../team/team.module'
+import { TmModule } from '../../utils/tm/tm.module'
 
 @Module({
-  imports: [TmModule, PublishModule],
-  controllers: [AllianceSelectionController],
-  providers: [AllianceSelectionInternal, AllianceSelectionPublisher]
+  imports: [RankingModule, StageModule, TeamModule, TmModule],
+  providers: [AllianceSelectionInternal, AllianceSelectionModule, AllianceSelectionResolver]
 })
 export class AllianceSelectionModule {}

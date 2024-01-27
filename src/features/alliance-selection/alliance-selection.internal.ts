@@ -1,18 +1,14 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { EventStage } from '../stage'
-import { TmService } from '@/utils'
-import { AllianceSelectionStatus } from './alliance-selection.interfaces'
-import { AllianceSelectionPublisher } from './alliance-selection.publisher'
-
-enum AllianceSelectionOperationType {
-  ACCEPT = 'accept',
-  DECLINE = 'decline',
-  NO_SHOW = 'no_show'
-}
+import { AllianceSelectionOperationType, AllianceSelectionStatus } from './alliance-selection.interfaces'
+import { RankingService } from '../ranking/ranking.service'
+import { StageService } from '../stage/stage.service'
+import { EventStage } from '../stage/stage.interface'
+import { RankingsUpdateEvent } from '../ranking/ranking-update.event'
+import { TeamService } from '../team/team.service'
 
 interface AllianceSelectionOperation {
   type: AllianceSelectionOperationType
-  team: string
+  team: number
 }
 
 function processAllianceSelectionOperation (status: AllianceSelectionStatus, operation: AllianceSelectionOperation): AllianceSelectionStatus {
@@ -51,37 +47,57 @@ function processAllianceSelectionOperations (status: AllianceSelectionStatus, op
 export class AllianceSelectionInternal {
   private readonly logger: Logger = new Logger(AllianceSelectionInternal.name)
 
-  private rankings: string[] | null = null
+  private rankings: number[] | null = null
   private status: AllianceSelectionStatus | null = null
   private readonly operationStack: AllianceSelectionOperation[] = []
 
   constructor (
-    private readonly tm: TmService,
-    private readonly publisher: AllianceSelectionPublisher
+    private readonly rankingService: RankingService,
+    private readonly stageService: StageService,
+    private readonly rankingUpdate: RankingsUpdateEvent,
+    private readonly teams: TeamService
   ) {}
 
-  async startAllianceSelection (): Promise<void> {
-    const rankings = await this.tm.getRankings()
-    this.rankings = rankings
-    await this.doProcess()
+  async initialize (): Promise<void> {
+    this.logger.log('Initializing alliance selection')
+    const rankings = this.rankingService.getRankings()
+    this.rankings = await Promise.all(rankings.map(async teamNumber => {
+      const team = await this.teams.getTeamByNumber(teamNumber)
+      return team.id
+    }))
+    this.doProcess()
   }
 
-  async handleStage (stage: EventStage): Promise<void> {
+  async checkStartAllianceSelection (): Promise<void> {
+    const stage = await this.stageService.getStage()
     if (stage === EventStage.ALLIANCE_SELECTION) {
-      this.logger.log('Alliance selection started')
-      await this.startAllianceSelection()
+      await this.initialize()
     }
   }
 
-  async broadcast (): Promise<void> {
-    if (this.status === null) {
-      throw new Error('Status is null')
-    }
-
-    await this.publisher.publishStatus(this.status)
+  getStatus (): AllianceSelectionStatus | null {
+    return this.status
   }
 
-  async doProcess (): Promise<void> {
+  onModuleInit (): void {
+    this.rankingUpdate.registerOnComplete(this.checkStartAllianceSelection.bind(this))
+  }
+
+  async startAllianceSelection (): Promise<AllianceSelectionStatus> {
+    const stage = await this.stageService.getStage()
+    if (stage !== EventStage.QUALIFICATIONS) {
+      throw new BadRequestException('Alliance selection can only be started at end of qualifications')
+    }
+    await this.initialize()
+    const status = this.status
+    if (status === null) {
+      throw new Error('Alliance selection status is null')
+    }
+    await this.stageService.setStage(EventStage.ALLIANCE_SELECTION)
+    return status
+  }
+
+  doProcess (): void {
     if (this.rankings === null) {
       return
     }
@@ -128,11 +144,9 @@ export class AllianceSelectionInternal {
     }
 
     this.status = result
-
-    await this.broadcast()
   }
 
-  async pick (team: string): Promise<void> {
+  pick (team: number): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
@@ -152,10 +166,10 @@ export class AllianceSelectionInternal {
     this.logger.log(`${this.status.picking} picked ${team}`)
     this.status.picked = team
 
-    await this.doProcess()
+    this.doProcess()
   }
 
-  async accept (): Promise<void> {
+  accept (): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
@@ -175,10 +189,10 @@ export class AllianceSelectionInternal {
     })
 
     this.status.picked = null
-    await this.doProcess()
+    this.doProcess()
   }
 
-  async decline (): Promise<void> {
+  decline (): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
@@ -198,10 +212,10 @@ export class AllianceSelectionInternal {
     })
 
     this.status.picked = null
-    await this.doProcess()
+    this.doProcess()
   }
 
-  async cancel (): Promise<void> {
+  cancel (): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
@@ -217,10 +231,10 @@ export class AllianceSelectionInternal {
     this.logger.log(`Cancelled ${this.status.picking} picking ${this.status.picked}`)
 
     this.status.picked = null
-    await this.doProcess()
+    this.doProcess()
   }
 
-  async undo (): Promise<void> {
+  undo (): void {
     if (this.rankings === null || this.status === null) {
       throw new BadRequestException('Alliance selection has not started')
     }
@@ -236,6 +250,6 @@ export class AllianceSelectionInternal {
     this.logger.log('Undoing last operation')
 
     this.operationStack.pop()
-    await this.doProcess()
+    this.doProcess()
   }
 }

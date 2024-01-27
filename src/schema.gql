@@ -1,0 +1,438 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type FieldControl {
+  """The ID of the field that this control object is associated with"""
+  fieldId: Float!
+
+  """
+  The current mode of the field, null if undefined. Will still return a value even if it is not currently running.
+  """
+  mode: CONTROL_MODE
+
+  """
+  If the field is currently running, the time that the current running period will end.
+  """
+  endTime: DateTime
+
+  """Whether the field is currently running"""
+  isRunning: Boolean!
+
+  """The field that this control object is associated with"""
+  field: Field!
+}
+
+enum CONTROL_MODE {
+  AUTO
+  DRIVER
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Team {
+  """Number of the team"""
+  number: String!
+
+  """Name of the team"""
+  name: String!
+
+  """Location of the team"""
+  location: String!
+
+  """School of the team"""
+  school: String!
+
+  """Checkin status of the team"""
+  checkin: Checkin!
+
+  """Unique identifier for the team"""
+  id: Int!
+
+  """Rank of the team"""
+  rank: Int
+}
+
+"""The checkin status of a team"""
+enum Checkin {
+  NOT_HERE
+  CHECKED_IN
+  NO_SHOW
+}
+
+"""
+A contest refers to a match or group of matches between two alliances. E.g. in Bo3 finals, F1 and F2 are both part of the same contest
+"""
+type Contest {
+  """Unique identifier for the contest"""
+  id: Float!
+
+  """The round of the contest"""
+  round: Round!
+
+  """The number of the contest"""
+  number: Float!
+
+  """The red alliance"""
+  redTeams: [Team!]!
+
+  """The blue alliance"""
+  blueTeams: [Team!]!
+
+  """The matches in this contest"""
+  matches: [Match!]!
+}
+
+"""The round of the match"""
+enum Round {
+  QUAL
+  Ro16
+  QF
+  SF
+  F
+}
+
+"""
+A match refers to a single scored match between two alliances. A match may have multiple sittings if it is replayed e.g. due to a field fault
+"""
+type Match {
+  """Unique identifier for the match"""
+  id: Int!
+
+  """The number of the match. E.g. SF-2-1 is 2"""
+  number: Int!
+
+  """The contest this match is a part of"""
+  contest: Contest!
+
+  """Sittings of the match"""
+  sittings: [Sitting!]!
+
+  """The score of the red alliance"""
+  redScore: Int
+
+  """The score of the blue alliance"""
+  blueScore: Int
+}
+
+"""
+A block refers to a group of match sittings played in the same stretch of time, e.g. all quals played in the morning before lunch
+"""
+type Block {
+  """Unique identifier for the block"""
+  id: Float!
+
+  """The name of the block"""
+  name: String!
+
+  """Status of the block"""
+  status: BlockStatus!
+
+  """Sittings in the block"""
+  sittings: [Sitting!]!
+
+  """Sittings in the block that have not yet been queued"""
+  unqueuedSittings: [Sitting!]!
+
+  """The time the first match is scheduled to start"""
+  startTime: DateTime
+
+  """The time the last match is scheduled to start"""
+  endTime: DateTime
+
+  """Whether the block can be concluded"""
+  canConclude: Boolean!
+}
+
+"""The status of a block of matches"""
+enum BlockStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  FINISHED
+}
+
+"""
+A sitting is an instance of a match being played. In case of a replay, another sitting is created for the same match.
+"""
+type Sitting {
+  """Unique identifier for the sitting"""
+  id: Float!
+
+  """The number of the sitting. Indexed from 1"""
+  number: Float!
+
+  """The match this sitting is a part of"""
+  match: Match!
+
+  """The contest this sitting is a part of"""
+  contest: Contest!
+
+  """The time the sitting is scheduled to be played"""
+  scheduled: DateTime
+
+  """The block this sitting is a part of"""
+  block: Block!
+
+  """The field this sitting will nominally be played on"""
+  field: Field
+
+  """The status of the sitting"""
+  status: MatchStatus!
+}
+
+"""The status of a match"""
+enum MatchStatus {
+  NOT_STARTED
+  QUEUED
+  SCORING
+  COMPLETE
+}
+
+type CompetitionField {
+  fieldId: Float!
+
+  """The match currently on the field"""
+  onFieldSitting: Sitting
+
+  """The match currently on the queueing table (on deck) for the field"""
+  onTableSitting: Sitting
+
+  """The current stage of the match on the field"""
+  stage: MatchStage!
+
+  """Whether the field is the current live field"""
+  isLive: Boolean!
+
+  """Whether the field is currently on deck"""
+  isOnDeck: Boolean!
+}
+
+enum MatchStage {
+  EMPTY
+  QUEUED
+  AUTON
+  SCORING_AUTON
+  DRIVER
+  OUTRO
+  SCORING
+}
+
+type Skills {
+  stopTime: Float
+  fieldId: Float!
+}
+
+"""Representation of a single field"""
+type Field {
+  """Unique identifier for the field"""
+  id: Int!
+
+  """Name of the field"""
+  name: String!
+
+  """Whether the field is enabled for use"""
+  isEnabled: Boolean!
+
+  """
+  Whether the field is allocated as a competition field. Can be true even if the field is disabled.
+  """
+  isCompetition: Boolean!
+
+  """
+  Whether or not the field can be used for skills. Can be true even if the field is disabled.
+  """
+  canRunSkills: Boolean!
+
+  """
+  Whether or not the field is allocated as a dedicated skills field. Can be true even if the field is disabled.
+  """
+  isSkills: Boolean!
+
+  """
+  The current state of field control on the field. Null if the field is disabled.
+  """
+  fieldControl: FieldControl
+
+  """
+  Information about competition matches associated with this field. Null if the field is not being used for competition matches.
+  """
+  competition: CompetitionField
+
+  """
+  Information about skills matches associated with this field. Null if the field is not being used for skills matches.
+  """
+  skills: Skills
+}
+
+type TournamentManager {
+  """
+  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL
+
+  """The status of the TM server"""
+  status: TmStatus!
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
+enum TmStatus {
+  INITIALIZING
+  NOT_CONFIGURED
+  DISCONNECTED
+  CONNECTED
+}
+
+type Stage {
+  """The current stage of the event"""
+  stage: EventStage!
+}
+
+"""The current stage of the event"""
+enum EventStage {
+  WAITING_FOR_TEAMS
+  CHECKIN
+  QUALIFICATIONS
+  ALLIANCE_SELECTION
+  ELIMS
+  TEARDOWN
+}
+
+type Competition {
+  """The field that is currently live"""
+  liveField: Field
+
+  """The field that is currently on deck"""
+  onDeckField: Field
+
+  """Whether automation is currently enabled for match queueing"""
+  automationEnabled: Boolean!
+}
+
+type Results {
+  displayedResults: Match
+  nextResults: Match
+}
+
+"""Control of remote displays"""
+type Display {
+  """Unique identifier for the display"""
+  uuid: String!
+
+  """Name of the display"""
+  name: String!
+
+  """The field that the display is currently assigned to"""
+  field: Field
+}
+
+type AllianceSelection {
+  """The team that is currently picking"""
+  picking: Team
+
+  """The team that has been picked"""
+  picked: Team
+
+  """The teams that are still eligible to be picked"""
+  pickable: [Team!]!
+
+  """The alliances that have been formed"""
+  alliances: [[Team!]!]!
+
+  """The teams that are not yet part of an alliance"""
+  remaining: [Team!]!
+}
+
+type Timeout {
+  """The time that the timeout will end, null if there is no timeout."""
+  endTime: DateTime
+}
+
+type Query {
+  allianceSelection: AllianceSelection
+  tournamentManager: TournamentManager!
+  teams: [Team!]!
+  stage: Stage!
+  blocks: [Block!]!
+  currentBlock: Block
+  nextBlock: Block
+  contests: [Contest!]!
+  matches: [Match!]!
+  sittings: [Sitting!]!
+  fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
+  field(fieldId: Int!): Field!
+  competitionInformation: Competition!
+  timeout: Timeout!
+  displays: [Display!]!
+  display(uuid: String!): Display!
+  results: Results!
+}
+
+type Mutation {
+  startAllianceSelection: AllianceSelection!
+  allianceSelectionPick(teamId: Int!): AllianceSelection!
+  allianceSelectionAccept: AllianceSelection!
+  allianceSelectionDecline: AllianceSelection!
+  allianceSelectionUndo: AllianceSelection!
+  allianceSelectionCancel: AllianceSelection!
+  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+
+  """Reset the event. Only available in test mode."""
+  reset: Stage!
+  startNextBlock: Block!
+  concludeBlock: Block!
+  queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
+  updateField(fieldId: Int!, update: FieldUpdate!): Field!
+  deleteField(fieldId: Int!): [Field!]!
+  setSkillsEnabled(enabled: Boolean!): [Field!]!
+  startField(fieldId: Int!): FieldControl!
+  stopField(fieldId: Int!): FieldControl!
+  unqueue(sittingId: Int!): CompetitionField!
+  resetAuton(fieldId: Int!): CompetitionField!
+  replay(sittingId: Int!): CompetitionField!
+  putOnDeck(fieldId: Int!): Competition!
+  clearLive: Competition!
+  putLive: Competition!
+  setAutomationEnabled(enabled: Boolean!): Competition!
+  queueDriverSkills(fieldId: Int!): Skills!
+  queueProgrammingSkills(fieldId: Int!): Skills!
+  startTimeout: Timeout!
+  cancelTimeout: Timeout!
+  renameDisplay(uuid: String!, name: String!): Display!
+  setDisplayField(uuid: String!, fieldId: Int): Display!
+  clearResults: Results!
+  promoteResults: Results!
+}
+
+input TournamentManagerSetup {
+  """
+  The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL!
+}
+
+input FieldUpdate {
+  """Name of the field"""
+  name: String
+
+  """Whether the field is enabled for use"""
+  isEnabled: Boolean
+
+  """True for a competition field, false for a dedicated skills field"""
+  isCompetition: Boolean
+
+  """
+  Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
+  """
+  canRunSkills: Boolean
+}
+
+type Subscription {
+  fieldControl(fieldId: Int!): FieldControl!
+}

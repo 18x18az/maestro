@@ -1,5 +1,6 @@
-import { Field } from '../../field'
-import { Match } from '../match'
+import { registerEnumType } from '@nestjs/graphql'
+import { FieldEntity } from '../../field/field.entity'
+import { Match } from '../match/match.interface'
 
 export enum MATCH_STAGE {
   EMPTY = 'EMPTY',
@@ -11,8 +12,10 @@ export enum MATCH_STAGE {
   SCORING = 'SCORING'
 }
 
+registerEnumType(MATCH_STAGE, { name: 'MatchStage' })
+
 export interface CompetitionFieldStatus {
-  field: Field
+  field: FieldEntity
   onDeck: Match | null
   onField: Match | null
   stage: MATCH_STAGE

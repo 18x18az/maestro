@@ -22,7 +22,7 @@ export class BeaconService {
 
   private respond (address: string): void {
     const client = dgram.createSocket('udp4')
-    const message = Buffer.from('2000,3000')
+    const message = Buffer.from('3002,3000')
 
     client.send(message, 0, message.length, 1819, address, (err) => {
       if (err != null) {

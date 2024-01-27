@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql'
+
 export enum EventStage {
   WAITING_FOR_TEAMS = 'WAITING_FOR_TEAMS',
   CHECKIN = 'CHECKIN',
@@ -7,4 +9,7 @@ export enum EventStage {
   TEARDOWN = 'TEARDOWN'
 }
 
-export const STAGE_TOPIC = 'stage'
+registerEnumType(EventStage, {
+  name: 'EventStage',
+  description: 'The current stage of the event'
+})

@@ -1,49 +1,18 @@
-import { BadRequestException, Injectable, Logger, InternalServerErrorException } from '@nestjs/common'
-import { DisplayPublisher } from './display.publisher'
-import { DisplayDatabase } from './display.repo'
+import { Injectable, Logger } from '@nestjs/common'
+import { DisplayEntity } from './display.entity'
+import { DisplayRepo } from './display.repo'
 
 @Injectable()
 export class DisplayService {
   private readonly logger = new Logger(DisplayService.name)
 
-  constructor (
-    private readonly publisher: DisplayPublisher,
-    private readonly database: DisplayDatabase
-  ) {}
-
-  async onApplicationBootstrap (): Promise<void> {
-    const displays = await this.database.getAllDisplays()
-    await Promise.all(displays.map(async (display) => await this.broadcastConfig(display.uuid)))
-    await this.broadcastAllDisplays()
-  }
-
-  private async broadcastAllDisplays (): Promise<void> {
-    const displays = await this.database.getAllDisplays()
-    await this.publisher.publishAllDisplays(displays)
-  }
-
-  private async onDisplayChange (uuid: string): Promise<void> {
-    await this.broadcastConfig(uuid)
-    await this.broadcastAllDisplays()
-  }
-
-  private async broadcastConfig (uuid: string): Promise<void> {
-    const display = await this.database.getDisplay(uuid)
-    if (display === null) {
-      this.logger.error(
-        `Cannot broadcast DisplayConfig with UUID "${uuid}" because DisplayConfig could not be found`
-      )
-      throw new InternalServerErrorException()
-    }
-    await this.publisher.publishDisplay(uuid, display)
-  }
+  constructor (private readonly repo: DisplayRepo) {}
 
   async registerDisplay (uuid: string): Promise<void> {
     this.logger.log(
       `Received registration request from display with UUID "${uuid}"`
     )
-    if (await this.database.getDisplay(uuid) === null) { await this.database.createDisplay(uuid) }
-    await this.onDisplayChange(uuid)
+    // if (await this.database.getDisplay(uuid) === null) { await this.database.createDisplay(uuid) }
   }
 
   async adviseHasFieldControl (
@@ -55,33 +24,33 @@ export class DisplayService {
     )
   }
 
-  async setDisplayName (uuid: string, displayName: string): Promise<void> {
+  async getDisplay (uuid: string): Promise<DisplayEntity> {
+    const existing = await this.repo.getDisplay(uuid)
+
+    if (existing !== null) return existing
+
+    this.logger.log(`Registering display with UUID "${uuid}"`)
+    return await this.repo.createDisplay(uuid)
+  }
+
+  async getDisplays (): Promise<DisplayEntity[]> {
+    return await this.repo.getDisplays()
+  }
+
+  async renameDisplay (uuid: string, displayName: string): Promise<DisplayEntity> {
     this.logger.log(
       `Setting name of display ${uuid} to: "${displayName}"`
     )
-    try {
-      await this.database.setDisplayName(uuid, displayName)
-    } catch {
-      this.logger.warn(
-        `Display with UUID "${uuid}" was not found`
-      )
-      throw new BadRequestException()
-    }
-    await this.onDisplayChange(uuid)
+
+    return await this.repo.renameDisplay(uuid, displayName)
   }
 
-  async assignFieldId (uuid: string, fieldId: number): Promise<void> {
+  async assignFieldId (uuid: string, fieldId: number | null): Promise<DisplayEntity> {
+    const name = fieldId === null ? 'null' : String(fieldId)
     this.logger.log(
-      `Assigning display ${uuid} to field: "${fieldId}"`
+      `Assigning field ${name} to display ${uuid}`
     )
-    try {
-      await this.database.setFieldId(uuid, fieldId)
-    } catch {
-      this.logger.warn(
-        `Display with UUID "${uuid}" was not found`
-      )
-      throw new BadRequestException()
-    }
-    await this.onDisplayChange(uuid)
+
+    return await this.repo.assignFieldId(uuid, fieldId)
   }
 }

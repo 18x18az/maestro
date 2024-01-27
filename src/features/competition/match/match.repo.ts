@@ -1,379 +1,306 @@
-import { ElimsMatch, PrismaService } from '@/utils'
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { BlockStatus, Match, MatchIdentifier, MatchStatus, Round } from './match.interface'
-import { Block } from '@prisma/client'
-import { parseMatch } from '@/utils/conversion/match'
-
-export interface CreateQualDto {
-  matchNumber: number
-  red1: string
-  red2: string
-  blue1: string
-  blue2: string
-  field: number
-  time: string
-}
-
-export interface CreateQualBlockDto {
-  name: string
-  quals: CreateQualDto[]
-}
+import { InjectRepository } from '@nestjs/typeorm'
+import { CreateQualMatch, MatchEntity } from './match.entity'
+import { Repository } from 'typeorm'
+import { BlockStatus, Round, SittingStatus } from './match.interface'
+import { ContestEntity } from './contest.entity'
+import { BlockEntity, CreateQualBlock } from './block.entity'
+import { SittingEntity } from './sitting.entity'
+import { EventResetEvent } from '../../stage/event-reset.event'
+import { TeamEntity } from '../../team/team.entity'
+import { FieldEntity } from '../../field/field.entity'
+import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 
 @Injectable()
 export class MatchRepo {
   private readonly logger = new Logger(MatchRepo.name)
 
-  constructor (private readonly prisma: PrismaService) {}
+  constructor (
+    @InjectRepository(MatchEntity) private readonly matchRepository: Repository<MatchEntity>,
+    @InjectRepository(SittingEntity) private readonly sittingRepository: Repository<SittingEntity>,
+    @InjectRepository(ContestEntity) private readonly contestRepository: Repository<ContestEntity>,
+    @InjectRepository(BlockEntity) private readonly blockRepository: Repository<BlockEntity>,
+    private readonly resetEvent: EventResetEvent
+  ) {
+    this.resetEvent.registerBefore(this.reset.bind(this))
+  }
 
   async reset (): Promise<void> {
-    await this.prisma.match.deleteMany({})
-    await this.prisma.block.deleteMany({})
+    this.logger.log('Resetting matches')
+    await this.blockRepository.clear()
+    await this.contestRepository.clear()
+    await this.matchRepository.clear()
+    await this.sittingRepository.clear()
   }
 
-  async getQuals (): Promise<Match[]> {
-    // get all matches that are round qual
-    const matches = await this.prisma.match.findMany({
-      where: {
-        round: Round.QUAL
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-
-    return matches.map((match) => { return parseMatch(match) })
+  async updateSittingStatus (sitting: number, status: SittingStatus): Promise<void> {
+    await this.sittingRepository.update(sitting, { status })
   }
 
-  async getElims (): Promise<Match[]> {
-    // get all matches that are not round qual
-    const matches = await this.prisma.match.findMany({
-      where: {
-        round: {
-          not: Round.QUAL
-        }
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
+  private async createQualMatch (block: BlockEntity, data: CreateQualMatch): Promise<void> {
+    const contest = new ContestEntity()
+    contest.round = Round.QUAL
+    contest.number = data.number
+    contest.redTeams = data.redTeams
+    contest.blueTeams = data.blueTeams
+    await this.contestRepository.save(contest)
 
-    return matches.map((match) => { return parseMatch(match) })
+    const match = new MatchEntity()
+    match.contest = contest
+    await this.matchRepository.save(match)
+
+    const sitting = new SittingEntity()
+    sitting.block = block
+    sitting.field = data.field
+    sitting.scheduled = data.time
+    sitting.match = match
+    await this.sittingRepository.save(sitting)
   }
 
-  private async createQual (blockId: number, qual: CreateQualDto): Promise<void> {
-    await this.prisma.match.create({
-      data: {
-        number: qual.matchNumber,
-        red1: qual.red1,
-        red2: qual.red2,
-        blue1: qual.blue1,
-        blue2: qual.blue2,
-        fieldId: qual.field,
-        round: Round.QUAL,
-        sitting: 0,
-        blockId,
-        time: qual.time
-      }
-    })
-  }
-
-  private async createQualBlock (block: CreateQualBlockDto): Promise<void> {
-    this.logger.log(`Creating block ${block.name}`)
-    const { id: blockId } = await this.prisma.block.create({
-      data: {
-        name: block.name
-      }
-    })
-    for (const qual of block.quals) {
-      await this.createQual(blockId, qual)
+  async createQualBlock (data: CreateQualBlock): Promise<void> {
+    const block = new BlockEntity()
+    block.name = data.name
+    await this.blockRepository.save(block)
+    for (const match of data.matches) {
+      await this.createQualMatch(block, match)
     }
   }
 
-  async createQuals (blocks: CreateQualBlockDto[]): Promise<void> {
-    for (const block of blocks) {
-      await this.createQualBlock(block)
-    }
+  async getBlock (id: number): Promise<BlockEntity> {
+    return await this.blockRepository.findOneByOrFail({ id })
   }
 
-  async getCurrentBlock (): Promise<Block | null> {
-    const block = await this.prisma.block.findFirst({
-      where: {
-        status: BlockStatus.IN_PROGRESS
-      }
-    })
+  async getBlocks (): Promise<BlockEntity[]> {
+    return await this.blockRepository.find()
+  }
+
+  async getCurrentBlock (): Promise<BlockEntity | null> {
+    return await this.blockRepository.findOne({ where: { status: BlockStatus.IN_PROGRESS } })
+  }
+
+  async getElimsBlock (): Promise<BlockEntity> {
+    let block = await this.blockRepository.findOne({ where: { name: 'Eliminations' } })
     if (block === null) {
-      return null
+      block = new BlockEntity()
+      block.name = 'Eliminations'
+      await this.blockRepository.save(block)
     }
     return block
   }
 
-  async getUnqueuedQuals (includeReplays: boolean, cutoffMatch?: number): Promise<Match[]> {
-    const currentBlock = await this.getCurrentBlock()
-
-    if (currentBlock === null) {
-      return []
-    }
-
-    const matches: Match[] = []
-
-    // First get matches from the previous blocks
-    const earlierMatches = (await this.prisma.match.findMany({
-      where: {
-        block: {
-          id: {
-            lt: currentBlock.id
-          }
-        },
-        status: MatchStatus.NOT_STARTED
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })).map((match) => { return parseMatch(match) })
-    matches.push(...earlierMatches)
-
-    // Next get matches from the current block ordered by match number
-    const currentMatches = (await this.prisma.match.findMany({
-      where: {
-        block: {
-          id: currentBlock.id
-        },
-        status: MatchStatus.NOT_STARTED
-      },
-      orderBy: {
-        number: 'asc'
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })).map((match) => { return parseMatch(match) })
-    matches.push(...currentMatches)
-
-    if (cutoffMatch !== undefined) {
-      const cutoffIndex = matches.findIndex((match) => match.number === cutoffMatch)
-      if (cutoffIndex !== -1) {
-        return matches.splice(cutoffIndex)
-      }
-    }
-
-    if (!includeReplays) {
-      return matches
-    }
-
-    // Finally get matches from the current or previous blocks that need to be replayed
-    const replayMatches = (await this.prisma.match.findMany({
-      where: {
-        OR: [
-          {
-            block: {
-              id: {
-                lt: currentBlock.id
-              }
-            },
-            status: MatchStatus.NEEDS_REPLAY
-          },
-          {
-            block: {
-              id: currentBlock.id
-            },
-            status: MatchStatus.NEEDS_REPLAY
-          }
-        ]
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })).map((match) => { return parseMatch(match) })
-
-    matches.push(...replayMatches)
-
-    return matches
+  async getNextBlock (): Promise<BlockEntity | null> {
+    return await this.blockRepository.findOne({ where: { status: BlockStatus.NOT_STARTED }, order: { id: 'ASC' } })
   }
 
-  async updateMatchStatus (matchId: number, status: MatchStatus): Promise<void> {
-    await this.prisma.match.update({
-      where: {
-        id: matchId
-      },
-      data: {
-        status
-      }
-    })
+  async getContests (): Promise<ContestEntity[]> {
+    return await this.contestRepository.find()
   }
 
-  async startNextBlock (): Promise<boolean> {
-    const block = await this.prisma.block.findFirst({
-      where: {
-        status: BlockStatus.NOT_STARTED
-      }
-    })
-    if (block === null) {
-      return false
+  async getContest (id: number): Promise<ContestEntity> {
+    return await this.contestRepository.findOneByOrFail({ id })
+  }
+
+  async getMatches (): Promise<MatchEntity[]> {
+    return await this.matchRepository.find()
+  }
+
+  async getMatchesByContest (contest: number): Promise<MatchEntity[]> {
+    return await this.matchRepository.find({ where: { contestId: contest } })
+  }
+
+  async getMatch (id: number): Promise<MatchEntity> {
+    return await this.matchRepository.findOneByOrFail({ id })
+  }
+
+  async getSitting (id: number): Promise<SittingEntity> {
+    return await this.sittingRepository.findOneByOrFail({ id })
+  }
+
+  async getSittings (): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find()
+  }
+
+  async getSittingsByMatch (match: number): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find({ where: { matchId: match } })
+  }
+
+  async getSittingsByBlock (block: number): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find({ where: { blockId: block } })
+  }
+
+  async getUnqueuedSittingsByBlock (block: number): Promise<SittingEntity[]> {
+    return await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED } })
+  }
+
+  async getRedTeams (contest: number): Promise<TeamEntity[]> {
+    const c = await this.contestRepository.findOneOrFail({ relations: ['redTeams'], where: { id: contest } })
+    return c.redTeams
+  }
+
+  async getBlueTeams (contest: number): Promise<TeamEntity[]> {
+    const c = await this.contestRepository.findOneOrFail({ relations: ['blueTeams'], where: { id: contest } })
+    return c.blueTeams
+  }
+
+  async getField (sitting: number): Promise<FieldEntity | null> {
+    const s = await this.sittingRepository.findOneOrFail({ relations: ['field'], where: { id: sitting } })
+    return s.field
+  }
+
+  async getBlockStartTime (block: number): Promise<Date | null> {
+    // get the first sitting in the block sorted by time
+    const sitting = await this.sittingRepository.findOne({ where: { blockId: block }, order: { scheduled: 'ASC' } })
+
+    if (sitting === null) return null
+
+    return sitting.scheduled
+  }
+
+  async getBlockEndTime (block: number): Promise<Date | null> {
+    // get the last sitting in the block sorted by time
+    const sitting = await this.sittingRepository.findOne({ where: { blockId: block }, order: { scheduled: 'DESC' } })
+
+    if (sitting === null) return null
+
+    return sitting.scheduled
+  }
+
+  async canConcludeBlock (block: number): Promise<boolean> {
+    const sittings = await this.sittingRepository.find({ where: { blockId: block } })
+
+    for (const sitting of sittings) {
+      if (sitting.status !== SittingStatus.COMPLETE) return false
     }
-    await this.prisma.block.update({
-      where: {
-        id: block.id
-      },
-      data: {
-        status: 'IN_PROGRESS'
-      }
-    })
 
     return true
   }
 
-  async getQueuedMatches (): Promise<Match[]> {
-    const matches = await this.prisma.match.findMany({
-      where: {
-        status: MatchStatus.QUEUED
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-    return matches.map((match) => { return parseMatch(match) })
+  async markBlockStatus (block: number, status: BlockStatus): Promise<void> {
+    await this.blockRepository.update(block, { status })
   }
 
-  async getScoringMatches (): Promise<Match[]> {
-    const matches = await this.prisma.match.findMany({
-      where: {
-        status: MatchStatus.SCORING
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-    return matches.map((match) => { return parseMatch(match) })
-  }
+  async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
 
-  async removeFieldAssignment (matchId: number): Promise<void> {
-    await this.prisma.match.update({
-      where: {
-        id: matchId
-      },
-      data: {
-        fieldId: null
-      }
-    })
-  }
-
-  async endCurrentBlock (): Promise<void> {
-    const block = await this.getCurrentBlock()
-    if (block === null) {
-      throw new BadRequestException('No block in progress')
-    }
-    await this.prisma.block.update({
-      where: {
-        id: block.id
-      },
-      data: {
-        status: BlockStatus.FINISHED
-      }
-    })
-  }
-
-  async createElimsBlock (): Promise<number> {
-    const block = await this.prisma.block.create({
-      data: {
-        name: 'Elims',
-        status: BlockStatus.NOT_STARTED
-      }
-    })
-
-    return block.id
-  }
-
-  async getMatch (match: MatchIdentifier): Promise<Match | null> {
-    const matchRecord = await this.prisma.match.findUnique({
-      where: {
-        round_number_sitting: {
-          round: match.round,
-          number: match.matchNumber,
-          sitting: match.sitting
-        }
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-
-    if (matchRecord === null) {
+    if (contest === null) {
+      this.logger.warn(`Could not find contest ${match.round}-${match.contest}`)
       return null
     }
 
-    return parseMatch(matchRecord)
-  }
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
 
-  async createElimsMatch (match: ElimsMatch): Promise<void> {
-    const elimsBlockId = await this.prisma.block.findFirst({
-      where: {
-        name: 'Elims'
-      }
-    })
-
-    if (elimsBlockId === null) {
-      throw new BadRequestException('No elims block')
-    }
-
-    await this.prisma.match.create({
-      data: {
-        number: match.identifier.matchNumber,
-        red1: match.red.team1,
-        red2: match.red.team2 ?? '',
-        blue1: match.blue.team1,
-        blue2: match.blue.team2 ?? '',
-        round: match.identifier.round,
-        sitting: match.identifier.sitting,
-        blockId: elimsBlockId.id
-      }
-    })
-  }
-
-  async getMatchById (matchId: number): Promise<Match | null> {
-    const match = await this.prisma.match.findUnique({
-      where: {
-        id: matchId
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-
-    if (match === null) {
+    if (matchEntity === null) {
+      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
       return null
     }
 
-    return parseMatch(match)
-  }
-
-  async findByIdent (ident: MatchIdentifier): Promise<Match> {
-    const match = await this.prisma.match.findUnique({
-      where: {
-        round_number_sitting: {
-          round: ident.round,
-          number: ident.matchNumber,
-          sitting: ident.sitting
-        }
-      },
-      include: {
-        block: true,
-        field: true
-      }
-    })
-
-    if (match === null) {
-      throw new Error('Match not found')
+    if (matchEntity.redScore === null || matchEntity.blueScore === null) {
+      return null
     }
 
-    return parseMatch(match)
+    return matchEntity
+  }
+
+  async getMatchId (match: MatchIdentifier): Promise<number> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) throw new BadRequestException(`Could not find contest ${match.round}-${match.contest}`)
+
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
+
+    if (matchEntity === null) throw new BadRequestException(`Could not find match ${match.round}-${match.contest}-${match.match}`)
+
+    return matchEntity.id
+  }
+
+  async updateMatchScore (match: number, redScore: number, blueScore: number): Promise<void> {
+    await this.matchRepository.update(match, { redScore, blueScore })
+  }
+
+  async getPendingSitting (matchId: number): Promise<number | null> {
+    const pendingSitting = await this.sittingRepository.findOne({ where: { matchId, status: SittingStatus.SCORING } })
+
+    if (pendingSitting === null) return null
+
+    return pendingSitting.id
+  }
+
+  async replaySitting (sitting: number): Promise<void> {
+    const sittingEntity = await this.sittingRepository.findOne({ where: { id: sitting } })
+    if (sittingEntity === null) throw new Error('Sitting not found')
+    sittingEntity.status = SittingStatus.COMPLETE
+    const nextSittingNumber = sittingEntity.number + 1
+
+    const newSitting = new SittingEntity()
+    newSitting.blockId = sittingEntity.blockId
+    newSitting.number = nextSittingNumber
+    newSitting.matchId = sittingEntity.matchId
+    await this.sittingRepository.save(newSitting)
+    await this.sittingRepository.save(sittingEntity)
+  }
+
+  async getNextSitting (fieldId: number): Promise<number | null> {
+    const currentBlock = await this.getCurrentBlock()
+
+    if (currentBlock === null) return null
+
+    const blockId = currentBlock.id
+
+    const sitting = await this.sittingRepository.findOne({ where: { fieldId, status: SittingStatus.NOT_STARTED, blockId } })
+
+    if (sitting !== null) return sitting.id
+
+    const replaySitting = await this.sittingRepository.findOne({ where: { fieldId: undefined, status: SittingStatus.NOT_STARTED, blockId } })
+
+    if (replaySitting !== null) return replaySitting.id
+
+    return null
+  }
+
+  async getContestByMatch (match: number): Promise<ContestEntity> {
+    const matchEntity = await this.matchRepository.findOneOrFail({ relations: ['contest'], where: { id: match } })
+    return matchEntity.contest
+  }
+
+  async getMatchByIdentifier (match: MatchIdentifier): Promise<MatchEntity | null> {
+    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) {
+      return null
+    }
+
+    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
+
+    if (matchEntity === null) {
+      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
+      return null
+    }
+
+    return matchEntity
+  }
+
+  async createElimsMatch (match: MatchIdentifier, red: TeamEntity[], blue: TeamEntity[]): Promise<void> {
+    let contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
+
+    if (contest === null) {
+      contest = new ContestEntity()
+      contest.round = match.round
+      contest.number = match.contest
+      contest.redTeams = red
+      contest.blueTeams = blue
+      await this.contestRepository.save(contest)
+    }
+
+    const matchEntity = new MatchEntity()
+    matchEntity.contest = contest
+    matchEntity.number = match.match
+    await this.matchRepository.save(matchEntity)
+
+    const sitting = new SittingEntity()
+    sitting.match = matchEntity
+
+    const block = await this.getElimsBlock()
+    sitting.block = block
+    await this.sittingRepository.save(sitting)
   }
 }

@@ -1,9 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { MatchRepo } from './match.repo'
-import { MatchPublisher } from './match.publisher'
-import { Match, MatchIdentifier, MatchStatus } from './match.interface'
-import { ElimsMatch } from '@/utils'
-import { EventStage, StageService } from '../../stage'
+import { BlockStatus, SittingStatus } from './match.interface'
+import { QueueSittingEvent } from '../competition-field/queue-sitting.event'
+import { UnqueueSittingEvent } from '../competition-field/unqueue-sitting.event'
+import { MatchResultEvent } from './match-result.event'
+import { SittingScoredEvent } from './sitting-scored.event'
+import { ReplayMatchEvent } from '../competition-field/replay-match.event'
+import { BlockEntity } from './block.entity'
 
 @Injectable()
 export class MatchInternal {
@@ -11,149 +14,66 @@ export class MatchInternal {
 
   constructor (
     private readonly repo: MatchRepo,
-    private readonly publisher: MatchPublisher,
-    private readonly stage: StageService
+    private readonly queuedEvent: QueueSittingEvent,
+    private readonly unqueuedEvent: UnqueueSittingEvent,
+    private readonly matchResultEvent: MatchResultEvent,
+    private readonly sittingScoredEvent: SittingScoredEvent,
+    private readonly replayEvent: ReplayMatchEvent
   ) {}
 
-  async onApplicationBootstrap (): Promise<void> {
-    const stage = this.stage.getStage()
+  onModuleInit (): void {
+    this.queuedEvent.registerAfter(async (data) => {
+      await this.updateSittingStatus(data.sittingId, SittingStatus.QUEUED)
+    })
 
-    if (stage === EventStage.QUALIFICATIONS) {
-      await this.loadQualState()
-    } else if (stage === EventStage.ELIMS) {
-      await this.loadElimsState()
-    }
+    this.unqueuedEvent.registerAfter(async (data) => {
+      await this.updateSittingStatus(data.sittingId, SittingStatus.NOT_STARTED)
+    })
+
+    this.matchResultEvent.registerAfter(async (data) => {
+      const pendingSitting = await this.repo.getPendingSitting(data.matchId)
+
+      if (pendingSitting === null) {
+        this.logger.warn(`No pending sitting found for match ID ${data.matchId}`)
+        return
+      }
+
+      await this.sittingScoredEvent.execute({ sitting: pendingSitting })
+    })
+
+    this.replayEvent.registerAfter(async (data) => {
+      await this.repo.replaySitting(data.sittingId)
+    })
   }
 
-  private async publishUnqueuedQuals (): Promise<void> {
-    const block = await this.repo.getCurrentBlock()
-    if (block === null) {
-      await this.publisher.publishUnqueuedMatches([])
-      return
-    }
-    const matches = await this.repo.getUnqueuedQuals(true)
-    this.logger.log(`Publishing ${matches.length} unqueued matches`)
-    await this.publisher.publishUnqueuedMatches(matches)
-  }
-
-  private async publisNoBlock (): Promise<void> {
-    await this.publisher.publishBlock(null)
-  }
-
-  async loadQualState (): Promise<void> {
-    const matches = await this.repo.getQuals()
-    this.logger.log(`Loaded ${matches.length} matches`)
-    await this.publisher.publishMatchlist(matches)
-    await this.publishBlock()
-    await this.publishUnqueuedQuals()
-  }
-
-  async loadElimsState (): Promise<void> {
-    const matches = await this.repo.getElims()
-    this.logger.log(`Loaded ${matches.length} matches`)
-    await this.publisher.publishMatchlist(matches)
-
-    const block = await this.repo.getCurrentBlock()
-    if (block === null) {
-      this.logger.log('No block in process')
-      await this.publisNoBlock()
-    } else {
-      this.logger.log(`Block ${block.name} in process`)
-      await this.publishBlock()
-    }
-  }
-
-  private async publishBlock (): Promise<void> {
-    const block = await this.repo.getCurrentBlock()
-    if (block === null) {
-      await this.publisher.publishBlock(null)
-      return
-    }
-
-    await this.publisher.publishBlock(block.name)
-    await this.publishUnqueuedQuals()
+  async updateSittingStatus (sitting: number, status: SittingStatus): Promise<void> {
+    await this.repo.updateSittingStatus(sitting, status)
   }
 
   async startNextBlock (): Promise<void> {
-    const block = await this.repo.getCurrentBlock()
+    const currentBlock = await this.repo.getCurrentBlock()
 
-    if (block !== null) {
-      this.logger.log(`Ending block ${block.name}`)
-      await this.repo.endCurrentBlock()
-      await this.publishBlock()
-      return
+    if (currentBlock !== null) {
+      throw new BadRequestException('Block already in progress')
     }
 
-    const nextBlockExists = await this.repo.startNextBlock()
+    const block = await this.repo.getNextBlock()
 
-    if (nextBlockExists) {
-      this.logger.log('Next block exists, publishing')
-      await this.publishBlock()
-    } else {
-      this.logger.log('No more blocks, advancing stage')
-      await this.stage.advanceStage()
-    }
-  }
-
-  async updateMatchStatus (match: number, status: MatchStatus): Promise<void> {
-    await this.repo.updateMatchStatus(match, status)
-    await this.publishUnqueuedQuals()
-  }
-
-  async reconcileQueued (queuedMatches: Match[]): Promise<void> {
-    const storedQueuedMatches = await this.repo.getQueuedMatches()
-    const storedScoringMatches = await this.repo.getScoringMatches()
-
-    const validMatches = [...storedQueuedMatches, ...storedScoringMatches]
-
-    for (const validMatch of validMatches) {
-      const match = queuedMatches.find(match => match.id === validMatch.id)
-      if (match === undefined) {
-        this.logger.warn(`Match ${validMatch.id} is queued but not in queue, fixing`)
-        await this.repo.updateMatchStatus(validMatch.id, MatchStatus.NOT_STARTED)
-      }
+    if (block === null) {
+      throw new BadRequestException('No next block to start')
     }
 
-    for (const providedMatch of queuedMatches) {
-      const match = validMatches.find(match => match.id === providedMatch.id)
-      if (match === undefined) {
-        this.logger.warn(`Match ${providedMatch.id} is in queue but not queued, fixing`)
-        await this.repo.updateMatchStatus(providedMatch.id, MatchStatus.QUEUED)
-      }
+    await this.repo.markBlockStatus(block.id, BlockStatus.IN_PROGRESS)
+  }
+
+  async concludeBlock (): Promise<BlockEntity> {
+    const currentBlock = await this.repo.getCurrentBlock()
+
+    if (currentBlock === null) {
+      throw new BadRequestException('No block in progress')
     }
 
-    await this.publishUnqueuedQuals()
-  }
-
-  async getUnqueuedMatches (): Promise<Match[]> {
-    return await this.repo.getUnqueuedQuals(true)
-  }
-
-  async removeFieldAssignment (match: number): Promise<void> {
-    await this.repo.removeFieldAssignment(match)
-    await this.publishUnqueuedQuals()
-  }
-
-  async createElimsBlock (): Promise<number> {
-    return await this.repo.createElimsBlock()
-  }
-
-  async createElimsMatch (match: ElimsMatch): Promise<void> {
-    const existingMatch = await this.repo.getMatch(match.identifier)
-
-    if (existingMatch !== null) {
-      return
-    }
-
-    this.logger.log(`Creating match ${JSON.stringify(match.identifier)}`)
-    await this.repo.createElimsMatch(match)
-  }
-
-  async getMatch (match: number): Promise<Match | null> {
-    return await this.repo.getMatchById(match)
-  }
-
-  async findByIdent (ident: MatchIdentifier): Promise<Match> {
-    return await this.repo.findByIdent(ident)
+    await this.repo.markBlockStatus(currentBlock.id, BlockStatus.FINISHED)
+    return currentBlock
   }
 }

@@ -1,16 +1,16 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
 import { HttpModule } from '@nestjs/axios'
 import { StorageModule } from '../storage'
-import { TmController } from './tm.controller'
-import { TmPublisher } from './tm.publisher'
 import { TmService } from './tm.service'
-import { StatusModule } from '../status'
+import { TmResolver } from './tm.resolver'
+import { TmConnectedEvent } from './tm-connected.event'
+import { TeamModule } from '../../features/team/team.module'
+import { StageModule } from '../../features/stage/stage.module'
 
 @Module({
-  controllers: [TmController],
-  imports: [HttpModule, StorageModule, StatusModule],
-  providers: [TmInternal, TmPublisher, TmService],
-  exports: [TmService]
+  imports: [HttpModule, StorageModule, forwardRef(() => TeamModule), StageModule],
+  providers: [TmInternal, TmService, TmResolver, TmConnectedEvent],
+  exports: [TmService, TmConnectedEvent]
 })
 export class TmModule {}

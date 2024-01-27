@@ -1,167 +1,97 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '@/utils'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { CompetitionFieldEntity } from './competition-field.entity'
+import { Repository } from 'typeorm'
+import { SittingEntity } from '../match/sitting.entity'
+import { FieldEntity } from '../../field/field.entity'
 
 @Injectable()
 export class CompetitionFieldRepo {
   private readonly logger: Logger = new Logger(CompetitionFieldRepo.name)
 
-  constructor (private readonly repo: PrismaService) {}
+  constructor (@InjectRepository(CompetitionFieldEntity) private readonly repo: Repository<CompetitionFieldEntity>) {}
 
-  async getMatchOnField (fieldId: number): Promise<number | null> {
-    const field = await this.repo.field.findUnique({
-      where: {
-        id: fieldId
-      },
-      select: {
-        onField: {
-          select: {
-            matchId: true
-          }
-        }
-      }
-    })
+  async getAllFields (): Promise<CompetitionFieldEntity[]> {
+    return await this.repo.find()
+  }
 
-    if (field === null) {
-      this.logger.warn(`Field ${fieldId} not found`)
-      throw new NotFoundException(`Field ${fieldId} not found`)
+  async getOnFieldSitting (fieldId: number): Promise<SittingEntity | null> {
+    const data = await this.repo.findOne({ where: { fieldId }, relations: ['onFieldSitting'] })
+
+    if (data === null) return null
+
+    return data.onFieldSitting
+  }
+
+  async getOnTableSitting (fieldId: number): Promise<SittingEntity | null> {
+    const data = await this.repo.findOne({ where: { fieldId }, relations: ['onTableSitting'] })
+
+    if (data === null) return null
+
+    return data.onTableSitting
+  }
+
+  async removeOnFieldSitting (fieldId: number): Promise<void> {
+    // remove the relation but don't actually delete the sitting
+    const data = await this.repo.findOneOrFail({ where: { fieldId } })
+    data.onFieldSittingId = null
+    await this.repo.save(data)
+  }
+
+  async removeOnTableSitting (fieldId: number): Promise<void> {
+    // remove the relation but don't actually delete the sitting
+    const data = await this.repo.findOneOrFail({ where: { fieldId } })
+    data.onTableSittingId = null
+    await this.repo.save(data)
+  }
+
+  async moveOnTableToField (fieldId: number): Promise<void> {
+    const data = await this.repo.findOneOrFail({ where: { fieldId } })
+    const onTable = data.onTableSittingId
+
+    if (onTable === null) {
+      throw new BadRequestException('No sitting on deck')
     }
 
-    if (field.onField === null) {
-      return null
-    }
-
-    return field.onField.matchId
+    data.onFieldSittingId = onTable
+    data.onTableSittingId = null
+    await this.repo.save(data)
   }
 
-  async getMatchOnDeck (fieldId: number): Promise<number | null> {
-    const field = await this.repo.field.findUnique({
-      where: {
-        id: fieldId
-      },
-      select: {
-        onDeck: {
-          select: {
-            matchId: true
-          }
-        }
-      }
-    })
-
-    if (field === null) {
-      this.logger.warn(`Field ${fieldId} not found`)
-      throw new NotFoundException(`Field ${fieldId} not found`)
-    }
-
-    if (field.onDeck === null) {
-      return null
-    }
-
-    return field.onDeck.matchId
+  async putOnField (fieldId: number, sittingId: number): Promise<void> {
+    await this.repo.update({ fieldId }, { onFieldSittingId: sittingId })
   }
 
-  async removeOnField (fieldId: number): Promise<void> {
-    await this.repo.field.update({
-      where: {
-        id: fieldId
-      },
-      data: {
-        onField: {
-          delete: true
-        }
-      }
-    })
+  async putOnTable (fieldId: number, sittingId: number): Promise<void> {
+    await this.repo.update({ fieldId }, { onTableSittingId: sittingId })
   }
 
-  async removeOnDeck (fieldId: number): Promise<void> {
-    await this.repo.field.update({
-      where: {
-        id: fieldId
-      },
-      data: {
-        onDeck: {
-          delete: true
-        }
-      }
-    })
-  }
-
-  async moveOnDeckToOnField (fieldId: number): Promise<void> {
-    const matchId = await this.getMatchOnDeck(fieldId)
-
-    if (matchId === null) {
-      throw new Error(`Field ${fieldId} has no match on deck`)
-    }
-
-    await this.repo.onDeckMatch.delete({
-      where: {
-        matchId
-      }
-    })
-
-    await this.repo.onFieldMatch.create({
-      data: {
-        fieldId,
-        matchId
-      }
-    })
-  }
-
-  async putOnField (fieldId: number, matchId: number): Promise<void> {
-    await this.repo.onFieldMatch.create({
-      data: {
-        fieldId,
-        matchId
-      }
-    })
-  }
-
-  async putOnDeck (fieldId: number, matchId: number): Promise<void> {
-    await this.repo.onDeckMatch.create({
-      data: {
-        fieldId,
-        matchId
-      }
-    })
-  }
-
-  async getMatchLocation (matchId: number): Promise<{ fieldId: number, location: 'ON_DECK' | 'ON_FIELD' }> {
-    const field = await this.repo.field.findFirst({
-      where: {
-        onDeck: {
-          matchId
-        }
-      },
-      select: {
-        id: true
-      }
-    })
-
-    if (field !== null) {
+  async getSittingLocation (sittingId: number): Promise<{ fieldId: number, location: 'ON_TABLE' | 'ON_FIELD' }> {
+    const onTableAt = await this.repo.findOne({ where: { onTableSittingId: sittingId } })
+    if (onTableAt !== null) {
       return {
-        fieldId: field.id,
-        location: 'ON_DECK'
+        fieldId: onTableAt.fieldId,
+        location: 'ON_TABLE'
       }
     }
 
-    const field2 = await this.repo.field.findFirst({
-      where: {
-        onField: {
-          matchId
-        }
-      },
-      select: {
-        id: true
-      }
-    })
-
-    if (field2 !== null) {
+    const onFieldAt = await this.repo.findOne({ where: { onFieldSittingId: sittingId } })
+    if (onFieldAt !== null) {
       return {
-        fieldId: field2.id,
+        fieldId: onFieldAt.fieldId,
         location: 'ON_FIELD'
       }
     }
 
-    this.logger.warn(`Match ${matchId} is not on field or on deck`)
-    throw new BadRequestException(`Match ${matchId} is not on field or on deck`)
+    this.logger.warn(`Sitting ${sittingId} is not on field or on deck`)
+    throw new BadRequestException(`Sitting ${sittingId} is not on field or on deck`)
+  }
+
+  async getCompetitionField (fieldId: number): Promise<CompetitionFieldEntity | null> {
+    return await this.repo.findOne({ where: { fieldId } })
+  }
+
+  async createCompetitionField (field: FieldEntity): Promise<CompetitionFieldEntity> {
+    return await this.repo.save({ fieldId: field.id })
   }
 }

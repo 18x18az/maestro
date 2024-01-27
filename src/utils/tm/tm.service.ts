@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
-import { ElimsMatch, MatchResult, TmReturn } from './tm.interface'
-import { Alliance, MatchIdentifier, Round } from '../../features/competition/match'
+import { ElimsMatch, MatchIdentifier, MatchResult, TmReturn } from './tm.interface'
+import { Alliance, Round } from '../../features/competition/match/match.interface'
 
 @Injectable()
 export class TmService {
@@ -58,18 +58,18 @@ export class TmService {
         round = Round.F
       }
 
-      let matchNumber: number = 0
-      let matchSitting: number = 0
+      let contestNumber: number = 0
+      let matchNumber: number = 1
       if (round === Round.QUAL) {
-        matchNumber = parseInt(matchName.substring(1))
+        contestNumber = parseInt(matchName.substring(1))
       } else if (round === Round.F) {
-        matchNumber = 1
-        matchSitting = parseInt(matchName.split(' ')[1])
+        contestNumber = 1
+        matchNumber = parseInt(matchName.split(' ')[1])
       } else {
         const info = matchName.split(' ')[1]
         const parts = info.split('-')
-        matchNumber = parseInt(parts[0])
-        matchSitting = parseInt(parts[1])
+        contestNumber = parseInt(parts[0])
+        matchNumber = parseInt(parts[1])
       }
 
       const red: Alliance = {
@@ -83,8 +83,8 @@ export class TmService {
 
       const identifier: MatchIdentifier = {
         round,
-        matchNumber,
-        sitting: matchSitting
+        contest: contestNumber,
+        match: matchNumber
 
       }
 
