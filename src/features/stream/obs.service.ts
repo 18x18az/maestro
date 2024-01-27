@@ -1,10 +1,6 @@
-import { BaseStatus, StatusPublisher } from '@/utils'
 import { Injectable, Logger } from '@nestjs/common'
 import OBSWebSocket from 'obs-websocket-js'
-import { StreamPublisher } from './stream.publisher'
 import { EventEmitter } from 'events'
-
-const STATUS_TOPIC = 'obs'
 
 @Injectable()
 export class ObsService {
@@ -17,11 +13,6 @@ export class ObsService {
 
   private currentSceneName: string | undefined
   private currentPreviewSceneName: string | undefined
-
-  constructor (
-    private readonly status: StatusPublisher,
-    private readonly publisher: StreamPublisher
-  ) { }
 
   async onModuleInit (): Promise<void> {
     void this.tryConnect()
@@ -36,17 +27,14 @@ export class ObsService {
 
   private async onPreviewSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentPreviewSceneName = data.sceneName
-    await this.publisher.publishPreviewScene(data.sceneName)
   }
 
   private async onProgramSceneChanged (data: { sceneName: string }): Promise<void> {
     this.currentSceneName = data.sceneName
-    await this.publisher.publishActiveScene(data.sceneName)
     this.emitter.emit('activeSceneChange', data.sceneName)
   }
 
   private async onObsConnected (): Promise<void> {
-    await this.status.publishStatus(STATUS_TOPIC, BaseStatus.NOMINAL)
     this.isConnected = true
     this.logger.log('Connected to OBS')
   }
@@ -62,7 +50,6 @@ export class ObsService {
 
   private async onObsDisconnected (): Promise<void> {
     if (this.isConnected) {
-      await this.status.publishStatus(STATUS_TOPIC, BaseStatus.OFFLINE)
       this.isConnected = false
       this.logger.warn('Disconnected from OBS')
       await this.tryConnect()
