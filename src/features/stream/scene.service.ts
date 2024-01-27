@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Camera } from './camera.service'
 import { ObsService } from './obs.service'
 import { HttpService } from '@nestjs/axios'
-import { StreamPublisher } from './stream.publisher'
-import { StreamDisplayStage } from './stream.interface'
 
 export class Scene {
   private camera: Camera | null = null
@@ -41,8 +39,7 @@ export class SceneService {
   private readonly scenes: Scene[] = []
   constructor (
     private readonly obs: ObsService,
-    private readonly request: HttpService,
-    private readonly publisher: StreamPublisher
+    private readonly request: HttpService
   ) {
     this.scenes.push(new Scene('Field 1'))
     this.scenes.push(new Scene('Field 2'))
@@ -80,7 +77,6 @@ export class SceneService {
     }
 
     await previewScene.setIsActiveScene(true)
-    await this.publisher.publishDisplayStage(StreamDisplayStage.TRANSITIONING)
     await this.obs.transition()
   }
 
