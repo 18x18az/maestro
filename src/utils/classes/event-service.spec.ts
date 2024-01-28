@@ -8,11 +8,11 @@ interface AdditionalContext extends TestContext {
   bar: string
 }
 
-class SimpleEventService extends EventService<TestContext, TestContext> {
+class SimpleEventService extends EventService<TestContext, TestContext, TestContext> {
   doExecute = jest.fn()
 }
 
-class AdditionalContextEventService extends EventService<TestContext, AdditionalContext> {
+class AdditionalContextEventService extends EventService<TestContext, AdditionalContext, AdditionalContext> {
   doExecute = jest.fn()
   getContext = async (context: TestContext): Promise<AdditionalContext> => await Promise.resolve({ ...context, bar: 'baz' })
 }
@@ -23,6 +23,7 @@ describe('EventService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     service = new SimpleEventService()
+    service.doExecute.mockImplementation(async (payload: any) => await Promise.resolve(payload))
   })
 
   describe('doExecute', () => {
@@ -38,6 +39,7 @@ describe('EventService', () => {
 
     it('should receive additional context if getContext is overridden', async () => {
       const contextService = new AdditionalContextEventService()
+      contextService.doExecute.mockImplementation(async (payload: any) => await Promise.resolve(payload))
       await contextService.execute(data)
       expect(contextService.doExecute).toBeCalledWith({ ...data, bar: 'baz' })
     })
@@ -71,6 +73,7 @@ describe('EventService', () => {
     it('should receive additional context if getContext is overridden', async () => {
       const callback = jest.fn()
       const contextService = new AdditionalContextEventService()
+      contextService.doExecute.mockImplementation(async (payload: any) => await Promise.resolve(payload))
       contextService.registerBefore(callback)
       await contextService.execute(data)
       expect(callback).toBeCalledWith({ ...data, bar: 'baz' })
@@ -105,6 +108,7 @@ describe('EventService', () => {
     it('should receive additional context if getContext is overridden', async () => {
       const callback = jest.fn()
       const contextService = new AdditionalContextEventService()
+      contextService.doExecute.mockImplementation(async (payload: any) => await Promise.resolve(payload))
       contextService.registerAfter(callback)
       await contextService.execute(data)
       expect(callback).toBeCalledWith({ ...data, bar: 'baz' })
@@ -139,6 +143,7 @@ describe('EventService', () => {
     it('should receive additional context if getContext is overridden', async () => {
       const callback = jest.fn()
       const contextService = new AdditionalContextEventService()
+      contextService.doExecute.mockImplementation(async (payload: any) => await Promise.resolve(payload))
       contextService.registerOnComplete(callback)
       await contextService.execute(data)
       expect(callback).toBeCalledWith({ ...data, bar: 'baz' })
