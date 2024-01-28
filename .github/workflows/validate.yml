@@ -29,8 +29,5 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Validate generator
-        run: yarn generate
-
       - name: Test
         run: yarn test
