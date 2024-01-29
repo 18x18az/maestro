@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@fastify/compress": "^6.5.0",
-    "@fastify/multipart": "^8.0.0",
+    "@fastify/multipart": "^8.1.0",
     "@mercuriusjs/gateway": "^2.1.0",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^10.2.6",
