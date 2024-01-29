@@ -389,6 +389,7 @@ type Mutation {
   concludeBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
+  addField: Field!
   deleteField(fieldId: Int!): [Field!]!
   setSkillsEnabled(enabled: Boolean!): [Field!]!
   startField(fieldId: Int!): FieldControl!
