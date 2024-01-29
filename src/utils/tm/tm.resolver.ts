@@ -1,6 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { TournamentManager, TournamentManagerSetup } from './tm.object'
-import { TmStatus } from './tm.interface'
 import { TmInternal } from './tm.internal'
 
 @Resolver(of => TournamentManager)
@@ -19,9 +18,10 @@ export class TmResolver {
   async configureTournamentManager (
     @Args({ name: 'settings', type: () => TournamentManagerSetup }) settings: TournamentManagerSetup
   ): Promise<TournamentManager> {
-    await this.service.setURL(settings.url)
+    const status = await this.service.setConfig(settings.url, settings.password)
     return {
-      status: TmStatus.CONNECTED
+      status,
+      url: this.service.getUrl()
     }
   }
 }

@@ -7,13 +7,15 @@ import { TmConnectedEvent } from './tm-connected.event'
 import { TeamListUpdateEvent } from '../../features/team/team-list-update.event'
 import { EventResetEvent } from '../../features/stage/event-reset.event'
 
-const STORAGE_KEY = 'tm'
+const URL_KEY = 'tm'
+const PASSWORD_KEY = 'tm-password'
 
 @Injectable()
 export class TmInternal {
   private readonly logger = new Logger(TmInternal.name)
 
   private tmUrl: URL | undefined
+  private tmPassword: string | undefined
   private status: TmStatus = TmStatus.INITIALIZING
 
   constructor (
@@ -27,7 +29,7 @@ export class TmInternal {
   }
 
   async onApplicationBootstrap (): Promise<void> {
-    const loaded = await this.storage.getPersistent(STORAGE_KEY, '')
+    const loaded = await this.storage.getPersistent(URL_KEY, '')
 
     if (loaded === '') {
       this.status = TmStatus.NOT_CONFIGURED
@@ -70,17 +72,45 @@ export class TmInternal {
   private async tryConnect (): Promise<void> {
     const url = this.tmUrl
     if (url === undefined) {
-      this.logger.warn('TM address not set')
-      this.status = TmStatus.NOT_CONFIGURED
+      if (this.status !== TmStatus.NOT_CONFIGURED) {
+        this.logger.warn('TM address not set')
+        this.status = TmStatus.NOT_CONFIGURED
+      }
       return
     }
 
     const isConnected = await this.tryURL(url)
 
-    if (isConnected && this.status !== TmStatus.CONNECTED) {
+    if (!isConnected) {
+      if (this.status !== TmStatus.DISCONNECTED) {
+        this.logger.warn('TM disconnected')
+        this.status = TmStatus.DISCONNECTED
+      }
+      return
+    }
+
+    const password = await this.storage.getPersistent(PASSWORD_KEY, '')
+    if (password === '') {
+      if (this.status !== TmStatus.AUTH_ERROR) {
+        this.logger.warn('TM password not set')
+        this.status = TmStatus.AUTH_ERROR
+      }
+      return
+    }
+
+    const isLoggedIn = await this.tryLogin(password)
+
+    if (!isLoggedIn) {
+      if (this.status !== TmStatus.AUTH_ERROR) {
+        this.logger.warn('Invalid TM password')
+        this.status = TmStatus.AUTH_ERROR
+      }
+      return
+    }
+
+    if (this.status !== TmStatus.CONNECTED) {
+      this.logger.log('TM Connected')
       await this.onConnect()
-    } else if (!isConnected && this.status !== TmStatus.DISCONNECTED) {
-      await this.onDisconnect()
     }
   }
 
@@ -176,7 +206,35 @@ export class TmInternal {
     await this.teamCreate.execute({ teams })
   }
 
-  async setURL (url: URL): Promise<void> {
+  async tryLogin (password: string): Promise<boolean> {
+    const baseUrl = this.tmUrl
+    if (baseUrl === undefined) {
+      throw new Error('TM address not set')
+    }
+
+    const url = `${baseUrl.href}admin/login`
+
+    // form data with user admin, password password, and submit login
+    const formData = new URLSearchParams()
+    formData.append('user', 'admin')
+    formData.append('password', password)
+    formData.append('submit', '')
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData
+    })
+
+    const data = await response.text()
+
+    if (data.includes('Invalid username or password')) {
+      return false
+    }
+
+    return true
+  }
+
+  async setConfig (url: URL, password: string): Promise<TmStatus> {
     if (this.status === TmStatus.CONNECTED) {
       this.logger.warn('Attempted to set TM address while connected')
       throw new BadRequestException('TM already connected')
@@ -191,7 +249,19 @@ export class TmInternal {
 
     this.logger.log(`Connected to TM at ${url.href}`)
     this.tmUrl = url
-    await this.storage.setPersistent(STORAGE_KEY, url.toJSON())
+    await this.storage.setPersistent(URL_KEY, url.toJSON())
     await this.connectedEvent.execute()
+
+    const isLoggedIn = await this.tryLogin(password)
+
+    if (!isLoggedIn) {
+      this.logger.warn('Invalid TM password')
+      return TmStatus.AUTH_ERROR
+    }
+
+    this.logger.log('Authorized with TM')
+    this.tmPassword = password
+    await this.storage.setPersistent(PASSWORD_KEY, password)
+    return TmStatus.CONNECTED
   }
 }

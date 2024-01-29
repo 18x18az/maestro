@@ -7,6 +7,9 @@ import { GraphQLURL } from 'graphql-scalars'
 export class TournamentManagerSetup {
   @Field(() => GraphQLURL, { description: 'The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42' })
     url: URL
+
+  @Field(() => String, { description: 'The password for Tournament Manager' })
+    password: string
 }
 
 @ObjectType()
