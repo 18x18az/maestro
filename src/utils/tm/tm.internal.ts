@@ -130,8 +130,8 @@ export class TmInternal {
   }
 
   private async tryURL (url: URL): Promise<boolean> {
-    const response = await fetch(url)
-    const data = await response.text()
+    const response = await this.client.get(url.href)
+    const data = JSON.stringify(response.data)
 
     if (data === null) {
       return false
@@ -163,8 +163,8 @@ export class TmInternal {
 
     const url = `${this.tmUrl.href}${resource}`
 
-    const response = await fetch(url)
-    const data = await response.text()
+    const response = await this.client.get(url)
+    const data = JSON.stringify(response.data)
 
     if (data === null) {
       await this.onDisconnect()
