@@ -4,8 +4,11 @@ import { parse, HTMLElement } from 'node-html-parser'
 import { TeamInformation, TmStatus } from './tm.interface'
 import { Cron } from '@nestjs/schedule'
 import { TmConnectedEvent } from './tm-connected.event'
-import { TeamListUpdateEvent } from '../../features/team/team-list-update.event'
-import { EventResetEvent } from '../../features/stage/event-reset.event'
+import { TeamListUpdateEvent } from '@/features/team/team-list-update.event'
+import { EventResetEvent } from '@/features/stage/event-reset.event'
+import axios from 'axios'
+import { wrapper } from 'axios-cookiejar-support'
+import { CookieJar } from 'tough-cookie'
 
 const URL_KEY = 'tm'
 const PASSWORD_KEY = 'tm-password'
@@ -17,6 +20,8 @@ export class TmInternal {
   private tmUrl: URL | undefined
   private tmPassword: string | undefined
   private status: TmStatus = TmStatus.INITIALIZING
+  private readonly cookieJar = new CookieJar()
+  private readonly client = wrapper(axios.create({ jar: this.cookieJar }))
 
   constructor (
     private readonly storage: StorageService,
@@ -38,6 +43,16 @@ export class TmInternal {
     }
 
     this.tmUrl = new URL(loaded)
+
+    const password = await this.storage.getPersistent(PASSWORD_KEY, '')
+
+    if (password === '') {
+      this.status = TmStatus.AUTH_ERROR
+      this.logger.warn('TM password not set')
+      return
+    }
+
+    this.tmPassword = password
 
     this.status = TmStatus.DISCONNECTED
   }
@@ -62,7 +77,7 @@ export class TmInternal {
 
   @Cron('*/10 * * * * *')
   async handleCron (): Promise<void> {
-    if (this.status !== TmStatus.CONNECTED && this.status !== TmStatus.DISCONNECTED) {
+    if (this.status !== TmStatus.CONNECTED && this.status !== TmStatus.DISCONNECTED && this.status !== TmStatus.AUTH_ERROR) {
       return
     }
 
@@ -89,8 +104,8 @@ export class TmInternal {
       return
     }
 
-    const password = await this.storage.getPersistent(PASSWORD_KEY, '')
-    if (password === '') {
+    const password = this.tmPassword
+    if (password === undefined) {
       if (this.status !== TmStatus.AUTH_ERROR) {
         this.logger.warn('TM password not set')
         this.status = TmStatus.AUTH_ERROR
@@ -214,20 +229,15 @@ export class TmInternal {
 
     const url = `${baseUrl.href}admin/login`
 
-    // form data with user admin, password password, and submit login
     const formData = new URLSearchParams()
     formData.append('user', 'admin')
     formData.append('password', password)
     formData.append('submit', '')
 
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData
-    })
+    const response = await this.client.post(url, formData)
+    const body = JSON.stringify(response.data)
 
-    const data = await response.text()
-
-    if (data.includes('Invalid username or password')) {
+    if (body.includes('Invalid username or password')) {
       return false
     }
 
