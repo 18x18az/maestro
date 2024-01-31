@@ -41,4 +41,24 @@ export class InspectionRepo {
 
     return point.teamsMet.some(team => team.id === teamId)
   }
+
+  async markInspectionPointMet (pointId: number, teamId: number): Promise<void> {
+    const point = await this.inspectionPointRepo.findOne({ where: { id: pointId }, relations: ['teamsMet'] })
+
+    if (point === null) throw new BadRequestException(`Inspection point ${pointId} does not exist`)
+
+    if (point.teamsMet.some(team => team.id === teamId)) return
+
+    point.teamsMet.push({ id: teamId } as any)
+    await this.inspectionPointRepo.save(point)
+  }
+
+  async markInspectionPointUnmet (pointId: number, teamId: number): Promise<void> {
+    const point = await this.inspectionPointRepo.findOne({ where: { id: pointId }, relations: ['teamsMet'] })
+
+    if (point === null) throw new BadRequestException(`Inspection point ${pointId} does not exist`)
+
+    point.teamsMet = point.teamsMet.filter(team => team.id !== teamId)
+    await this.inspectionPointRepo.save(point)
+  }
 }

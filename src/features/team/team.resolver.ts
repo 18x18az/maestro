@@ -22,6 +22,11 @@ export class TeamResolver {
     return await this.repo.getTeams()
   }
 
+  @Query(() => Team)
+  async team (@Args({ name: 'teamId', type: () => Int }) teamId: number): Promise<TeamEntity> {
+    return await this.repo.getTeam(teamId)
+  }
+
   @ResolveField(() => Int)
   async rank (@Parent() team: TeamEntity): Promise<number | null> {
     return this.rankService.getRanking(team.number)
@@ -35,5 +40,11 @@ export class TeamResolver {
   @Mutation(() => Team)
   async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Checkin }) status: Checkin): Promise<TeamEntity> {
     return await this.checkin.markCheckinStatus(teamId, status)
+  }
+
+  @Mutation(() => Team)
+  async setInspectionPoint (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'pointId', type: () => Int }) pointId: number, @Args({ name: 'isMet', type: () => Boolean }) isMet: boolean): Promise<TeamEntity> {
+    await this.inspectionService.setTeamInspectionPoint(teamId, pointId, isMet)
+    return await this.repo.getTeam(teamId)
   }
 }

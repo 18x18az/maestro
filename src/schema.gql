@@ -446,6 +446,7 @@ type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
   teams: [Team!]!
+  team(teamId: Int!): Team!
   stage: Stage!
   blocks: [Block!]!
   currentBlock: Block
@@ -473,6 +474,7 @@ type Mutation {
   allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   markCheckin(teamId: Int!, status: Checkin!): Team!
+  setInspectionPoint(teamId: Int!, pointId: Int!, isMet: Boolean!): Team!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!

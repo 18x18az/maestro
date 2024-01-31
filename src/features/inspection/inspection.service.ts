@@ -76,4 +76,12 @@ export class InspectionService {
   async isInspectionPointMet (pointId: number, teamId: number): Promise<boolean> {
     return await this.repo.isInspectionPointMet(pointId, teamId)
   }
+
+  async setTeamInspectionPoint (teamId: number, pointId: number, isMet: boolean): Promise<void> {
+    if (isMet) {
+      await this.repo.markInspectionPointMet(pointId, teamId)
+    } else {
+      await this.repo.markInspectionPointUnmet(pointId, teamId)
+    }
+  }
 }
