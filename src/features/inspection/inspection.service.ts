@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InspectionRepo } from './inspection.repo'
 import { vrcPoints } from './vrc.points'
-import { Program } from './inspection.interface'
+import { InspectionRollup, Program } from './inspection.interface'
 import { InspectionGroupEntity } from './inspection-group.entity'
 import { InspectionPointEntity } from './inspection-point.entity'
+import { TeamListUpdateContext, TeamListUpdateEvent } from '../team/team-list-update.event'
+import { TeamService } from '../team/team.service'
 
 interface InspectionPointSeed {
   text: string
@@ -20,10 +22,31 @@ export class TeamInspectionPointEntity extends InspectionPointEntity {
 
 @Injectable()
 export class InspectionService {
-  constructor (private readonly repo: InspectionRepo) {}
+  private readonly summary: Map<number, InspectionRollup> = new Map()
+  constructor (
+    private readonly repo: InspectionRepo,
+    private readonly teamUpdate: TeamListUpdateEvent,
+    private readonly teams: TeamService
+  ) {}
 
   async onModuleInit (): Promise<void> {
     await this.loadInspectionPoints(vrcPoints, Program.VRC)
+    this.teamUpdate.registerOnComplete(this.onTeamListUpdate.bind(this))
+  }
+
+  async onTeamListUpdate (data: TeamListUpdateContext): Promise<void> {
+    const rollupPromises = data.teams.map(async team => {
+      const { id } = await this.teams.getTeamByNumber(team.number)
+      await this.rollup(id)
+    })
+
+    await Promise.all(rollupPromises)
+  }
+
+  getInspectionSummary (teamId: number): InspectionRollup {
+    const summary = this.summary.get(teamId)
+    if (summary === undefined) throw new BadRequestException('No inspection summary for team')
+    return summary
   }
 
   async loadInspectionPoints (points: InspectionPointSeed[], program: Program): Promise<void> {
@@ -39,6 +62,47 @@ export class InspectionService {
 
   async getInspectionGroups (): Promise<InspectionGroupEntity[]> {
     return await this.repo.getInspectionGroups()
+  }
+
+  async rollup (teamId: number): Promise<void> {
+    const groups = await this.repo.getInspectionGroups()
+
+    let allMet = true
+    let allUnmet = true
+
+    for (const group of groups) {
+      const points = await this.repo.getInspectionPoints(group.id)
+
+      for (const point of points) {
+        const isMet = await this.repo.isInspectionPointMet(point.id, teamId)
+
+        if (!isMet) {
+          allMet = false
+          if (!allUnmet && !allMet) {
+            break
+          }
+        }
+
+        if (isMet) {
+          allUnmet = false
+          if (!allUnmet && !allMet) {
+            break
+          }
+        }
+      }
+
+      if (!allUnmet && !allMet) {
+        break
+      }
+    }
+
+    if (allMet) {
+      this.summary.set(teamId, InspectionRollup.COMPLETE)
+    } else if (allUnmet) {
+      this.summary.set(teamId, InspectionRollup.NOT_STARTED)
+    } else {
+      this.summary.set(teamId, InspectionRollup.IN_PROGRESS)
+    }
   }
 
   async getTeamInspectionGroups (teamId: number): Promise<TeamInspectionGroupEntity[]> {
@@ -83,5 +147,6 @@ export class InspectionService {
     } else {
       await this.repo.markInspectionPointUnmet(pointId, teamId)
     }
+    await this.rollup(teamId)
   }
 }

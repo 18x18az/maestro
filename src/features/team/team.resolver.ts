@@ -7,6 +7,7 @@ import { Checkin } from './team.interface'
 import { CheckinService } from './checkin.service'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
+import { InspectionRollup } from '../inspection/inspection.interface'
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -35,6 +36,11 @@ export class TeamResolver {
   @ResolveField(() => TeamInspectionGroup)
   async inspection (@Parent() team: TeamEntity): Promise<TeamInspectionGroupEntity[]> {
     return await this.inspectionService.getTeamInspectionGroups(team.id)
+  }
+
+  @ResolveField(() => InspectionRollup)
+  inspectionStatus (@Parent() team: TeamEntity): InspectionRollup {
+    return this.inspectionService.getInspectionSummary(team.id)
   }
 
   @Mutation(() => Team)

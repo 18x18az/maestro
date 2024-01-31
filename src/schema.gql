@@ -122,6 +122,9 @@ type Team {
   """Rank of the team"""
   rank: Int
 
+  """Inspection status of the team"""
+  inspectionStatus: InspectionRollup!
+
   """All inspection groups applicable to the team"""
   inspection: [TeamInspectionGroup!]!
 
@@ -134,6 +137,12 @@ enum Checkin {
   NOT_HERE
   CHECKED_IN
   NO_SHOW
+}
+
+enum InspectionRollup {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
 }
 
 """
