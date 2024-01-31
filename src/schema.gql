@@ -369,6 +369,25 @@ type Award {
   winners: [Team!]
 }
 
+type InspectionPoint {
+  id: Int!
+  text: String!
+  program: Program!
+  group: InspectionGroup!
+}
+
+enum Program {
+  VRC
+  VEXU
+}
+
+type InspectionGroup {
+  id: Int!
+  program: Program!
+  text: String!
+  points: [InspectionPoint!]!
+}
+
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
@@ -384,6 +403,7 @@ type Query {
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
   awards: [Award!]!
+  inspectionGroups: [InspectionGroup!]!
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
