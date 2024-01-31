@@ -447,7 +447,7 @@ type Award {
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
-  teams: [Team!]!
+  teams(inspectionStatus: Inspection): [Team!]!
   team(teamId: Int!): Team!
   stage: Stage!
   blocks: [Block!]!

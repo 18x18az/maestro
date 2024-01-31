@@ -7,6 +7,7 @@ import { Inspection } from './team.interface'
 import { CheckinService } from './checkin.service'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
+import { FindTeamsArgs } from './dto/find-teams.args'
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -18,8 +19,20 @@ export class TeamResolver {
   ) {}
 
   @Query(() => [Team])
-  async teams (): Promise<TeamEntity[]> {
-    return await this.repo.getTeams()
+  async teams (@Args() args: FindTeamsArgs): Promise<TeamEntity[]> {
+    const { inspectionStatus, ...rest } = args
+    let teams = await this.repo.getTeams(rest)
+
+    if (inspectionStatus !== undefined) {
+      if (inspectionStatus === Inspection.NOT_HERE || inspectionStatus === Inspection.NO_SHOW) {
+        teams = teams.filter(team => team.checkin === inspectionStatus)
+      } else {
+        teams = teams.filter(team => team.checkin === Inspection.CHECKED_IN)
+        teams = teams.filter(team => this.inspectionService.getInspectionSummary(team.id) === inspectionStatus)
+      }
+    }
+
+    return teams
   }
 
   @Query(() => Team)

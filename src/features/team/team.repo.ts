@@ -4,13 +4,14 @@ import { TeamEntity } from './team.entity'
 import { Repository } from 'typeorm'
 import { TeamCreate } from './team.object'
 import { Inspection } from './team.interface'
+import { FindTeamsArgs } from './dto/find-teams.args'
 
 @Injectable()
 export class TeamRepo {
   private readonly logger = new Logger(TeamRepo.name)
   constructor (@InjectRepository(TeamEntity) private readonly teamRepository: Repository<TeamEntity>) {}
 
-  async getTeams (): Promise<TeamEntity[]> {
+  async getTeams (args?: FindTeamsArgs): Promise<TeamEntity[]> {
     return await this.teamRepository.find()
   }
 
