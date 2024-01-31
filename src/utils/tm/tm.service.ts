@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
-import { AwardResult, ElimsMatch, MatchIdentifier, MatchResult, TeamCheckin, TmReturn } from './tm.interface'
-import { Alliance, Round } from '../../features/competition/match/match.interface'
+import { AwardResult, ElimsMatch, MatchResult, TeamCheckin, TmReturn } from './tm.interface'
+import { Round } from '../../features/competition/match/match.interface'
+import { getAlliance, getMatchIdent } from './match-parser'
 
 @Injectable()
 export class TmService {
@@ -117,49 +118,12 @@ export class TmService {
       if (cells[0] === undefined) {
         return []
       }
+
       const matchName = cells[0].rawText
+      const identifier = getMatchIdent(matchName)
 
-      let round = Round.QUAL
-      if (matchName.startsWith('R16')) {
-        round = Round.Ro16
-      } else if (matchName.startsWith('QF')) {
-        round = Round.QF
-      } else if (matchName.startsWith('SF')) {
-        round = Round.SF
-      } else if (matchName.startsWith('F')) {
-        round = Round.F
-      }
-
-      let contestNumber: number = 0
-      let matchNumber: number = 1
-      if (round === Round.QUAL) {
-        contestNumber = parseInt(matchName.substring(1))
-      } else if (round === Round.F) {
-        contestNumber = 1
-        matchNumber = parseInt(matchName.split(' ')[1])
-      } else {
-        const info = matchName.split(' ')[1]
-        const parts = info.split('-')
-        contestNumber = parseInt(parts[0])
-        matchNumber = parseInt(parts[1])
-      }
-
-      const red: Alliance = {
-        team1: cells[1].rawText,
-        team2: cells[2].rawText
-      }
-
-      const blue: Alliance = {
-        team1: cells[3].rawText,
-        team2: cells[4].rawText
-      }
-
-      const identifier: MatchIdentifier = {
-        round,
-        contest: contestNumber,
-        match: matchNumber
-
-      }
+      const red = getAlliance(cells, 1)
+      const blue = getAlliance(cells, 3)
 
       const redScore = parseInt(cells[5].rawText)
       const blueScore = parseInt(cells[6].rawText)
