@@ -420,6 +420,7 @@ type Mutation {
   setAutomationEnabled(enabled: Boolean!): Competition!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
+  updateAwards: [Award!]!
   startTimeout: Timeout!
   cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!

@@ -1,4 +1,4 @@
-import { Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Award } from './award.object'
 import { AwardService } from './award.service'
 import { AwardEntity } from './award.entity'
@@ -17,5 +17,11 @@ export class AwardResolver {
   @ResolveField(() => [Team])
   async winners (award: AwardEntity): Promise<TeamEntity[] | null> {
     return await this.service.getWinners(award)
+  }
+
+  @Mutation(() => [Award])
+  async updateAwards (): Promise<AwardEntity[]> {
+    await this.service.updateAwards()
+    return await this.service.getAwards()
   }
 }
