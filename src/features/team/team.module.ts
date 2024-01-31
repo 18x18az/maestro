@@ -7,14 +7,17 @@ import { TeamEntity } from './team.entity'
 import { TeamListUpdateEvent } from './team-list-update.event'
 import { RankingModule } from '../ranking/ranking.module'
 import { StageModule } from '../stage/stage.module'
+import { TmModule } from '../../utils/tm/tm.module'
+import { CheckinService } from './checkin.service'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TeamEntity]),
     forwardRef(() => StageModule),
-    forwardRef(() => RankingModule)
+    forwardRef(() => RankingModule),
+    forwardRef(() => TmModule)
   ],
-  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent],
+  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService],
   exports: [TeamService, TeamListUpdateEvent]
 })
 export class TeamModule {}

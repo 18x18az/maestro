@@ -8,6 +8,11 @@ export interface TeamInformation {
   school: string
 }
 
+export interface TeamCheckin {
+  team: string
+  status: boolean
+}
+
 export const TeamsTopic = 'teams'
 
 export interface TmReturn {

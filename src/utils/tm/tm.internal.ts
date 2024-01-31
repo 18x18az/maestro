@@ -6,7 +6,7 @@ import { Cron } from '@nestjs/schedule'
 import { TmConnectedEvent } from './tm-connected.event'
 import { TeamListUpdateEvent } from '@/features/team/team-list-update.event'
 import { EventResetEvent } from '@/features/stage/event-reset.event'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { wrapper } from 'axios-cookiejar-support'
 import { CookieJar } from 'tough-cookie'
 
@@ -164,6 +164,7 @@ export class TmInternal {
     const url = `${this.tmUrl.href}${resource}`
 
     const response = await this.client.get(url)
+
     const data = JSON.stringify(response.data)
 
     if (data === null) {
@@ -221,20 +222,48 @@ export class TmInternal {
     await this.teamCreate.execute({ teams })
   }
 
-  async tryLogin (password: string): Promise<boolean> {
+  async sendJson (resource: string, data: Object): Promise<void> {
     const baseUrl = this.tmUrl
     if (baseUrl === undefined) {
       throw new Error('TM address not set')
     }
 
-    const url = `${baseUrl.href}admin/login`
+    const url = `${baseUrl.href}${resource}`
 
-    const formData = new URLSearchParams()
-    formData.append('user', 'admin')
-    formData.append('password', password)
-    formData.append('submit', '')
+    const config = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
 
-    const response = await this.client.post(url, formData)
+    await this.client.post(url, data, config)
+  }
+
+  async submitFormData (resource: string, fields: Object): Promise<AxiosResponse> {
+    const formData = new FormData()
+
+    for (const [key, value] of Object.entries(fields)) {
+      formData.append(key, value)
+    }
+
+    const baseUrl = this.tmUrl
+    if (baseUrl === undefined) {
+      throw new Error('TM address not set')
+    }
+
+    const url = `${baseUrl.href}${resource}`
+
+    return await this.client.post(url, formData)
+  }
+
+  async tryLogin (password: string): Promise<boolean> {
+    const data = {
+      user: 'admin',
+      password,
+      submit: ''
+    }
+
+    const response = await this.submitFormData('admin/login', data)
     const body = JSON.stringify(response.data)
 
     if (body.includes('Invalid username or password')) {

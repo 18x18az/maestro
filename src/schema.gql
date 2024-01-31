@@ -386,6 +386,7 @@ type Mutation {
   allianceSelectionUndo: AllianceSelection!
   allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+  markCheckin(teamId: Int!, status: Checkin!): Team!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
