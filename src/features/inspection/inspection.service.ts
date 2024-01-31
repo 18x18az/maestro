@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { InspectionRepo } from './inspection.repo'
 import { vrcPoints } from './vrc.points'
-import { InspectionRollup, Program } from './inspection.interface'
+import { Program } from './inspection.interface'
 import { InspectionGroupEntity } from './inspection-group.entity'
 import { InspectionPointEntity } from './inspection-point.entity'
 import { TeamListUpdateContext, TeamListUpdateEvent } from '../team/team-list-update.event'
 import { TeamService } from '../team/team.service'
+import { Inspection } from '../team/team.interface'
 
 interface InspectionPointSeed {
   text: string
@@ -22,7 +23,7 @@ export class TeamInspectionPointEntity extends InspectionPointEntity {
 
 @Injectable()
 export class InspectionService {
-  private readonly summary: Map<number, InspectionRollup> = new Map()
+  private readonly summary: Map<number, Inspection> = new Map()
   constructor (
     private readonly repo: InspectionRepo,
     private readonly teamUpdate: TeamListUpdateEvent,
@@ -43,7 +44,7 @@ export class InspectionService {
     await Promise.all(rollupPromises)
   }
 
-  getInspectionSummary (teamId: number): InspectionRollup {
+  getInspectionSummary (teamId: number): Inspection {
     const summary = this.summary.get(teamId)
     if (summary === undefined) throw new BadRequestException('No inspection summary for team')
     return summary
@@ -97,11 +98,11 @@ export class InspectionService {
     }
 
     if (allMet) {
-      this.summary.set(teamId, InspectionRollup.COMPLETE)
+      this.summary.set(teamId, Inspection.COMPLETED)
     } else if (allUnmet) {
-      this.summary.set(teamId, InspectionRollup.NOT_STARTED)
+      this.summary.set(teamId, Inspection.CHECKED_IN)
     } else {
-      this.summary.set(teamId, InspectionRollup.IN_PROGRESS)
+      this.summary.set(teamId, Inspection.IN_PROGRESS)
     }
   }
 

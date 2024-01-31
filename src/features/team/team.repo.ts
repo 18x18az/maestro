@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { TeamEntity } from './team.entity'
 import { Repository } from 'typeorm'
 import { TeamCreate } from './team.object'
-import { Checkin } from './team.interface'
+import { Inspection } from './team.interface'
 
 @Injectable()
 export class TeamRepo {
@@ -24,7 +24,7 @@ export class TeamRepo {
     }
   }
 
-  async markCheckinStatus (teamId: number, status: Checkin): Promise<TeamEntity> {
+  async markCheckinStatus (teamId: number, status: Inspection): Promise<TeamEntity> {
     const team = await this.teamRepository.findOneByOrFail({ id: teamId })
     team.checkin = status
     return await this.teamRepository.save(team)

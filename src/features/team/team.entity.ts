@@ -1,5 +1,5 @@
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
-import { Checkin } from './team.interface'
+import { Inspection } from './team.interface'
 import { ContestEntity } from '../competition/match/contest.entity'
 import { AwardEntity } from '../award/award.entity'
 import { InspectionPointEntity } from '../inspection/inspection-point.entity'
@@ -21,8 +21,8 @@ export class TeamEntity {
   @Column()
     school: string
 
-  @Column({ enum: Checkin, type: 'simple-enum', default: Checkin.NOT_HERE })
-    checkin: Checkin
+  @Column({ enum: Inspection, type: 'simple-enum', default: Inspection.NOT_HERE })
+    checkin: Inspection
 
   @ManyToMany(() => ContestEntity, contest => contest.redTeams, { onDelete: 'CASCADE' })
     redContests: ContestEntity[]

@@ -3,11 +3,10 @@ import { Team } from './team.object'
 import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
 import { RankingService } from '../ranking/ranking.service'
-import { Checkin } from './team.interface'
+import { Inspection } from './team.interface'
 import { CheckinService } from './checkin.service'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
-import { InspectionRollup } from '../inspection/inspection.interface'
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -38,13 +37,18 @@ export class TeamResolver {
     return await this.inspectionService.getTeamInspectionGroups(team.id)
   }
 
-  @ResolveField(() => InspectionRollup)
-  inspectionStatus (@Parent() team: TeamEntity): InspectionRollup {
+  @ResolveField(() => Inspection)
+  inspectionStatus (@Parent() team: TeamEntity): Inspection {
+    const status = team.checkin
+
+    if (status === Inspection.NOT_HERE || status === Inspection.NO_SHOW) {
+      return status
+    }
     return this.inspectionService.getInspectionSummary(team.id)
   }
 
   @Mutation(() => Team)
-  async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Checkin }) status: Checkin): Promise<TeamEntity> {
+  async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Inspection }) status: Inspection): Promise<TeamEntity> {
     return await this.checkin.markCheckinStatus(teamId, status)
   }
 

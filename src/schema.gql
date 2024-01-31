@@ -113,17 +113,14 @@ type Team {
   """School of the team"""
   school: String!
 
-  """Checkin status of the team"""
-  checkin: Checkin!
+  """Inspection status of the team"""
+  inspectionStatus: Inspection!
 
   """Unique identifier for the team"""
   id: Int!
 
   """Rank of the team"""
   rank: Int
-
-  """Inspection status of the team"""
-  inspectionStatus: InspectionRollup!
 
   """All inspection groups applicable to the team"""
   inspection: [TeamInspectionGroup!]!
@@ -132,17 +129,13 @@ type Team {
   unmetInspection: [TeamInspectionGroup!]!
 }
 
-"""The checkin status of a team"""
-enum Checkin {
+"""The inspection status of a team"""
+enum Inspection {
   NOT_HERE
   CHECKED_IN
   NO_SHOW
-}
-
-enum InspectionRollup {
-  NOT_STARTED
   IN_PROGRESS
-  COMPLETE
+  COMPLETED
 }
 
 """
@@ -482,7 +475,7 @@ type Mutation {
   allianceSelectionUndo: AllianceSelection!
   allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
-  markCheckin(teamId: Int!, status: Checkin!): Team!
+  markCheckin(teamId: Int!, status: Inspection!): Team!
   setInspectionPoint(teamId: Int!, pointId: Int!, isMet: Boolean!): Team!
 
   """Reset the event. Only available in test mode."""
