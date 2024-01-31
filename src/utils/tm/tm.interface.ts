@@ -8,6 +8,11 @@ export interface TeamInformation {
   school: string
 }
 
+export interface AwardResult {
+  name: string
+  winners: string[]
+}
+
 export interface TeamCheckin {
   team: string
   status: boolean

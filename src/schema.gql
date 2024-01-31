@@ -358,6 +358,17 @@ type Timeout {
   endTime: DateTime
 }
 
+type Award {
+  """Unique identifier for the award"""
+  id: Int!
+
+  """Name of the award"""
+  name: String!
+
+  """The team(s) that won the award"""
+  winners: [Team!]
+}
+
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
@@ -372,6 +383,7 @@ type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
+  awards: [Award!]!
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!

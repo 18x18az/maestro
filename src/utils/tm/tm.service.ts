@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { TmInternal } from './tm.internal'
-import { ElimsMatch, MatchIdentifier, MatchResult, TeamCheckin, TmReturn } from './tm.interface'
+import { AwardResult, ElimsMatch, MatchIdentifier, MatchResult, TeamCheckin, TmReturn } from './tm.interface'
 import { Alliance, Round } from '../../features/competition/match/match.interface'
 
 @Injectable()
@@ -25,6 +25,47 @@ export class TmService {
       const team = cells[1].rawText
       return team
     })
+  }
+
+  async getAwards (): Promise<AwardResult[] | null> {
+    const raw = await this.service.getTableData('division1/awards')
+
+    if (raw === null) {
+      return null
+    }
+
+    const awards: AwardResult[] = []
+
+    raw.forEach((row) => {
+      const cells = row.querySelectorAll('td')
+      if (cells[0] === undefined) {
+        return []
+      }
+
+      const name = cells[0].rawText
+      const selectionInfo = cells[1].childNodes[1]
+
+      const winnerNode = selectionInfo.childNodes.find((node) => {
+        return node.toString().includes('selected')
+      })
+
+      const winner = winnerNode?.rawText
+
+      // if award already exists, add winner to list, otherwise create new award
+      const existingAward = awards.find((award) => award.name === name)
+      if (existingAward !== undefined) {
+        if (winner !== undefined) {
+          existingAward.winners.push(winner)
+        }
+      } else {
+        awards.push({
+          name,
+          winners: winner !== undefined ? [winner] : []
+        })
+      }
+    })
+
+    return awards
   }
 
   async submitCheckin (team: string, value: boolean): Promise<void> {
