@@ -27,7 +27,9 @@ export class CheckinService {
     if (data.teamsToRemove.length > 0) {
       this.logger.log(`Removing ${data.teamsToRemove.length} teams`)
       for (const team of data.teamsToRemove) {
-        await this.markCheckinStatus(team.id, Checkin.NO_SHOW)
+        // Intentionally only removing from the database because the handler function would also make a request to TM
+        // which would throw an error because the team is no longer in TM
+        await this.repo.markCheckinStatus(team.id, Checkin.NO_SHOW)
       }
     }
   }
