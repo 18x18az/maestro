@@ -1,5 +1,6 @@
 import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql'
 import { Checkin } from './team.interface'
+import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 
 @InputType()
 @ObjectType()
@@ -31,6 +32,12 @@ export class Team extends TeamInfo {
 
   @Field(() => Int, { description: 'Rank of the team', nullable: true })
     rank: number
+
+  @Field(() => [TeamInspectionGroup], { description: 'All inspection groups applicable to the team' })
+    inspection: TeamInspectionGroup[]
+
+  @Field(() => [TeamInspectionGroup], { description: 'All inspection groups containing points not met by the team' })
+    unmetInspection: TeamInspectionGroup[]
 }
 
 @InputType()

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { InspectionGroupEntity } from './inspection-group.entity'
 import { Repository } from 'typeorm'
@@ -32,5 +32,13 @@ export class InspectionRepo {
 
   async getInspectionPoints (groupId: number): Promise<InspectionPointEntity[]> {
     return await this.inspectionPointRepo.find({ where: { groupId } })
+  }
+
+  async isInspectionPointMet (pointId: number, teamId: number): Promise<boolean> {
+    const point = await this.inspectionPointRepo.findOne({ where: { id: pointId }, relations: ['teamsMet'] })
+
+    if (point === null) throw new BadRequestException(`Inspection point ${pointId} does not exist`)
+
+    return point.teamsMet.some(team => team.id === teamId)
   }
 }

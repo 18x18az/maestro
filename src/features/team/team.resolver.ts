@@ -5,13 +5,16 @@ import { TeamEntity } from './team.entity'
 import { RankingService } from '../ranking/ranking.service'
 import { Checkin } from './team.interface'
 import { CheckinService } from './checkin.service'
+import { TeamInspectionGroup } from '../inspection/inspection-group.object'
+import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
 
 @Resolver(() => Team)
 export class TeamResolver {
   constructor (
     private readonly repo: TeamRepo,
     private readonly rankService: RankingService,
-    private readonly checkin: CheckinService
+    private readonly checkin: CheckinService,
+    private readonly inspectionService: InspectionService
   ) {}
 
   @Query(() => [Team])
@@ -24,23 +27,13 @@ export class TeamResolver {
     return this.rankService.getRanking(team.number)
   }
 
+  @ResolveField(() => TeamInspectionGroup)
+  async inspection (@Parent() team: TeamEntity): Promise<TeamInspectionGroupEntity[]> {
+    return await this.inspectionService.getTeamInspectionGroups(team.id)
+  }
+
   @Mutation(() => Team)
   async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Checkin }) status: Checkin): Promise<TeamEntity> {
     return await this.checkin.markCheckinStatus(teamId, status)
   }
-
-  // TODO team update
-  // @Mutation(() => Team)
-  // async updateTeam (
-  //   @Args({ name: 'teamId', type: () => Int }) teamId: number,
-  //     @Args({ name: 'update', type: () => TeamUpdate }) update: TeamUpdate
-  // ): Promise<Team> {
-  //   return await this.teamService.updateTeam(teamId, update)
-  // }
-
-  // TODO this will eventually be used with honeybadger
-  // @Mutation(() => [Team])
-  // async createTeams (@Args({ name: 'teams', type: () => [TeamCreate] }) teams: TeamCreate[]): Promise<Team[]> {
-  //   return await this.teamService.createTeams(teams)
-  // }
 }

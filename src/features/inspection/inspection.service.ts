@@ -10,6 +10,14 @@ interface InspectionPointSeed {
   points: string[]
 }
 
+export class TeamInspectionGroupEntity extends InspectionGroupEntity {
+  teamId: number
+}
+
+export class TeamInspectionPointEntity extends InspectionPointEntity {
+  teamId: number
+}
+
 @Injectable()
 export class InspectionService {
   constructor (private readonly repo: InspectionRepo) {}
@@ -33,7 +41,39 @@ export class InspectionService {
     return await this.repo.getInspectionGroups()
   }
 
+  async getTeamInspectionGroups (teamId: number): Promise<TeamInspectionGroupEntity[]> {
+    const groups = await this.repo.getInspectionGroups()
+
+    return groups.map(group => {
+      return { ...group, teamId }
+    })
+  }
+
   async getInspectionPoints (groupId: number): Promise<InspectionPointEntity[]> {
     return await this.repo.getInspectionPoints(groupId)
+  }
+
+  async getTeamInspectionPoints (groupId: number, teamId: number): Promise<TeamInspectionPointEntity[]> {
+    const points = await this.repo.getInspectionPoints(groupId)
+
+    return points.map(point => {
+      return { ...point, teamId }
+    })
+  }
+
+  async getUnmetTeamInspectionPoints (groupId: number, teamId: number): Promise<TeamInspectionPointEntity[]> {
+    const points = await this.repo.getInspectionPoints(groupId)
+
+    const filtered = points.filter(async point => {
+      return !(await this.isInspectionPointMet(point.id, teamId))
+    })
+
+    return filtered.map(point => {
+      return { ...point, teamId }
+    })
+  }
+
+  async isInspectionPointMet (pointId: number, teamId: number): Promise<boolean> {
+    return await this.repo.isInspectionPointMet(pointId, teamId)
   }
 }

@@ -1,7 +1,8 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { Checkin } from './team.interface'
 import { ContestEntity } from '../competition/match/contest.entity'
 import { AwardEntity } from '../award/award.entity'
+import { InspectionPointEntity } from '../inspection/inspection-point.entity'
 
 @Entity()
 export class TeamEntity {
@@ -31,4 +32,8 @@ export class TeamEntity {
 
   @ManyToMany(() => AwardEntity, award => award.winners, { nullable: true })
     awards: AwardEntity[]
+
+  @ManyToMany(() => InspectionPointEntity, point => point.teamsMet)
+  @JoinTable()
+    inspectionPointsMet: InspectionPointEntity[]
 }

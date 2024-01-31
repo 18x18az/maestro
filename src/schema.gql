@@ -33,6 +33,73 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type InspectionPoint {
+  """Unique identifier for the inspection point"""
+  id: Int!
+
+  """Text of the inspection point"""
+  text: String!
+
+  """Program the inspection point applies to"""
+  program: Program!
+
+  """Group the inspection point belongs to"""
+  group: InspectionGroup!
+}
+
+enum Program {
+  VRC
+  VEXU
+}
+
+type TeamInspectionPoint {
+  """Unique identifier for the inspection point"""
+  id: Int!
+
+  """Text of the inspection point"""
+  text: String!
+
+  """Program the inspection point applies to"""
+  program: Program!
+
+  """Group the inspection point belongs to"""
+  group: InspectionGroup!
+
+  """Whether the team has met the inspection point"""
+  met: Boolean!
+}
+
+type InspectionGroup {
+  """Unique identifier for the inspection group"""
+  id: Int!
+
+  """Program the inspection group applies to"""
+  program: Program!
+
+  """Title of the inspection group"""
+  text: String!
+
+  """All inspection points for the group"""
+  points: [InspectionPoint!]!
+}
+
+type TeamInspectionGroup {
+  """Unique identifier for the inspection group"""
+  id: Int!
+
+  """Program the inspection group applies to"""
+  program: Program!
+
+  """Title of the inspection group"""
+  text: String!
+
+  """All inspection points applicable to the team"""
+  points: [TeamInspectionPoint!]!
+
+  """Unmet inspection points for the team"""
+  unmetPoints: [TeamInspectionPoint!]!
+}
+
 type Team {
   """Number of the team"""
   number: String!
@@ -54,6 +121,12 @@ type Team {
 
   """Rank of the team"""
   rank: Int
+
+  """All inspection groups applicable to the team"""
+  inspection: [TeamInspectionGroup!]!
+
+  """All inspection groups containing points not met by the team"""
+  unmetInspection: [TeamInspectionGroup!]!
 }
 
 """The checkin status of a team"""
@@ -369,25 +442,6 @@ type Award {
   winners: [Team!]
 }
 
-type InspectionPoint {
-  id: Int!
-  text: String!
-  program: Program!
-  group: InspectionGroup!
-}
-
-enum Program {
-  VRC
-  VEXU
-}
-
-type InspectionGroup {
-  id: Int!
-  program: Program!
-  text: String!
-  points: [InspectionPoint!]!
-}
-
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
@@ -399,11 +453,11 @@ type Query {
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
+  inspectionGroups: [InspectionGroup!]!
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
   awards: [Award!]!
-  inspectionGroups: [InspectionGroup!]!
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!

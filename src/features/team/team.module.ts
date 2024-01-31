@@ -9,13 +9,15 @@ import { RankingModule } from '../ranking/ranking.module'
 import { StageModule } from '../stage/stage.module'
 import { TmModule } from '../../utils/tm/tm.module'
 import { CheckinService } from './checkin.service'
+import { InspectionModule } from '../inspection/inspection.module'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TeamEntity]),
     forwardRef(() => StageModule),
     forwardRef(() => RankingModule),
-    forwardRef(() => TmModule)
+    forwardRef(() => TmModule),
+    forwardRef(() => InspectionModule)
   ],
   providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService],
   exports: [TeamService, TeamListUpdateEvent]
