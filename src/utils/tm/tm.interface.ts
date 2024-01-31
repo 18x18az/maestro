@@ -8,6 +8,16 @@ export interface TeamInformation {
   school: string
 }
 
+export interface AwardResult {
+  name: string
+  winners: string[]
+}
+
+export interface TeamCheckin {
+  team: string
+  status: boolean
+}
+
 export const TeamsTopic = 'teams'
 
 export interface TmReturn {
@@ -36,6 +46,7 @@ export interface ElimsMatch {
 export enum TmStatus {
   INITIALIZING = 'INITIALIZING',
   NOT_CONFIGURED = 'NOT_CONFIGURED',
+  AUTH_ERROR = 'AUTH_ERROR',
   DISCONNECTED = 'DISCONNECTED',
   CONNECTED = 'CONNECTED',
 }

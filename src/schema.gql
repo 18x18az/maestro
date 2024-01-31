@@ -273,6 +273,9 @@ type TournamentManager {
   """
   url: URL
 
+  """The password for Tournament Manager"""
+  password: String
+
   """The status of the TM server"""
   status: TmStatus!
 }
@@ -285,6 +288,7 @@ scalar URL
 enum TmStatus {
   INITIALIZING
   NOT_CONFIGURED
+  AUTH_ERROR
   DISCONNECTED
   CONNECTED
 }
@@ -354,6 +358,17 @@ type Timeout {
   endTime: DateTime
 }
 
+type Award {
+  """Unique identifier for the award"""
+  id: Int!
+
+  """Name of the award"""
+  name: String!
+
+  """The team(s) that won the award"""
+  winners: [Team!]
+}
+
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
@@ -368,6 +383,7 @@ type Query {
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
+  awards: [Award!]!
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
@@ -382,6 +398,7 @@ type Mutation {
   allianceSelectionUndo: AllianceSelection!
   allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+  markCheckin(teamId: Int!, status: Checkin!): Team!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
@@ -403,6 +420,7 @@ type Mutation {
   setAutomationEnabled(enabled: Boolean!): Competition!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
+  updateAwards: [Award!]!
   startTimeout: Timeout!
   cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!
@@ -416,6 +434,9 @@ input TournamentManagerSetup {
   The address of Tournament Manager. IP addresses must start with http e.g. http://192.168.1.42
   """
   url: URL!
+
+  """The password for Tournament Manager"""
+  password: String!
 }
 
 input FieldUpdate {

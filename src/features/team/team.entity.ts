@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { Checkin } from './team.interface'
 import { ContestEntity } from '../competition/match/contest.entity'
+import { AwardEntity } from '../award/award.entity'
 
 @Entity()
 export class TeamEntity {
@@ -27,4 +28,7 @@ export class TeamEntity {
 
   @ManyToMany(() => ContestEntity, contest => contest.blueTeams, { onDelete: 'CASCADE' })
     blueContests: ContestEntity[]
+
+  @ManyToMany(() => AwardEntity, award => award.winners, { nullable: true })
+    awards: AwardEntity[]
 }
