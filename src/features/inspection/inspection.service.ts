@@ -65,41 +65,43 @@ export class InspectionService {
     return await this.repo.getInspectionGroups()
   }
 
-  async rollup (teamId: number): Promise<void> {
+  async allMet (teamId: number): Promise<boolean> {
     const groups = await this.repo.getInspectionGroups()
-
-    let allMet = true
-    let allUnmet = true
 
     for (const group of groups) {
       const points = await this.repo.getInspectionPoints(group.id)
-
       for (const point of points) {
-        const isMet = await this.repo.isInspectionPointMet(point.id, teamId)
-
-        if (!isMet) {
-          allMet = false
-          if (!allUnmet && !allMet) {
-            break
-          }
+        if (!(await this.repo.isInspectionPointMet(point.id, teamId))) {
+          return false
         }
-
-        if (isMet) {
-          allUnmet = false
-          if (!allUnmet && !allMet) {
-            break
-          }
-        }
-      }
-
-      if (!allUnmet && !allMet) {
-        break
       }
     }
 
-    if (allMet) {
+    return true
+  }
+
+  async noneMet (teamId: number): Promise<boolean> {
+    const groups = await this.repo.getInspectionGroups()
+
+    for (const group of groups) {
+      const points = await this.repo.getInspectionPoints(group.id)
+      for (const point of points) {
+        if (await this.repo.isInspectionPointMet(point.id, teamId)) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
+  async rollup (teamId: number): Promise<void> {
+    const allMet = this.allMet(teamId)
+    const noneMet = this.noneMet(teamId)
+
+    if (await allMet) {
       this.summary.set(teamId, Inspection.COMPLETED)
-    } else if (allUnmet) {
+    } else if (await noneMet) {
       this.summary.set(teamId, Inspection.CHECKED_IN)
     } else {
       this.summary.set(teamId, Inspection.IN_PROGRESS)
