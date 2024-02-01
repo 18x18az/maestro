@@ -33,6 +33,73 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type InspectionPoint {
+  """Unique identifier for the inspection point"""
+  id: Int!
+
+  """Text of the inspection point"""
+  text: String!
+
+  """Program the inspection point applies to"""
+  program: Program!
+
+  """Group the inspection point belongs to"""
+  group: InspectionGroup!
+}
+
+enum Program {
+  VRC
+  VEXU
+}
+
+type TeamInspectionPoint {
+  """Unique identifier for the inspection point"""
+  id: Int!
+
+  """Text of the inspection point"""
+  text: String!
+
+  """Program the inspection point applies to"""
+  program: Program!
+
+  """Group the inspection point belongs to"""
+  group: InspectionGroup!
+
+  """Whether the team has met the inspection point"""
+  met: Boolean!
+}
+
+type InspectionGroup {
+  """Unique identifier for the inspection group"""
+  id: Int!
+
+  """Program the inspection group applies to"""
+  program: Program!
+
+  """Title of the inspection group"""
+  text: String!
+
+  """All inspection points for the group"""
+  points: [InspectionPoint!]!
+}
+
+type TeamInspectionGroup {
+  """Unique identifier for the inspection group"""
+  id: Int!
+
+  """Program the inspection group applies to"""
+  program: Program!
+
+  """Title of the inspection group"""
+  text: String!
+
+  """All inspection points applicable to the team"""
+  points: [TeamInspectionPoint!]!
+
+  """Unmet inspection points for the team"""
+  unmetPoints: [TeamInspectionPoint!]!
+}
+
 type Team {
   """Number of the team"""
   number: String!
@@ -46,21 +113,29 @@ type Team {
   """School of the team"""
   school: String!
 
-  """Checkin status of the team"""
-  checkin: Checkin!
+  """Inspection status of the team"""
+  inspectionStatus: Inspection!
 
   """Unique identifier for the team"""
   id: Int!
 
   """Rank of the team"""
   rank: Int
+
+  """All inspection groups applicable to the team"""
+  inspection: [TeamInspectionGroup!]!
+
+  """All inspection groups containing points not met by the team"""
+  unmetInspection: [TeamInspectionGroup!]!
 }
 
-"""The checkin status of a team"""
-enum Checkin {
+"""The inspection status of a team"""
+enum Inspection {
   NOT_HERE
   CHECKED_IN
   NO_SHOW
+  IN_PROGRESS
+  COMPLETED
 }
 
 """
@@ -372,7 +447,8 @@ type Award {
 type Query {
   allianceSelection: AllianceSelection
   tournamentManager: TournamentManager!
-  teams: [Team!]!
+  teams(inspectionStatus: Inspection): [Team!]!
+  team(teamId: Int!): Team!
   stage: Stage!
   blocks: [Block!]!
   currentBlock: Block
@@ -380,6 +456,7 @@ type Query {
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
+  inspectionGroups: [InspectionGroup!]!
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
@@ -398,7 +475,8 @@ type Mutation {
   allianceSelectionUndo: AllianceSelection!
   allianceSelectionCancel: AllianceSelection!
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
-  markCheckin(teamId: Int!, status: Checkin!): Team!
+  markCheckin(teamId: Int!, status: Inspection!): Team!
+  setInspectionPoint(teamId: Int!, pointId: Int!, isMet: Boolean!): Team!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
