@@ -30,10 +30,10 @@ export class TeamEntity {
   @ManyToMany(() => ContestEntity, contest => contest.blueTeams, { onDelete: 'CASCADE' })
     blueContests: ContestEntity[]
 
-  @ManyToMany(() => AwardEntity, award => award.winners, { nullable: true })
+  @ManyToMany(() => AwardEntity, award => award.winners, { nullable: true, onDelete: 'CASCADE' })
     awards: AwardEntity[]
 
-  @ManyToMany(() => InspectionPointEntity, point => point.teamsMet)
+  @ManyToMany(() => InspectionPointEntity, point => point.teamsMet, { onDelete: 'CASCADE' })
   @JoinTable()
     inspectionPointsMet: InspectionPointEntity[]
 }
