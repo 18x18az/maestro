@@ -54,7 +54,7 @@
     "obs-websocket-js": "^5.0.3",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.1.14",
     "rxjs": "^7.2.0",
     "sqlite3": "^5.1.6",
     "tough-cookie": "^4.1.3",
