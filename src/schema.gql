@@ -383,24 +383,6 @@ enum EventStage {
   TEARDOWN
 }
 
-type Backend {
-  """
-  The address of the backend. IP addresses must start with http e.g. http://192.168.1.42
-  """
-  url: URL
-
-  """The status of the backend"""
-  status: BackendStatus!
-}
-
-enum BackendStatus {
-  INITIALIZING
-  NOT_CONFIGURED
-  AUTH_ERROR
-  DISCONNECTED
-  CONNECTED
-}
-
 type Competition {
   """The field that is currently live"""
   liveField: Field
@@ -462,23 +444,41 @@ type Award {
   winners: [Team!]
 }
 
+type Backend {
+  """
+  The address of the backend. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL
+
+  """The status of the backend"""
+  status: BackendStatus!
+}
+
+enum BackendStatus {
+  INITIALIZING
+  NOT_CONFIGURED
+  AUTH_ERROR
+  DISCONNECTED
+  CONNECTED
+}
+
 type Query {
-  allianceSelection: AllianceSelection
-  tournamentManager: TournamentManager!
+  backend: Backend!
   teams(inspectionStatus: Inspection): [Team!]!
   team(teamId: Int!): Team!
   stage: Stage!
+  tournamentManager: TournamentManager!
+  inspectionGroups: [InspectionGroup!]!
   blocks: [Block!]!
   currentBlock: Block
   nextBlock: Block
   contests: [Contest!]!
   matches: [Match!]!
   sittings: [Sitting!]!
-  inspectionGroups: [InspectionGroup!]!
-  backend: Backend!
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
   competitionInformation: Competition!
+  allianceSelection: AllianceSelection
   awards: [Award!]!
   timeout: Timeout!
   displays: [Display!]!
@@ -487,22 +487,16 @@ type Query {
 }
 
 type Mutation {
-  startAllianceSelection: AllianceSelection!
-  allianceSelectionPick(teamId: Int!): AllianceSelection!
-  allianceSelectionAccept: AllianceSelection!
-  allianceSelectionDecline: AllianceSelection!
-  allianceSelectionUndo: AllianceSelection!
-  allianceSelectionCancel: AllianceSelection!
-  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
+  configureBackend(settings: BackendSetup!): Backend!
   markCheckin(teamId: Int!, status: Inspection!): Team!
   setInspectionPoint(teamId: Int!, pointId: Int!, isMet: Boolean!): Team!
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
+  configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   startNextBlock: Block!
   concludeBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
-  configureBackend(settings: BackendSetup!): Backend!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
   deleteField(fieldId: Int!): [Field!]!
@@ -518,6 +512,12 @@ type Mutation {
   setAutomationEnabled(enabled: Boolean!): Competition!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
+  startAllianceSelection: AllianceSelection!
+  allianceSelectionPick(teamId: Int!): AllianceSelection!
+  allianceSelectionAccept: AllianceSelection!
+  allianceSelectionDecline: AllianceSelection!
+  allianceSelectionUndo: AllianceSelection!
+  allianceSelectionCancel: AllianceSelection!
   updateAwards: [Award!]!
   startTimeout: Timeout!
   cancelTimeout: Timeout!
@@ -525,6 +525,13 @@ type Mutation {
   setDisplayField(uuid: String!, fieldId: Int): Display!
   clearResults: Results!
   promoteResults: Results!
+}
+
+input BackendSetup {
+  """
+  The address of the backend. IP addresses must start with http e.g. http://192.168.1.42
+  """
+  url: URL
 }
 
 input TournamentManagerSetup {
@@ -535,13 +542,6 @@ input TournamentManagerSetup {
 
   """The password for Tournament Manager"""
   password: String!
-}
-
-input BackendSetup {
-  """
-  The address of the backend. IP addresses must start with http e.g. http://192.168.1.42
-  """
-  url: URL
 }
 
 input FieldUpdate {

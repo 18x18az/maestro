@@ -17,10 +17,6 @@ export class TeamService {
     this.resetEvent.registerBefore(this.repo.reset.bind(this.repo))
   }
 
-  // async updateTeam (teamId: number, update: any): Promise<Team> {
-  //   return { id: teamId, number: '1234', checkin: Checkin.NOT_HERE }
-  // }
-
   async getTeams (): Promise<TeamEntity[]> {
     return await this.repo.getTeams()
   }

@@ -19,6 +19,7 @@ import { AllianceSelectionModule } from './features/alliance-selection'
 import { TimeoutModule } from './features/competition/timeout/timeout.module'
 import { AwardModule } from './features/award/award.module'
 import { InspectionModule } from './features/inspection/inspection.module'
+import { BackendModule } from './utils/backend/backend.module'
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { InspectionModule } from './features/inspection/inspection.module'
       graphiql: true,
       resolvers: { URL: URLResolver }
     }),
+    BackendModule,
     AllianceSelectionModule,
     ScheduleModule.forRoot(),
     FieldControlModule,

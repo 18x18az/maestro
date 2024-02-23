@@ -2,11 +2,20 @@ import { Injectable, Logger } from '@nestjs/common'
 import { StorageService } from '../storage'
 import { BackendStatus } from './backend.interface'
 import { request, gql } from 'graphql-request'
+import { TeamListUpdateContext, TeamListUpdateEvent } from '../../features/team/team-list-update.event'
 
 const status = gql`
 {
   connection {
     status
+  }
+}
+`
+
+const createTeams = gql`
+mutation($teams: [CreateTeamInput!]!) {
+  createTeams(teams: $teams) {
+    number
   }
 }
 `
@@ -17,13 +26,21 @@ interface Connection {
   }
 }
 
+interface TeamInput {
+  number: string
+}
+
 @Injectable()
 export class BackendService {
   private readonly logger = new Logger(BackendService.name)
   private url: URL | undefined
   private status: BackendStatus = BackendStatus.NOT_CONFIGURED
 
-  constructor (private readonly storage: StorageService) {}
+  constructor (private readonly storage: StorageService, teamListUpdate: TeamListUpdateEvent) {
+    teamListUpdate.registerOnComplete(async (context: TeamListUpdateContext) => {
+      await this.createTeams(context.teams.map(t => ({ number: t.number })))
+    })
+  }
 
   async onApplicationBootstrap (): Promise<void> {
     const url = await this.storage.getPersistent('backend.url', '')
@@ -76,12 +93,17 @@ export class BackendService {
     return BackendStatus.NOT_CONFIGURED
   }
 
-  private async request (document: string): Promise<unknown> {
+  private async request (document: string, variables?: any): Promise<unknown> {
     if (this.url === undefined) {
       return
     }
 
-    const response = await request(this.url.href, document)
+    const response = await request(this.url.href, document, variables)
     return response
+  }
+
+  async createTeams (teams: TeamInput[]): Promise<void> {
+    this.logger.log('Uploading team list')
+    await this.request(createTeams, { teams })
   }
 }
