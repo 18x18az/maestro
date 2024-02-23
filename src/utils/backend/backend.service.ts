@@ -137,7 +137,6 @@ export class BackendService {
   }
 
   async updateCheckin (team: string, checkin: Inspection): Promise<void> {
-    this.logger.log(`Updating checkin for team ${team}`)
     await this.request(updateCheckin, { team, checkin })
   }
 }
