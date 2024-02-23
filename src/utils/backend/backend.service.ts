@@ -21,6 +21,7 @@ interface Connection {
 export class BackendService {
   private readonly logger = new Logger(BackendService.name)
   private url: URL | undefined
+  private status: BackendStatus = BackendStatus.NOT_CONFIGURED
 
   constructor (private readonly storage: StorageService) {}
 
@@ -43,7 +44,7 @@ export class BackendService {
   }
 
   getStatus (): BackendStatus {
-    return BackendStatus.NOT_CONFIGURED
+    return this.status
   }
 
   async setConfig (url: URL): Promise<BackendStatus> {
@@ -52,11 +53,11 @@ export class BackendService {
     if (result === BackendStatus.CONNECTED) {
       await this.storage.setPersistent('backend.url', url.href)
       this.logger.log('Backend connection established')
+      return BackendStatus.CONNECTED
     } else {
       this.url = undefined
+      return BackendStatus.NOT_CONFIGURED
     }
-
-    return result
   }
 
   private async tryConnection (): Promise<BackendStatus> {
@@ -64,12 +65,14 @@ export class BackendService {
       const result = await this.request(status) as Connection
 
       if (result.connection.status === 'REGULAR') {
+        this.status = BackendStatus.CONNECTED
         return BackendStatus.CONNECTED
       }
     } catch (error: any) {
       this.logger.warn('Connection failed', error.message)
     }
 
+    this.status = BackendStatus.NOT_CONFIGURED
     return BackendStatus.NOT_CONFIGURED
   }
 
