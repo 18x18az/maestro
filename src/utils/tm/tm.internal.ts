@@ -289,7 +289,6 @@ export class TmInternal {
     this.logger.log(`Connected to TM at ${url.href}`)
     this.tmUrl = url
     await this.storage.setPersistent(URL_KEY, url.toJSON())
-    await this.connectedEvent.execute()
 
     const isLoggedIn = await this.tryLogin(password)
 
@@ -301,6 +300,7 @@ export class TmInternal {
     this.logger.log('Authorized with TM')
     this.tmPassword = password
     await this.storage.setPersistent(PASSWORD_KEY, password)
+    await this.connectedEvent.execute()
     return TmStatus.CONNECTED
   }
 }
