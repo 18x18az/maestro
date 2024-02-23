@@ -28,7 +28,13 @@ export abstract class EventService<T, StartContext extends T, EndContext extends
   }
 
   private async executeAfter (data: EndContext): Promise<void> {
-    const promises = this.afterCallbacks.map(async callback => await callback(data))
+    const promises = this.afterCallbacks.map(async callback => {
+      try {
+        await callback(data)
+      } catch (e) {
+        this.logger.warn(e)
+      }
+    })
     await Promise.all(promises)
   }
 
@@ -37,7 +43,13 @@ export abstract class EventService<T, StartContext extends T, EndContext extends
   }
 
   private async executeOnComplete (data: EndContext): Promise<void> {
-    const promises = this.completeCallbacks.map(async callback => await callback(data))
+    const promises = this.completeCallbacks.map(async callback => {
+      try {
+        await callback(data)
+      } catch (e) {
+        this.logger.warn(e)
+      }
+    })
     await Promise.all(promises)
   }
 
