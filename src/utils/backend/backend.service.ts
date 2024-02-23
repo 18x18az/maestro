@@ -61,13 +61,13 @@ export class BackendService {
       await this.createTeams(context.teams.map(t => ({ number: t.number })))
     })
     checkinUpdate.registerOnComplete(async (result) => {
-      await this.updateCheckin(result.teamEntity.number, result.status)
+      await this.updateInspection(result.teamEntity.number, result.status)
     })
     inspectionUpdate.registerOnComplete(async (result) => {
       if (result.initial === result.updated) return
       const team = await this.teams.getTeam(result.teamId)
 
-      await this.updateCheckin(team.number, result.updated)
+      await this.updateInspection(team.number, result.updated)
     })
   }
 
@@ -137,14 +137,14 @@ export class BackendService {
 
     const checkinPromises = teams.map(async (team) => {
       const teamEntity = await this.teams.getTeamByNumber(team.number)
-      const checkin = await this.checkin.getInspectionSummary(teamEntity.id)
-      await this.updateCheckin(team.number, checkin)
+      const inspection = await this.checkin.getInspectionSummary(teamEntity.id)
+      await this.updateInspection(team.number, inspection)
     })
 
     await Promise.all(checkinPromises)
   }
 
-  async updateCheckin (team: string, checkin: Inspection): Promise<void> {
-    await this.request(updateInspection, { team, checkin })
+  async updateInspection (team: string, inspection: Inspection): Promise<void> {
+    await this.request(updateInspection, { team, inspection })
   }
 }
