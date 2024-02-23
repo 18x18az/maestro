@@ -9,6 +9,7 @@ import { InspectionService, TeamInspectionGroupEntity } from '../inspection/insp
 import { FindTeamsArgs } from './dto/find-teams.args'
 import { CheckinUpdateEvent } from './checkin-update.event'
 import { CheckinService } from './checkin.service'
+import { InspectionUpdateEvent } from '../inspection/inspection-update.event'
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -17,7 +18,8 @@ export class TeamResolver {
     private readonly rankService: RankingService,
     private readonly inspectionService: InspectionService,
     private readonly checkinUpdate: CheckinUpdateEvent,
-    private readonly checkin: CheckinService
+    private readonly checkin: CheckinService,
+    private readonly inspectionUpdate: InspectionUpdateEvent
   ) {}
 
   @Query(() => [Team])
@@ -65,7 +67,7 @@ export class TeamResolver {
 
   @Mutation(() => Team)
   async setInspectionPoint (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'pointId', type: () => Int }) pointId: number, @Args({ name: 'isMet', type: () => Boolean }) isMet: boolean): Promise<TeamEntity> {
-    await this.inspectionService.setTeamInspectionPoint(teamId, pointId, isMet)
+    await this.inspectionUpdate.execute({ teamId, pointId, isMet })
     return await this.repo.getTeam(teamId)
   }
 }

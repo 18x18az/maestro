@@ -7,6 +7,7 @@ import { Inspection } from '../../features/team/team.interface'
 import { CheckinUpdateEvent } from '../../features/team/checkin-update.event'
 import { CheckinService } from '../../features/team/checkin.service'
 import { TeamService } from '../../features/team/team.service'
+import { InspectionUpdateEvent } from '../../features/inspection/inspection-update.event'
 
 const status = gql`
 {
@@ -52,6 +53,7 @@ export class BackendService {
     private readonly storage: StorageService,
     teamListUpdate: TeamListUpdateEvent,
     checkinUpdate: CheckinUpdateEvent,
+    inspectionUpdate: InspectionUpdateEvent,
     private readonly checkin: CheckinService,
     private readonly teams: TeamService
   ) {
@@ -60,6 +62,12 @@ export class BackendService {
     })
     checkinUpdate.registerOnComplete(async (result) => {
       await this.updateCheckin(result.teamEntity.number, result.status)
+    })
+    inspectionUpdate.registerOnComplete(async (result) => {
+      if (result.initial === result.updated) return
+      const team = await this.teams.getTeam(result.teamId)
+
+      await this.updateCheckin(team.number, result.updated)
     })
   }
 
