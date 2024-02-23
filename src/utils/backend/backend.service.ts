@@ -25,9 +25,9 @@ mutation($teams: [CreateTeamInput!]!) {
 }
 `
 
-const updateCheckin = gql`
-mutation($team: String!, $checkin: Inspection!) {
-  updateCheckin(team: $team, checkin: $checkin) {
+const updateInspection = gql`
+mutation($team: String!, $inspection: Inspection!) {
+  updateInspection(team: $team, inspection: $inspection) {
     number
   }
 }
@@ -145,6 +145,6 @@ export class BackendService {
   }
 
   async updateCheckin (team: string, checkin: Inspection): Promise<void> {
-    await this.request(updateCheckin, { team, checkin })
+    await this.request(updateInspection, { team, checkin })
   }
 }
