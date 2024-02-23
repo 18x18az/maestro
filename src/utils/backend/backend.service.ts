@@ -3,6 +3,8 @@ import { StorageService } from '../storage'
 import { BackendStatus } from './backend.interface'
 import { request, gql } from 'graphql-request'
 import { TeamListUpdateContext, TeamListUpdateEvent } from '../../features/team/team-list-update.event'
+import { Inspection } from '../../features/team/team.interface'
+import { CheckinUpdateEvent } from '../../features/team/checkin-update.event'
 
 const status = gql`
 {
@@ -15,6 +17,14 @@ const status = gql`
 const createTeams = gql`
 mutation($teams: [CreateTeamInput!]!) {
   createTeams(teams: $teams) {
+    number
+  }
+}
+`
+
+const updateCheckin = gql`
+mutation($team: String!, $checkin: Inspection!) {
+  updateCheckin(team: $team, checkin: $checkin) {
     number
   }
 }
@@ -36,9 +46,16 @@ export class BackendService {
   private url: URL | undefined
   private status: BackendStatus = BackendStatus.NOT_CONFIGURED
 
-  constructor (private readonly storage: StorageService, teamListUpdate: TeamListUpdateEvent) {
+  constructor (
+    private readonly storage: StorageService,
+    teamListUpdate: TeamListUpdateEvent,
+    checkinUpdate: CheckinUpdateEvent
+  ) {
     teamListUpdate.registerOnComplete(async (context: TeamListUpdateContext) => {
       await this.createTeams(context.teams.map(t => ({ number: t.number })))
+    })
+    checkinUpdate.registerOnComplete(async (result) => {
+      await this.updateCheckin(result.teamEntity.number, result.status)
     })
   }
 
@@ -105,5 +122,10 @@ export class BackendService {
   async createTeams (teams: TeamInput[]): Promise<void> {
     this.logger.log('Uploading team list')
     await this.request(createTeams, { teams })
+  }
+
+  async updateCheckin (team: string, checkin: Inspection): Promise<void> {
+    this.logger.log(`Updating checkin for team ${team}`)
+    await this.request(updateCheckin, { team, checkin })
   }
 }

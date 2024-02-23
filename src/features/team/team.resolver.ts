@@ -4,18 +4,18 @@ import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
 import { RankingService } from '../ranking/ranking.service'
 import { Inspection } from './team.interface'
-import { CheckinService } from './checkin.service'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
 import { FindTeamsArgs } from './dto/find-teams.args'
+import { CheckinUpdateEvent } from './checkin-update.event'
 
 @Resolver(() => Team)
 export class TeamResolver {
   constructor (
     private readonly repo: TeamRepo,
     private readonly rankService: RankingService,
-    private readonly checkin: CheckinService,
-    private readonly inspectionService: InspectionService
+    private readonly inspectionService: InspectionService,
+    private readonly checkinUpdate: CheckinUpdateEvent
   ) {}
 
   @Query(() => [Team])
@@ -62,7 +62,8 @@ export class TeamResolver {
 
   @Mutation(() => Team)
   async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Inspection }) status: Inspection): Promise<TeamEntity> {
-    return await this.checkin.markCheckinStatus(teamId, status)
+    const result = await this.checkinUpdate.execute({ team: teamId, status })
+    return result.teamEntity
   }
 
   @Mutation(() => Team)
