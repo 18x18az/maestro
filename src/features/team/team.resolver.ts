@@ -8,6 +8,7 @@ import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
 import { FindTeamsArgs } from './dto/find-teams.args'
 import { CheckinUpdateEvent } from './checkin-update.event'
+import { CheckinService } from './checkin.service'
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -15,7 +16,8 @@ export class TeamResolver {
     private readonly repo: TeamRepo,
     private readonly rankService: RankingService,
     private readonly inspectionService: InspectionService,
-    private readonly checkinUpdate: CheckinUpdateEvent
+    private readonly checkinUpdate: CheckinUpdateEvent,
+    private readonly checkin: CheckinService
   ) {}
 
   @Query(() => [Team])
@@ -51,13 +53,8 @@ export class TeamResolver {
   }
 
   @ResolveField(() => Inspection)
-  inspectionStatus (@Parent() team: TeamEntity): Inspection {
-    const status = team.checkin
-
-    if (status === Inspection.NOT_HERE || status === Inspection.NO_SHOW) {
-      return status
-    }
-    return this.inspectionService.getInspectionSummary(team.id)
+  async inspectionStatus (@Parent() team: TeamEntity): Promise<Inspection> {
+    return await this.checkin.getInspectionSummary(team.id)
   }
 
   @Mutation(() => Team)

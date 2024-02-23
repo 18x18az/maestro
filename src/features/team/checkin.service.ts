@@ -5,6 +5,7 @@ import { TeamEntity } from './team.entity'
 import { Inspection } from './team.interface'
 import { TeamListUpdateContext, TeamListUpdateEvent } from './team-list-update.event'
 import { TmConnectedEvent } from '../../utils/tm/tm-connected.event'
+import { InspectionService } from '../inspection/inspection.service'
 
 @Injectable()
 export class CheckinService {
@@ -15,11 +16,12 @@ export class CheckinService {
     private readonly repo: TeamRepo,
     private readonly teamListUpdate: TeamListUpdateEvent,
     private readonly tmConnected: TmConnectedEvent,
-    private readonly teamRepo: TeamRepo
+    private readonly teamRepo: TeamRepo,
+    private readonly inspection: InspectionService
   ) { }
 
   onModuleInit (): void {
-    this.teamListUpdate.registerOnComplete(this.onTeamListUpdate.bind(this))
+    this.teamListUpdate.registerAfter(this.onTeamListUpdate.bind(this))
     this.tmConnected.registerOnComplete(this.reconcileCheckins.bind(this))
   }
 
@@ -57,5 +59,15 @@ export class CheckinService {
     await this.tm.submitCheckin(team.number, status === Inspection.CHECKED_IN)
 
     return team
+  }
+
+  async getInspectionSummary (id: number): Promise<Inspection> {
+    const team = await this.repo.getTeam(id)
+    const checkin = team.checkin
+    if (checkin === Inspection.NOT_HERE || checkin === Inspection.NO_SHOW) {
+      return checkin
+    }
+
+    return this.inspection.getInspectionSummary(id)
   }
 }

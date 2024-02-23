@@ -21,6 +21,6 @@ import { CheckinUpdateEvent } from './checkin-update.event'
     forwardRef(() => InspectionModule)
   ],
   providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent],
-  exports: [TeamService, TeamListUpdateEvent, CheckinUpdateEvent]
+  exports: [TeamService, TeamListUpdateEvent, CheckinUpdateEvent, CheckinService]
 })
 export class TeamModule {}

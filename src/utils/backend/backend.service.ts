@@ -5,6 +5,8 @@ import { request, gql } from 'graphql-request'
 import { TeamListUpdateContext, TeamListUpdateEvent } from '../../features/team/team-list-update.event'
 import { Inspection } from '../../features/team/team.interface'
 import { CheckinUpdateEvent } from '../../features/team/checkin-update.event'
+import { CheckinService } from '../../features/team/checkin.service'
+import { TeamService } from '../../features/team/team.service'
 
 const status = gql`
 {
@@ -49,7 +51,9 @@ export class BackendService {
   constructor (
     private readonly storage: StorageService,
     teamListUpdate: TeamListUpdateEvent,
-    checkinUpdate: CheckinUpdateEvent
+    checkinUpdate: CheckinUpdateEvent,
+    private readonly checkin: CheckinService,
+    private readonly teams: TeamService
   ) {
     teamListUpdate.registerOnComplete(async (context: TeamListUpdateContext) => {
       await this.createTeams(context.teams.map(t => ({ number: t.number })))
@@ -122,6 +126,14 @@ export class BackendService {
   async createTeams (teams: TeamInput[]): Promise<void> {
     this.logger.log('Uploading team list')
     await this.request(createTeams, { teams })
+
+    const checkinPromises = teams.map(async (team) => {
+      const teamEntity = await this.teams.getTeamByNumber(team.number)
+      const checkin = await this.checkin.getInspectionSummary(teamEntity.id)
+      await this.updateCheckin(team.number, checkin)
+    })
+
+    await Promise.all(checkinPromises)
   }
 
   async updateCheckin (team: string, checkin: Inspection): Promise<void> {
