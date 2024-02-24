@@ -46,7 +46,7 @@ export class InspectionService {
 
   getInspectionSummary (teamId: number): Inspection {
     const summary = this.summary.get(teamId)
-    if (summary === undefined) throw new BadRequestException('No inspection summary for team')
+    if (summary === undefined) throw new BadRequestException(`No inspection summary for team ${teamId}`)
     return summary
   }
 

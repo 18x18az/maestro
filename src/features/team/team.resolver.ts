@@ -4,18 +4,22 @@ import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
 import { RankingService } from '../ranking/ranking.service'
 import { Inspection } from './team.interface'
-import { CheckinService } from './checkin.service'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
 import { FindTeamsArgs } from './dto/find-teams.args'
+import { CheckinUpdateEvent } from './checkin-update.event'
+import { CheckinService } from './checkin.service'
+import { InspectionUpdateEvent } from '../inspection/inspection-update.event'
 
 @Resolver(() => Team)
 export class TeamResolver {
   constructor (
     private readonly repo: TeamRepo,
     private readonly rankService: RankingService,
+    private readonly inspectionService: InspectionService,
+    private readonly checkinUpdate: CheckinUpdateEvent,
     private readonly checkin: CheckinService,
-    private readonly inspectionService: InspectionService
+    private readonly inspectionUpdate: InspectionUpdateEvent
   ) {}
 
   @Query(() => [Team])
@@ -51,23 +55,19 @@ export class TeamResolver {
   }
 
   @ResolveField(() => Inspection)
-  inspectionStatus (@Parent() team: TeamEntity): Inspection {
-    const status = team.checkin
-
-    if (status === Inspection.NOT_HERE || status === Inspection.NO_SHOW) {
-      return status
-    }
-    return this.inspectionService.getInspectionSummary(team.id)
+  async inspectionStatus (@Parent() team: TeamEntity): Promise<Inspection> {
+    return await this.checkin.getInspectionSummary(team.id)
   }
 
   @Mutation(() => Team)
   async markCheckin (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'status', type: () => Inspection }) status: Inspection): Promise<TeamEntity> {
-    return await this.checkin.markCheckinStatus(teamId, status)
+    const result = await this.checkinUpdate.execute({ team: teamId, status })
+    return result.teamEntity
   }
 
   @Mutation(() => Team)
   async setInspectionPoint (@Args({ name: 'teamId', type: () => Int }) teamId: number, @Args({ name: 'pointId', type: () => Int }) pointId: number, @Args({ name: 'isMet', type: () => Boolean }) isMet: boolean): Promise<TeamEntity> {
-    await this.inspectionService.setTeamInspectionPoint(teamId, pointId, isMet)
+    await this.inspectionUpdate.execute({ teamId, pointId, isMet })
     return await this.repo.getTeam(teamId)
   }
 }

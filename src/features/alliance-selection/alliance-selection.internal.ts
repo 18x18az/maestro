@@ -5,6 +5,7 @@ import { StageService } from '../stage/stage.service'
 import { EventStage } from '../stage/stage.interface'
 import { RankingsUpdateEvent } from '../ranking/ranking-update.event'
 import { TeamService } from '../team/team.service'
+import { StageChangeEvent } from '../stage/stage-change.event'
 
 interface AllianceSelectionOperation {
   type: AllianceSelectionOperationType
@@ -54,6 +55,7 @@ export class AllianceSelectionInternal {
   constructor (
     private readonly rankingService: RankingService,
     private readonly stageService: StageService,
+    private readonly stageChange: StageChangeEvent,
     private readonly rankingUpdate: RankingsUpdateEvent,
     private readonly teams: TeamService
   ) {}
@@ -93,7 +95,7 @@ export class AllianceSelectionInternal {
     if (status === null) {
       throw new Error('Alliance selection status is null')
     }
-    await this.stageService.setStage(EventStage.ALLIANCE_SELECTION)
+    await this.stageChange.execute({ stage: EventStage.ALLIANCE_SELECTION })
     return status
   }
 

@@ -10,6 +10,7 @@ import { StageModule } from '../stage/stage.module'
 import { TmModule } from '../../utils/tm/tm.module'
 import { CheckinService } from './checkin.service'
 import { InspectionModule } from '../inspection/inspection.module'
+import { CheckinUpdateEvent } from './checkin-update.event'
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { InspectionModule } from '../inspection/inspection.module'
     forwardRef(() => TmModule),
     forwardRef(() => InspectionModule)
   ],
-  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService],
-  exports: [TeamService, TeamListUpdateEvent]
+  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent],
+  exports: [TeamService, TeamListUpdateEvent, CheckinUpdateEvent, CheckinService]
 })
 export class TeamModule {}

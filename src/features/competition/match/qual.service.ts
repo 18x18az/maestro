@@ -7,6 +7,7 @@ import { Round } from './match.interface'
 import { TeamService } from '../../team/team.service'
 import { StageService } from '../../stage/stage.service'
 import { EventStage } from '../../stage/stage.interface'
+import { StageChangeEvent } from '../../stage/stage-change.event'
 
 @Injectable()
 export class QualService {
@@ -14,6 +15,7 @@ export class QualService {
 
   constructor (
     private readonly stage: StageService,
+    private readonly stageEvent: StageChangeEvent,
     private readonly repo: MatchRepo,
     private readonly field: FieldService,
     private readonly teams: TeamService
@@ -78,6 +80,6 @@ export class QualService {
       await this.repo.createQualBlock(block)
     }
 
-    await this.stage.setStage(EventStage.QUALIFICATIONS)
+    await this.stageEvent.execute({ stage: EventStage.QUALIFICATIONS })
   }
 }

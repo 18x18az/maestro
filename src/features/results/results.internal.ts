@@ -11,6 +11,7 @@ import { CompetitionControlService } from '../competition/competition/competitio
 import { OnLiveEvent } from '../competition/competition/on-live.event'
 import { TeamService } from '../team/team.service'
 import { TeamEntity } from '../team/team.entity'
+import { StageChangeEvent } from '../stage/stage-change.event'
 
 @Injectable()
 export class ResultsInternal {
@@ -33,6 +34,7 @@ export class ResultsInternal {
     private readonly competition: CompetitionControlService,
     private readonly onLive: OnLiveEvent,
     private readonly stageService: StageService,
+    private readonly stageChange: StageChangeEvent,
     private readonly teams: TeamService
   ) { }
 
@@ -97,7 +99,7 @@ export class ResultsInternal {
 
     const currentStage = await this.stageService.getStage()
 
-    if (currentStage === EventStage.ALLIANCE_SELECTION) await this.stageService.setStage(EventStage.ELIMS)
+    if (currentStage === EventStage.ALLIANCE_SELECTION) await this.stageChange.execute({ stage: EventStage.ELIMS })
 
     this.logger.log('Match list updated')
 
