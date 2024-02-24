@@ -18,7 +18,7 @@ export class BackendResolver {
   async configureBackend (
     @Args({ name: 'settings', type: () => BackendSetup }) settings: BackendSetup
   ): Promise<Backend> {
-    const status = await this.service.setConfig(settings.url)
+    const status = await this.service.setConfig(settings.url, settings.password)
     return {
       status,
       url: this.service.getUrl()

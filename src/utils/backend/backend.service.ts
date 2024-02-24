@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StorageService } from '../storage'
 import { BackendStatus } from './backend.interface'
-import { request, gql } from 'graphql-request'
+import { gql, GraphQLClient } from 'graphql-request'
 import { TeamListUpdateContext, TeamListUpdateEvent } from '../../features/team/team-list-update.event'
 import { Inspection } from '../../features/team/team.interface'
 import { CheckinUpdateEvent } from '../../features/team/checkin-update.event'
@@ -33,12 +33,6 @@ mutation($team: String!, $inspection: Inspection!) {
 }
 `
 
-interface Connection {
-  connection: {
-    status: string
-  }
-}
-
 interface TeamInput {
   number: string
 }
@@ -48,6 +42,7 @@ export class BackendService {
   private readonly logger = new Logger(BackendService.name)
   private url: URL | undefined
   private status: BackendStatus = BackendStatus.NOT_CONFIGURED
+  private client: GraphQLClient | undefined
 
   constructor (
     private readonly storage: StorageService,
@@ -73,8 +68,15 @@ export class BackendService {
 
   async onApplicationBootstrap (): Promise<void> {
     const url = await this.storage.getPersistent('backend.url', '')
-    if (url !== '') {
+    const authorization = await this.storage.getPersistent('backend.password', '')
+
+    if (url !== '' && authorization !== '') {
       this.url = new URL(url)
+      this.client = new GraphQLClient(this.url.href, {
+        headers: {
+          authorization
+        }
+      })
       const result = await this.tryConnection()
       if (result === BackendStatus.CONNECTED) {
         this.logger.log('Backend connection established')
@@ -93,29 +95,43 @@ export class BackendService {
     return this.status
   }
 
-  async setConfig (url: URL): Promise<BackendStatus> {
+  makeClient (password: string): void {
+    if (this.url === undefined) {
+      throw new Error('Backend URL not set')
+    }
+
+    this.client = new GraphQLClient(this.url.href, {
+      headers: {
+        authorization: password
+      }
+    })
+  }
+
+  async setConfig (url: URL, password: string): Promise<BackendStatus> {
     this.url = url
+    this.makeClient(password)
     const result = await this.tryConnection()
     if (result === BackendStatus.CONNECTED) {
       await this.storage.setPersistent('backend.url', url.href)
+      await this.storage.setPersistent('backend.password', password)
       this.logger.log('Backend connection established')
-      return BackendStatus.CONNECTED
-    } else {
-      this.url = undefined
-      return BackendStatus.NOT_CONFIGURED
     }
+
+    return result
   }
 
   private async tryConnection (): Promise<BackendStatus> {
     try {
-      const result = await this.request(status) as Connection
-
-      if (result.connection.status === 'REGULAR') {
-        this.status = BackendStatus.CONNECTED
-        return BackendStatus.CONNECTED
-      }
+      await this.request(status)
+      return BackendStatus.CONNECTED
     } catch (error: any) {
-      this.logger.warn('Connection failed', error.message)
+      this.client = undefined
+      const message = String(error.message)
+      if (message.includes('Forbidden')) {
+        this.logger.warn('Authorization failed')
+        return BackendStatus.AUTH_ERROR
+      }
+      this.logger.warn('Connection failed', message)
     }
 
     this.status = BackendStatus.NOT_CONFIGURED
@@ -123,11 +139,11 @@ export class BackendService {
   }
 
   private async request (document: string, variables?: any): Promise<unknown> {
-    if (this.url === undefined) {
+    if (this.client === undefined) {
       return
     }
 
-    const response = await request(this.url.href, document, variables)
+    const response = await this.client.request(document, variables)
     return response
   }
 
