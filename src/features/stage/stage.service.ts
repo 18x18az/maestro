@@ -4,6 +4,7 @@ import { StorageService } from '../../utils/storage/storage.service'
 import { EventResetEvent } from './event-reset.event'
 import { SettingsService } from '../../utils/settings/settings.service'
 import { TeamListUpdateEvent } from '../team/team-list-update.event'
+import { StageChangeEvent } from './stage-change.event'
 
 const DEFAULT_STAGE = EventStage.TEARDOWN
 
@@ -14,7 +15,8 @@ export class StageService {
     private readonly storage: StorageService,
     private readonly resetEvent: EventResetEvent,
     private readonly settings: SettingsService,
-    private readonly teamListUpdateEvent: TeamListUpdateEvent
+    private readonly teamListUpdateEvent: TeamListUpdateEvent,
+    private readonly stageChangeEvent: StageChangeEvent
   ) {
     this.teamListUpdateEvent.registerOnComplete(this.handleTeamListUpdate.bind(this))
   }
@@ -23,7 +25,7 @@ export class StageService {
     if (await this.getStage() !== EventStage.WAITING_FOR_TEAMS) return
 
     this.logger.log('Teams loaded, moving to checkin stage')
-    await this.setStage(EventStage.CHECKIN)
+    await this.stageChangeEvent.execute({ stage: EventStage.CHECKIN })
   }
 
   async onModuleInit (): Promise<void> {
@@ -33,10 +35,6 @@ export class StageService {
       this.logger.log('Event loaded in teardown stage, resetting to setup')
       await this.resetEvent.execute()
     }
-  }
-
-  async setStage (stage: EventStage): Promise<void> {
-    await this.storage.setEphemeral('stage', stage)
   }
 
   async getStage (): Promise<EventStage> {

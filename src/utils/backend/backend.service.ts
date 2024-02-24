@@ -8,6 +8,9 @@ import { CheckinUpdateEvent } from '../../features/team/checkin-update.event'
 import { CheckinService } from '../../features/team/checkin.service'
 import { TeamService } from '../../features/team/team.service'
 import { InspectionUpdateEvent } from '../../features/inspection/inspection-update.event'
+import { StageChangeEvent } from '../../features/stage/stage-change.event'
+import { EventStage } from '../../features/stage/stage.interface'
+import { StageService } from '../../features/stage/stage.service'
 
 const status = gql`
 {
@@ -33,6 +36,14 @@ mutation($team: String!, $inspection: Inspection!) {
 }
 `
 
+const updateStage = gql`
+mutation($stage: EventStage!) {
+  setStage(stage: $stage) {
+    stage
+  }
+}
+`
+
 interface TeamInput {
   number: string
 }
@@ -49,6 +60,8 @@ export class BackendService {
     teamListUpdate: TeamListUpdateEvent,
     checkinUpdate: CheckinUpdateEvent,
     inspectionUpdate: InspectionUpdateEvent,
+    stageUpdate: StageChangeEvent,
+    private readonly stage: StageService,
     private readonly checkin: CheckinService,
     private readonly teams: TeamService
   ) {
@@ -63,6 +76,9 @@ export class BackendService {
       const team = await this.teams.getTeam(result.teamId)
 
       await this.updateInspection(team.number, result.updated)
+    })
+    stageUpdate.registerOnComplete(async (stage) => {
+      await this.updateStage(stage.stage)
     })
   }
 
@@ -83,8 +99,23 @@ export class BackendService {
       } else {
         this.logger.warn('Backend connection failed')
         this.url = undefined
+        return
       }
     }
+
+    const stage = await this.stage.getStage()
+    await this.updateStage(stage)
+  }
+
+  async uploadAll (): Promise<void> {
+    if (this.client === undefined) {
+      return
+    }
+
+    const teams = await this.teams.getTeams()
+    await this.createTeams(teams.map(t => ({ number: t.number })))
+    const stage = await this.stage.getStage()
+    await this.updateStage(stage)
   }
 
   getUrl (): URL | undefined {
@@ -116,6 +147,8 @@ export class BackendService {
       await this.storage.setPersistent('backend.password', password)
       this.logger.log('Backend connection established')
     }
+
+    void this.uploadAll()
 
     return result
   }
@@ -162,5 +195,9 @@ export class BackendService {
 
   async updateInspection (team: string, inspection: Inspection): Promise<void> {
     await this.request(updateInspection, { team, inspection })
+  }
+
+  async updateStage (stage: EventStage): Promise<void> {
+    await this.request(updateStage, { stage })
   }
 }
