@@ -159,6 +159,9 @@ type Contest {
 
   """The matches in this contest"""
   matches: [Match!]!
+
+  """The winner of the contest"""
+  winner: Winner!
 }
 
 """The round of the match"""
@@ -170,6 +173,67 @@ enum Round {
   F
 }
 
+"""The winner of a particular contest"""
+enum Winner {
+  RED
+  BLUE
+  TIE
+  NONE
+}
+
+type TeamMeta {
+  team: Team!
+  noShow: Boolean!
+  dq: Boolean!
+}
+
+type AllianceScore {
+  allianceInGoal: Int!
+  allianceInZone: Int!
+  triballsInGoal: Int!
+  triballsInZone: Int!
+  robot1Tier: Tier!
+  robot2Tier: Tier!
+  autoWp: Boolean
+  score: Int!
+  teams: [TeamMeta!]!
+}
+
+"""Elevation tier of the robot"""
+enum Tier {
+  NONE
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  I
+  J
+}
+
+type Score {
+  """The winner of the autonomous period, empty if auto has not been scored"""
+  autoWinner: Winner
+  red: AllianceScore!
+  blue: AllianceScore!
+  winner: Winner!
+
+  """A string representation of the score for entry into TM"""
+  entryString: String!
+
+  """The date the score was saved at. Empty if the score is a working score"""
+  savedAt: DateTime
+
+  """The match this score is for"""
+  match: Match!
+
+  """Whether the score is for an elimination match"""
+  isElim: Boolean!
+}
+
 """
 A match refers to a single scored match between two alliances. A match may have multiple sittings if it is replayed e.g. due to a field fault
 """
@@ -177,7 +241,7 @@ type Match {
   """Unique identifier for the match"""
   id: Int!
 
-  """The number of the match. E.g. SF-2-1 is 2"""
+  """The number of the match. E.g. SF-2-1 is 1"""
   number: Int!
 
   """The contest this match is a part of"""
@@ -186,11 +250,17 @@ type Match {
   """Sittings of the match"""
   sittings: [Sitting!]!
 
-  """The score of the red alliance"""
-  redScore: Int
+  """The saved result of the match"""
+  savedScore: Score
 
-  """The score of the blue alliance"""
-  blueScore: Int
+  """The working result of the match"""
+  workingScore: Score!
+
+  """The history of match scores"""
+  scoreHistory: [Score!]!
+
+  """The winner of the match"""
+  winner: Winner!
 }
 
 """
@@ -497,7 +567,10 @@ type Mutation {
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   startNextBlock: Block!
   concludeBlock: Block!
+  saveScore(matchId: Int!): Match!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
+  editScore(matchId: Int!, edit: ScoreEdit!): Score!
+  editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
   deleteField(fieldId: Int!): [Field!]!
@@ -546,6 +619,27 @@ input TournamentManagerSetup {
 
   """The password for Tournament Manager"""
   password: String!
+}
+
+input ScoreEdit {
+  """The winner of the autonomous period, empty if auto has not been scored"""
+  autoWinner: Winner
+}
+
+"""The color of an alliance"""
+enum Color {
+  RED
+  BLUE
+}
+
+input AllianceScoreEdit {
+  allianceInGoal: Int
+  allianceInZone: Int
+  triballsInGoal: Int
+  triballsInZone: Int
+  robot1Tier: Tier
+  robot2Tier: Tier
+  autoWp: Boolean
 }
 
 input FieldUpdate {

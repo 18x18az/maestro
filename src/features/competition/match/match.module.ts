@@ -20,13 +20,32 @@ import { SittingCompleteEvent } from './sitting-complete.event'
 import { SittingScoredEvent } from './sitting-scored.event'
 import { StageModule } from '../../stage/stage.module'
 import { CompetitionFieldModule } from '../competition-field/competition-field.module'
+import { ScoreService } from './score.service'
+import { AllianceScoreResolver } from './alliance-score.resolver'
+import { ScoreResolver } from './score.resolver'
+import { ScoreEntity } from './score.entity'
 
 @Module({
   imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
-    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity])
+    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity, ScoreEntity])
   ],
   controllers: [MatchController],
-  providers: [QualService, MatchRepo, MatchInternal, MatchService, BlockResolver, ContestResolver, MatchResolver, SittingResolver, MatchResultEvent, SittingCompleteEvent, SittingScoredEvent],
+  providers: [
+    QualService,
+    MatchRepo,
+    MatchInternal,
+    MatchService,
+    BlockResolver,
+    ContestResolver,
+    MatchResolver,
+    SittingResolver,
+    MatchResultEvent,
+    SittingCompleteEvent,
+    SittingScoredEvent,
+    ScoreService,
+    AllianceScoreResolver,
+    ScoreResolver
+  ],
   exports: [MatchService, MatchResultEvent, SittingCompleteEvent]
 })
 export class MatchModule {}
