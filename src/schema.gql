@@ -228,6 +228,9 @@ type Score {
 
   """The match this score is for"""
   match: Match!
+
+  """Whether the score is for an elimination match"""
+  isElim: Boolean!
 }
 
 """

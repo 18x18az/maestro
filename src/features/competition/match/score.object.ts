@@ -25,4 +25,7 @@ export class Score {
 
   @Field(() => Match, { description: 'The match this score is for' })
     match: Match
+
+  @Field({ description: 'Whether the score is for an elimination match' })
+    isElim: boolean
 }

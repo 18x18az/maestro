@@ -1,17 +1,18 @@
 import { CalculableAllianceScore, SavedAllianceScore } from './alliance-score.object'
 import { Winner } from './match.interface'
-export interface StoredScore {
+
+interface MatchCommon {
   matchId: number
+  autoWinner: Winner
+  savedAt?: Date
+  isElim: boolean
+}
+export interface StoredScore extends MatchCommon {
   red: SavedAllianceScore
   blue: SavedAllianceScore
-  autoWinner: Winner
-  savedAt?: Date
 }
 
-export interface CalculableScore {
-  matchId: number
+export interface CalculableScore extends MatchCommon {
   red: CalculableAllianceScore
   blue: CalculableAllianceScore
-  autoWinner: Winner
-  savedAt?: Date
 }

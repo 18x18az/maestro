@@ -19,18 +19,20 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
     },
     autoWinner: match.autoWinner,
     savedAt: match.savedAt,
-    matchId: match.matchId
+    matchId: match.matchId,
+    isElim: match.isElim
   }
 }
 
-function makeEmptyAllianceScore (): SavedAllianceScore {
+function makeEmptyAllianceScore (isElim: boolean): SavedAllianceScore {
   return {
     allianceInGoal: 0,
     allianceInZone: 0,
     triballsInGoal: 0,
     triballsInZone: 0,
     robot1Tier: Tier.NONE,
-    robot2Tier: Tier.NONE
+    robot2Tier: Tier.NONE,
+    autoWp: isElim ? undefined : false
   }
 }
 
@@ -48,11 +50,14 @@ export class ScoreService {
 
     this.logger.log(`Creating new working score for match ${matchId}`)
 
+    const isElim = false
+
     const score = {
-      red: makeEmptyAllianceScore(),
-      blue: makeEmptyAllianceScore(),
+      red: makeEmptyAllianceScore(isElim),
+      blue: makeEmptyAllianceScore(isElim),
       autoWinner: Winner.NONE,
-      matchId
+      matchId,
+      isElim
     }
 
     this.workingScores.set(matchId, score)

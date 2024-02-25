@@ -48,3 +48,32 @@ export function calculateWinner (match: CalculableScore): Winner {
   if (redScore > blueScore) return Winner.RED
   return Winner.BLUE
 }
+
+function makeAllianceEntry (raw: CalculableAllianceScore, wonAuto: boolean, tiedAuto: boolean, awp?: boolean): string[] {
+  const retVal: string[] = []
+
+  retVal.push(raw.allianceInGoal.toString())
+  retVal.push(raw.allianceInZone.toString())
+  retVal.push(raw.triballsInGoal.toString())
+  retVal.push(raw.triballsInZone.toString())
+  retVal.push(raw.robot1Tier)
+  retVal.push(raw.robot2Tier)
+
+  retVal.push(wonAuto ? ' ' : '')
+  retVal.push(tiedAuto ? ' ' : '')
+
+  if (awp !== undefined) {
+    retVal.push(awp ? ' ' : '')
+  }
+
+  return retVal
+}
+
+export function makeString (match: CalculableScore): string {
+  const red = makeAllianceEntry(match.red, match.red.autoWinner === 'red', match.red.autoWinner === 'tie', match.red.autoWp)
+  const blue = makeAllianceEntry(match.blue, match.blue.autoWinner === 'blue', false, match.blue.autoWp)
+
+  red.push(...blue)
+
+  return red.join(',')
+}
