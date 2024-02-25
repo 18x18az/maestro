@@ -37,6 +37,16 @@ export class MatchResolver {
     return await this.scores.getCalculableScore(match.id)
   }
 
+  @ResolveField(() => Score)
+  async savedScore (@Parent() match: MatchEntity): Promise<CalculableScore | null> {
+    return await this.scores.getSavedScore(match.id)
+  }
+
+  @ResolveField(() => [Score])
+  async scoreHistory (@Parent() match: MatchEntity): Promise<CalculableScore[]> {
+    return await this.scores.getSavedScores(match.id)
+  }
+
   @Mutation(() => Match)
   async saveScore (@Args({ name: 'matchId', type: () => Int }) matchId: number): Promise<MatchEntity> {
     await this.scores.saveScore(matchId)

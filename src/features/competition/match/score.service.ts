@@ -83,21 +83,29 @@ export class ScoreService {
     const score = await this.getScore(matchId)
     const string = dehydrate(score)
     const savedAt = new Date()
+    this.logger.log(`Saving score for match ${matchId}`)
     await this.repo.save({ matchId, score: string, savedAt })
   }
 
-  async getSavedScore (matchId: number): Promise<StoredScore | null> {
+  async getSavedScore (matchId: number): Promise<CalculableScore | null> {
     const saved = await this.repo.findOne({ where: { matchId }, order: { savedAt: 'DESC' } })
 
     if (saved === null) return null
 
-    return hydrate(saved.score)
+    const score = hydrate(saved.score)
+    score.savedAt = saved.savedAt
+
+    return makeCalculableScore(score)
   }
 
-  async getSavedScores (matchId: number): Promise<StoredScore[]> {
+  async getSavedScores (matchId: number): Promise<CalculableScore[]> {
     const saved = await this.repo.find({ where: { matchId }, order: { savedAt: 'ASC' } })
 
-    return saved.map((s) => hydrate(s.score))
+    return saved.map((s) => {
+      const score = hydrate(s.score)
+      score.savedAt = s.savedAt
+      return makeCalculableScore(score)
+    })
   }
 
   async getCalculableScore (matchId: number): Promise<CalculableScore> {
