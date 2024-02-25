@@ -23,10 +23,11 @@ import { CompetitionFieldModule } from '../competition-field/competition-field.m
 import { ScoreService } from './score.service'
 import { AllianceScoreResolver } from './alliance-score.resolver'
 import { ScoreResolver } from './score.resolver'
+import { ScoreEntity } from './score.entity'
 
 @Module({
   imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
-    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity])
+    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity, ScoreEntity])
   ],
   controllers: [MatchController],
   providers: [

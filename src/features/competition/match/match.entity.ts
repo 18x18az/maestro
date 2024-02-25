@@ -4,6 +4,7 @@ import { ContestEntity } from './contest.entity'
 import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
 import { SittingEntity } from './sitting.entity'
+import { ScoreEntity } from './score.entity'
 
 export interface CreateQualMatch {
   round: Round
@@ -29,6 +30,9 @@ export class MatchEntity {
 
   @OneToMany(() => SittingEntity, sitting => sitting.match, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     sittings: SittingEntity[]
+
+  @OneToMany(() => ScoreEntity, score => score.match, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+    scores: ScoreEntity[]
 
   @Column({ type: 'int', default: 1 })
     number: number

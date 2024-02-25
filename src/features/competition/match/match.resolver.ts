@@ -1,4 +1,4 @@
-import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Match } from './match.object'
 import { MatchRepo } from './match.repo'
 import { MatchEntity } from './match.entity'
@@ -35,5 +35,11 @@ export class MatchResolver {
   @ResolveField(() => Score)
   async workingScore (@Parent() match: MatchEntity): Promise<CalculableScore> {
     return await this.scores.getCalculableScore(match.id)
+  }
+
+  @Mutation(() => Match)
+  async saveScore (@Args({ name: 'matchId', type: () => Int }) matchId: number): Promise<MatchEntity> {
+    await this.scores.saveScore(matchId)
+    return await this.repo.getMatch(matchId)
   }
 }

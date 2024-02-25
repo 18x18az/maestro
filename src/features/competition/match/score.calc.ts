@@ -1,6 +1,6 @@
 import { CalculableAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
-import { CalculableScore } from './score.interface'
+import { CalculableScore, StoredScore } from './score.interface'
 
 const AUTO_WINNER_POINTS = 8
 
@@ -76,4 +76,12 @@ export function makeString (match: CalculableScore): string {
   red.push(...blue)
 
   return red.join(',')
+}
+
+export function dehydrate (raw: StoredScore): string {
+  return JSON.stringify(raw)
+}
+
+export function hydrate (raw: string): StoredScore {
+  return JSON.parse(raw)
 }

@@ -567,6 +567,7 @@ type Mutation {
   configureTournamentManager(settings: TournamentManagerSetup!): TournamentManager!
   startNextBlock: Block!
   concludeBlock: Block!
+  saveScore(matchId: Int!): Match!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
   editScore(matchId: Int!, edit: ScoreEdit!): Score!
   editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!

@@ -3,6 +3,10 @@ import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
 import { ScoreEdit } from './score.object'
+import { dehydrate, hydrate } from './score.calc'
+import { InjectRepository } from '@nestjs/typeorm'
+import { ScoreEntity } from './score.entity'
+import { Repository } from 'typeorm'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
@@ -42,11 +46,21 @@ export class ScoreService {
   private readonly logger = new Logger(ScoreService.name)
   private readonly workingScores = new Map<number, StoredScore>()
 
+  constructor (@InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>) {}
+
   async getScore (matchId: number): Promise<StoredScore> {
     const existing = this.workingScores.get(matchId)
 
     if (existing !== undefined) {
       return existing
+    }
+
+    const stored = await this.getSavedScore(matchId)
+
+    if (stored !== null) {
+      this.logger.log(`Using saved score for match ${matchId}`)
+      this.workingScores.set(matchId, stored)
+      return stored
     }
 
     this.logger.log(`Creating new working score for match ${matchId}`)
@@ -63,6 +77,27 @@ export class ScoreService {
 
     this.workingScores.set(matchId, score)
     return score
+  }
+
+  async saveScore (matchId: number): Promise<void> {
+    const score = await this.getScore(matchId)
+    const string = dehydrate(score)
+    const savedAt = new Date()
+    await this.repo.save({ matchId, score: string, savedAt })
+  }
+
+  async getSavedScore (matchId: number): Promise<StoredScore | null> {
+    const saved = await this.repo.findOne({ where: { matchId }, order: { savedAt: 'DESC' } })
+
+    if (saved === null) return null
+
+    return hydrate(saved.score)
+  }
+
+  async getSavedScores (matchId: number): Promise<StoredScore[]> {
+    const saved = await this.repo.find({ where: { matchId }, order: { savedAt: 'ASC' } })
+
+    return saved.map((s) => hydrate(s.score))
   }
 
   async getCalculableScore (matchId: number): Promise<CalculableScore> {
