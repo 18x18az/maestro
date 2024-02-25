@@ -42,11 +42,11 @@ export class ScoreService {
   private readonly logger = new Logger(ScoreService.name)
   private readonly workingScores = new Map<number, StoredScore>()
 
-  async getWorkingScore (matchId: number): Promise<CalculableScore> {
+  async getScore (matchId: number): Promise<StoredScore> {
     const existing = this.workingScores.get(matchId)
 
     if (existing !== undefined) {
-      return makeCalculableScore(existing)
+      return existing
     }
 
     this.logger.log(`Creating new working score for match ${matchId}`)
@@ -62,18 +62,22 @@ export class ScoreService {
     }
 
     this.workingScores.set(matchId, score)
-    return makeCalculableScore(score)
+    return score
+  }
+
+  async getCalculableScore (matchId: number): Promise<CalculableScore> {
+    return makeCalculableScore(await this.getScore(matchId))
   }
 
   async updateScore (matchId: number, edit: ScoreEdit): Promise<CalculableScore> {
-    const score = await this.getWorkingScore(matchId)
+    const score = await this.getCalculableScore(matchId)
     const updated = { ...score, ...edit }
     this.workingScores.set(matchId, updated)
     return makeCalculableScore(updated)
   }
 
   async updateAllianceScore (matchId: number, color: string, edit: AllianceScoreEdit): Promise<CalculableScore> {
-    const score = await this.getWorkingScore(matchId)
+    const score = await this.getCalculableScore(matchId)
 
     const partToEdit = score[color]
     const edited = { ...partToEdit, ...edit }

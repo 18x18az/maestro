@@ -34,6 +34,6 @@ export class MatchResolver {
 
   @ResolveField(() => Score)
   async workingScore (@Parent() match: MatchEntity): Promise<CalculableScore> {
-    return await this.scores.getWorkingScore(match.id)
+    return await this.scores.getCalculableScore(match.id)
   }
 }
