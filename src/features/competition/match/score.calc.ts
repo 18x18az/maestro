@@ -1,5 +1,6 @@
 import { CalculableAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
+import { CalculableScore } from './score.interface'
 
 const AUTO_WINNER_POINTS = 8
 
@@ -37,4 +38,13 @@ export function calculateScore (raw: CalculableAllianceScore): number {
   }
 
   return total
+}
+
+export function calculateWinner (match: CalculableScore): Winner {
+  const redScore = calculateScore(match.red)
+  const blueScore = calculateScore(match.blue)
+
+  if (redScore === blueScore) return Winner.TIE
+  if (redScore > blueScore) return Winner.RED
+  return Winner.BLUE
 }
