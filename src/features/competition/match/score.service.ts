@@ -7,6 +7,7 @@ import { dehydrate, hydrate } from './score.calc'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
+import { MatchResultEvent } from './match-result.event'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
@@ -46,7 +47,10 @@ export class ScoreService {
   private readonly logger = new Logger(ScoreService.name)
   private readonly workingScores = new Map<number, StoredScore>()
 
-  constructor (@InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>) {}
+  constructor (
+    @InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>,
+    private readonly resultEvent: MatchResultEvent
+  ) {}
 
   async getScore (matchId: number): Promise<StoredScore> {
     const existing = this.workingScores.get(matchId)
@@ -85,6 +89,7 @@ export class ScoreService {
     const savedAt = new Date()
     this.logger.log(`Saving score for match ${matchId}`)
     await this.repo.save({ matchId, score: string, savedAt })
+    await this.resultEvent.execute({ matchId })
   }
 
   async getSavedScore (matchId: number): Promise<CalculableScore | null> {
