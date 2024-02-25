@@ -18,7 +18,8 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
       opponent: match.red
     },
     autoWinner: match.autoWinner,
-    savedAt: match.savedAt
+    savedAt: match.savedAt,
+    matchId: match.matchId
   }
 }
 
@@ -39,7 +40,8 @@ export class ScoreService {
     const score = {
       red: new SavedAllianceScore(),
       blue: new SavedAllianceScore(),
-      autoWinner: Winner.NONE
+      autoWinner: Winner.NONE,
+      matchId
     }
 
     this.workingScores.set(matchId, score)

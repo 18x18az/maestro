@@ -225,6 +225,9 @@ type Score {
 
   """The date the score was saved at. Empty if the score is a working score"""
   savedAt: DateTime
+
+  """The match this score is for"""
+  match: Match!
 }
 
 """
