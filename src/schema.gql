@@ -188,7 +188,6 @@ type TeamMeta {
 }
 
 type AllianceScore {
-  score: Int!
   allianceInGoal: Int!
   allianceInZone: Int!
   triballsInGoal: Int!
@@ -196,6 +195,7 @@ type AllianceScore {
   robot1Tier: Tier!
   robot2Tier: Tier!
   autoWp: Boolean
+  score: Int!
   teams: [TeamMeta!]!
 }
 

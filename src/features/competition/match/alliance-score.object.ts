@@ -3,30 +3,33 @@ import { Tier } from './match.interface'
 import { TeamMeta } from './team-meta.object'
 
 @ObjectType()
-export class AllianceScore {
+export class SavedAllianceScore {
   @Field(() => Int)
-    score: number
+    allianceInGoal: number = 0
 
   @Field(() => Int)
-    allianceInGoal: number
+    allianceInZone: number = 0
 
   @Field(() => Int)
-    allianceInZone: number
+    triballsInGoal: number = 0
 
   @Field(() => Int)
-    triballsInGoal: number
-
-  @Field(() => Int)
-    triballsInZone: number
+    triballsInZone: number = 0
 
   @Field(() => Tier)
-    robot1Tier: Tier
+    robot1Tier: Tier = Tier.NONE
 
   @Field(() => Tier)
-    robot2Tier: Tier
+    robot2Tier: Tier = Tier.NONE
 
   @Field({ nullable: true })
     autoWp?: boolean
+}
+
+@ObjectType()
+export class AllianceScore extends SavedAllianceScore {
+  @Field(() => Int)
+    score: number
 
   @Field(() => [TeamMeta])
     teams: TeamMeta[]

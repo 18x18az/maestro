@@ -6,10 +6,16 @@ import { Sitting } from './sitting.object'
 import { SittingEntity } from './sitting.entity'
 import { Contest } from './contest.object'
 import { ContestEntity } from './contest.entity'
+import { Score } from './score.object'
+import { ScoreService } from './score.service'
+import { StoredScore } from './score.interface'
 
 @Resolver(() => Match)
 export class MatchResolver {
-  constructor (private readonly repo: MatchRepo) {}
+  constructor (
+    private readonly repo: MatchRepo,
+    private readonly scores: ScoreService
+  ) {}
 
   @Query(() => [Match])
   async matches (): Promise<MatchEntity[]> {
@@ -24,5 +30,10 @@ export class MatchResolver {
   @ResolveField(() => Contest)
   async contest (@Parent() match: MatchEntity): Promise<ContestEntity> {
     return await this.repo.getContestByMatch(match.id)
+  }
+
+  @ResolveField(() => Score)
+  async workingScore (@Parent() match: MatchEntity): Promise<StoredScore> {
+    return await this.scores.getWorkingScore(match.id)
   }
 }
