@@ -19,6 +19,16 @@ registerEnumType(Tier, {
   description: 'Elevation tier of the robot'
 })
 
+export enum Color {
+  RED = 'red',
+  BLUE = 'blue'
+}
+
+registerEnumType(Color, {
+  name: 'Color',
+  description: 'The color of an alliance'
+})
+
 export enum Winner {
   RED = 'red',
   BLUE = 'blue',

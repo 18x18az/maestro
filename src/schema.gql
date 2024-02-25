@@ -564,6 +564,7 @@ type Mutation {
   startNextBlock: Block!
   concludeBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
+  editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
   deleteField(fieldId: Int!): [Field!]!
@@ -612,6 +613,22 @@ input TournamentManagerSetup {
 
   """The password for Tournament Manager"""
   password: String!
+}
+
+"""The color of an alliance"""
+enum Color {
+  RED
+  BLUE
+}
+
+input AllianceScoreEdit {
+  allianceInGoal: Int
+  allianceInZone: Int
+  triballsInGoal: Int
+  triballsInZone: Int
+  robot1Tier: Tier
+  robot2Tier: Tier
+  autoWp: Boolean
 }
 
 input FieldUpdate {

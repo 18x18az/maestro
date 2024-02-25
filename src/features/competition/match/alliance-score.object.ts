@@ -1,30 +1,34 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql'
 import { Tier, Winner } from './match.interface'
 import { TeamMeta } from './team-meta.object'
 
+@InputType()
 @ObjectType()
 export class SavedAllianceScore {
   @Field(() => Int)
-    allianceInGoal: number = 0
+    allianceInGoal: number
 
   @Field(() => Int)
-    allianceInZone: number = 0
+    allianceInZone: number
 
   @Field(() => Int)
-    triballsInGoal: number = 0
+    triballsInGoal: number
 
   @Field(() => Int)
-    triballsInZone: number = 0
+    triballsInZone: number
 
   @Field(() => Tier)
-    robot1Tier: Tier = Tier.NONE
+    robot1Tier: Tier
 
   @Field(() => Tier)
-    robot2Tier: Tier = Tier.NONE
+    robot2Tier: Tier
 
   @Field({ nullable: true })
     autoWp?: boolean
 }
+
+@InputType()
+export class AllianceScoreEdit extends PartialType(SavedAllianceScore) {}
 
 export class CalculableAllianceScore extends SavedAllianceScore {
   color: 'red' | 'blue'
