@@ -5,7 +5,6 @@ import { TeamService } from './team.service'
 import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
 import { TeamListUpdateEvent } from './team-list-update.event'
-import { RankingModule } from '../ranking/ranking.module'
 import { StageModule } from '../stage/stage.module'
 import { TmModule } from '../../utils/tm/tm.module'
 import { CheckinService } from './checkin.service'
@@ -16,7 +15,6 @@ import { CheckinUpdateEvent } from './checkin-update.event'
   imports: [
     TypeOrmModule.forFeature([TeamEntity]),
     forwardRef(() => StageModule),
-    forwardRef(() => RankingModule),
     forwardRef(() => TmModule),
     forwardRef(() => InspectionModule)
   ],

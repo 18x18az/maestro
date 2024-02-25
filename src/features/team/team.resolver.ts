@@ -2,7 +2,6 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 import { Team } from './team.object'
 import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
-import { RankingService } from '../ranking/ranking.service'
 import { Inspection } from './team.interface'
 import { TeamInspectionGroup } from '../inspection/inspection-group.object'
 import { InspectionService, TeamInspectionGroupEntity } from '../inspection/inspection.service'
@@ -15,7 +14,6 @@ import { InspectionUpdateEvent } from '../inspection/inspection-update.event'
 export class TeamResolver {
   constructor (
     private readonly repo: TeamRepo,
-    private readonly rankService: RankingService,
     private readonly inspectionService: InspectionService,
     private readonly checkinUpdate: CheckinUpdateEvent,
     private readonly checkin: CheckinService,
@@ -42,11 +40,6 @@ export class TeamResolver {
   @Query(() => Team)
   async team (@Args({ name: 'teamId', type: () => Int }) teamId: number): Promise<TeamEntity> {
     return await this.repo.getTeam(teamId)
-  }
-
-  @ResolveField(() => Int)
-  async rank (@Parent() team: TeamEntity): Promise<number | null> {
-    return this.rankService.getRanking(team.number)
   }
 
   @ResolveField(() => TeamInspectionGroup)
