@@ -21,6 +21,7 @@ import { SittingScoredEvent } from './sitting-scored.event'
 import { StageModule } from '../../stage/stage.module'
 import { CompetitionFieldModule } from '../competition-field/competition-field.module'
 import { ScoreService } from './score.service'
+import { AllianceScoreResolver } from './alliance-score.resolver'
 
 @Module({
   imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
@@ -39,7 +40,8 @@ import { ScoreService } from './score.service'
     MatchResultEvent,
     SittingCompleteEvent,
     SittingScoredEvent,
-    ScoreService
+    ScoreService,
+    AllianceScoreResolver
   ],
   exports: [MatchService, MatchResultEvent, SittingCompleteEvent]
 })

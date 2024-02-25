@@ -8,7 +8,7 @@ import { Contest } from './contest.object'
 import { ContestEntity } from './contest.entity'
 import { Score } from './score.object'
 import { ScoreService } from './score.service'
-import { StoredScore } from './score.interface'
+import { CalculableScore } from './score.interface'
 
 @Resolver(() => Match)
 export class MatchResolver {
@@ -33,7 +33,7 @@ export class MatchResolver {
   }
 
   @ResolveField(() => Score)
-  async workingScore (@Parent() match: MatchEntity): Promise<StoredScore> {
+  async workingScore (@Parent() match: MatchEntity): Promise<CalculableScore> {
     return await this.scores.getWorkingScore(match.id)
   }
 }

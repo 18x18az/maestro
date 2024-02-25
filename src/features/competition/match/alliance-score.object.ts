@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Tier } from './match.interface'
+import { Tier, Winner } from './match.interface'
 import { TeamMeta } from './team-meta.object'
 
 @ObjectType()
@@ -24,6 +24,12 @@ export class SavedAllianceScore {
 
   @Field({ nullable: true })
     autoWp?: boolean
+}
+
+export class CalculableAllianceScore extends SavedAllianceScore {
+  color: 'red' | 'blue'
+  autoWinner: Winner
+  opponent: SavedAllianceScore
 }
 
 @ObjectType()
