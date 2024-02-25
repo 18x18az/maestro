@@ -1,18 +1,25 @@
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Field, InputType, ObjectType } from '@nestjs/graphql'
 import { AllianceScore } from './alliance-score.object'
 import { Winner } from './match.interface'
 import { Match } from './match.object'
 
 @ObjectType()
-export class Score {
+@InputType()
+class ScoreBase {
+  @Field(() => Winner, { description: 'The winner of the autonomous period, empty if auto has not been scored', nullable: true })
+    autoWinner?: Winner
+}
+
+@InputType()
+export class ScoreEdit extends ScoreBase {}
+
+@ObjectType()
+export class Score extends ScoreBase {
   @Field(() => AllianceScore)
     red: AllianceScore
 
   @Field(() => AllianceScore)
     blue: AllianceScore
-
-  @Field(() => Winner, { description: 'The winner of the autonomous period, empty if auto has not been scored', nullable: true })
-    autoWinner?: Winner
 
   @Field(() => Winner)
     winner: Winner

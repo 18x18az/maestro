@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
+import { ScoreEdit } from './score.object'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
@@ -62,6 +63,13 @@ export class ScoreService {
 
     this.workingScores.set(matchId, score)
     return makeCalculableScore(score)
+  }
+
+  async updateScore (matchId: number, edit: ScoreEdit): Promise<CalculableScore> {
+    const score = await this.getWorkingScore(matchId)
+    const updated = { ...score, ...edit }
+    this.workingScores.set(matchId, updated)
+    return makeCalculableScore(updated)
   }
 
   async updateAllianceScore (matchId: number, color: string, edit: AllianceScoreEdit): Promise<CalculableScore> {

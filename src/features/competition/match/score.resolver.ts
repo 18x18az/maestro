@@ -2,7 +2,7 @@ import { Args, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/gra
 import { Color, Winner } from './match.interface'
 import { CalculableScore } from './score.interface'
 import { calculateWinner, makeString } from './score.calc'
-import { Score } from './score.object'
+import { Score, ScoreEdit } from './score.object'
 import { Match } from './match.object'
 import { MatchRepo } from './match.repo'
 import { MatchEntity } from './match.entity'
@@ -25,6 +25,14 @@ export class ScoreResolver {
   @ResolveField()
   entryString (@Parent() raw: CalculableScore): string {
     return makeString(raw)
+  }
+
+  @Mutation(() => Score)
+  async editScore (
+    @Args({ name: 'matchId', type: () => Int }) matchId: number,
+      @Args({ name: 'edit', type: () => ScoreEdit }) edit: ScoreEdit
+  ): Promise<CalculableScore> {
+    return await this.service.updateScore(matchId, edit)
   }
 
   @Mutation(() => Score)

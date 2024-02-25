@@ -215,11 +215,10 @@ enum Tier {
 }
 
 type Score {
-  red: AllianceScore!
-  blue: AllianceScore!
-
   """The winner of the autonomous period, empty if auto has not been scored"""
   autoWinner: Winner
+  red: AllianceScore!
+  blue: AllianceScore!
   winner: Winner!
 
   """A string representation of the score for entry into TM"""
@@ -569,6 +568,7 @@ type Mutation {
   startNextBlock: Block!
   concludeBlock: Block!
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
+  editScore(matchId: Int!, edit: ScoreEdit!): Score!
   editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
@@ -618,6 +618,11 @@ input TournamentManagerSetup {
 
   """The password for Tournament Manager"""
   password: String!
+}
+
+input ScoreEdit {
+  """The winner of the autonomous period, empty if auto has not been scored"""
+  autoWinner: Winner
 }
 
 """The color of an alliance"""
