@@ -1,5 +1,36 @@
 import { registerEnumType } from '@nestjs/graphql'
 
+export enum Tier {
+  NONE = '',
+  A = 'a',
+  B = 'b',
+  C = 'c',
+  D = 'd',
+  E = 'e',
+  F = 'f',
+  G = 'g',
+  H = 'h',
+  I = 'i',
+  J = 'j'
+}
+
+registerEnumType(Tier, {
+  name: 'Tier',
+  description: 'Elevation tier of the robot'
+})
+
+export enum Winner {
+  RED = 'red',
+  BLUE = 'blue',
+  TIE = 'tie',
+  NONE = 'none'
+}
+
+registerEnumType(Winner, {
+  name: 'Winner',
+  description: 'The winner of a particular contest'
+})
+
 export enum Round {
   QUAL = 'qual',
   Ro16 = 'ro16',
