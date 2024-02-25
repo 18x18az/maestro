@@ -11,8 +11,8 @@ export class Score {
   @Field(() => AllianceScore)
     blue: AllianceScore
 
-  @Field(() => Winner)
-    autoWinner: Winner
+  @Field(() => Winner, { description: 'The winner of the autonomous period, empty if auto has not been scored', nullable: true })
+    autoWinner?: Winner
 
   @Field(() => Winner)
     winner: Winner

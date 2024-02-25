@@ -217,7 +217,9 @@ enum Tier {
 type Score {
   red: AllianceScore!
   blue: AllianceScore!
-  autoWinner: Winner!
+
+  """The winner of the autonomous period, empty if auto has not been scored"""
+  autoWinner: Winner
   winner: Winner!
 
   """A string representation of the score for entry into TM"""
