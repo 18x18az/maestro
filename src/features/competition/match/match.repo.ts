@@ -25,6 +25,15 @@ export class MatchRepo {
     this.resetEvent.registerBefore(this.reset.bind(this))
   }
 
+  async getMatchTeams (match: number): Promise<{ redTeams: number[], blueTeams: number[] }> {
+    const m = await this.matchRepository.findOneOrFail({ relations: ['contest'], where: { id: match } })
+    const contestId = m.contest.id
+    const contest = await this.contestRepository.findOneOrFail({ relations: ['redTeams', 'blueTeams'], where: { id: contestId } })
+    const redTeams = contest.redTeams.map(t => t.id)
+    const blueTeams = contest.blueTeams.map(t => t.id)
+    return { redTeams, blueTeams }
+  }
+
   async reset (): Promise<void> {
     this.logger.log('Resetting matches')
     await this.blockRepository.clear()

@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
 import { MatchResultEvent } from './match-result.event'
+import { MatchRepo } from './match.repo'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
@@ -27,7 +28,8 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
   }
 }
 
-function makeEmptyAllianceScore (isElim: boolean): SavedAllianceScore {
+function makeEmptyAllianceScore (isElim: boolean, teamIds: number[]): SavedAllianceScore {
+  const teams = teamIds.map((teamId) => ({ teamId, noShow: false, dq: false }))
   return {
     allianceInGoal: 0,
     allianceInZone: 0,
@@ -35,7 +37,8 @@ function makeEmptyAllianceScore (isElim: boolean): SavedAllianceScore {
     triballsInZone: 0,
     robot1Tier: Tier.NONE,
     robot2Tier: Tier.NONE,
-    autoWp: isElim ? undefined : false
+    autoWp: isElim ? undefined : false,
+    teams
   }
 }
 
@@ -46,7 +49,8 @@ export class ScoreService {
 
   constructor (
     @InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>,
-    private readonly resultEvent: MatchResultEvent
+    private readonly resultEvent: MatchResultEvent,
+    private readonly matchRepo: MatchRepo
   ) {}
 
   async getScore (matchId: number): Promise<StoredScore> {
@@ -68,9 +72,11 @@ export class ScoreService {
 
     const isElim = false
 
-    const score = {
-      red: makeEmptyAllianceScore(isElim),
-      blue: makeEmptyAllianceScore(isElim),
+    const { redTeams, blueTeams } = await this.matchRepo.getMatchTeams(matchId)
+
+    const score: StoredScore = {
+      red: makeEmptyAllianceScore(isElim, redTeams),
+      blue: makeEmptyAllianceScore(isElim, blueTeams),
       autoWinner: Winner.NONE,
       matchId,
       isElim,
