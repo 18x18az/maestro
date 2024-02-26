@@ -52,4 +52,9 @@ export class MatchResolver {
     await this.scores.saveScore(matchId)
     return await this.repo.getMatch(matchId)
   }
+
+  @Query(() => Match)
+  async match (@Args({ name: 'id', type: () => Int }) id: number): Promise<MatchEntity> {
+    return await this.repo.getMatch(id)
+  }
 }

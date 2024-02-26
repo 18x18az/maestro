@@ -66,6 +66,11 @@ function makeAllianceEntry (raw: CalculableAllianceScore, wonAuto: boolean, tied
     retVal.push(awp ? ' ' : '')
   }
 
+  for (const team of raw.teams) {
+    retVal.push(team.noShow ? ' ' : '')
+    retVal.push(team.dq ? ' ' : '')
+  }
+
   return retVal
 }
 

@@ -10,6 +10,7 @@ import { EventResetEvent } from '../../stage/event-reset.event'
 import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
 import { MatchIdentifier } from '../../../utils/tm/tm.interface'
+import { AllianceEntity } from './alliance.entity'
 
 @Injectable()
 export class MatchRepo {
@@ -20,9 +21,18 @@ export class MatchRepo {
     @InjectRepository(SittingEntity) private readonly sittingRepository: Repository<SittingEntity>,
     @InjectRepository(ContestEntity) private readonly contestRepository: Repository<ContestEntity>,
     @InjectRepository(BlockEntity) private readonly blockRepository: Repository<BlockEntity>,
+    @InjectRepository(AllianceEntity) private readonly allianceRepository: Repository<AllianceEntity>,
     private readonly resetEvent: EventResetEvent
   ) {
     this.resetEvent.registerBefore(this.reset.bind(this))
+  }
+
+  async getMatchTeams (match: number): Promise<{ redTeams: number[], blueTeams: number[] }> {
+    const m = await this.matchRepository.findOneOrFail({ relations: { contest: { redAlliance: true, blueAlliance: true } }, where: { id: match } })
+    const redTeams = m.contest.redAlliance.team2Id !== undefined ? [m.contest.redAlliance.team1Id, m.contest.redAlliance.team2Id] : [m.contest.redAlliance.team1Id]
+    const blueTeams = m.contest.blueAlliance.team2Id !== undefined ? [m.contest.blueAlliance.team1Id, m.contest.blueAlliance.team2Id] : [m.contest.blueAlliance.team1Id]
+
+    return { redTeams, blueTeams }
   }
 
   async reset (): Promise<void> {
@@ -37,12 +47,19 @@ export class MatchRepo {
     await this.sittingRepository.update(sitting, { status })
   }
 
+  private async createAlliance (teams: TeamEntity[]): Promise<AllianceEntity> {
+    const alliance = new AllianceEntity()
+    alliance.team1 = teams[0]
+    if (teams.length > 1) alliance.team2 = teams[1]
+    return await this.allianceRepository.save(alliance)
+  }
+
   private async createQualMatch (block: BlockEntity, data: CreateQualMatch): Promise<void> {
     const contest = new ContestEntity()
     contest.round = Round.QUAL
     contest.number = data.number
-    contest.redTeams = data.redTeams
-    contest.blueTeams = data.blueTeams
+    contest.redAlliance = await this.createAlliance(data.redTeams)
+    contest.blueAlliance = await this.createAlliance(data.blueTeams)
     await this.contestRepository.save(contest)
 
     const match = new MatchEntity()
@@ -133,13 +150,15 @@ export class MatchRepo {
   }
 
   async getRedTeams (contest: number): Promise<TeamEntity[]> {
-    const c = await this.contestRepository.findOneOrFail({ relations: ['redTeams'], where: { id: contest } })
-    return c.redTeams
+    const c = await this.contestRepository.findOneOrFail({ relations: { redAlliance: { team1: true, team2: true } }, where: { id: contest } })
+    const teams = c.redAlliance.team2 !== undefined ? [c.redAlliance.team1, c.redAlliance.team2] : [c.redAlliance.team1]
+    return teams
   }
 
   async getBlueTeams (contest: number): Promise<TeamEntity[]> {
-    const c = await this.contestRepository.findOneOrFail({ relations: ['blueTeams'], where: { id: contest } })
-    return c.blueTeams
+    const c = await this.contestRepository.findOneOrFail({ relations: { blueAlliance: { team1: true, team2: true } }, where: { id: contest } })
+    const teams = c.blueAlliance.team2 !== undefined ? [c.blueAlliance.team1, c.blueAlliance.team2] : [c.blueAlliance.team1]
+    return teams
   }
 
   async getField (sitting: number): Promise<FieldEntity | null> {
@@ -286,8 +305,8 @@ export class MatchRepo {
       contest = new ContestEntity()
       contest.round = match.round
       contest.number = match.contest
-      contest.redTeams = red
-      contest.blueTeams = blue
+      // contest.redTeams = red
+      // contest.blueTeams = blue
       await this.contestRepository.save(contest)
     }
 

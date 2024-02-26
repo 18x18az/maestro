@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
@@ -8,9 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
 import { MatchResultEvent } from './match-result.event'
+import { MatchRepo } from './match.repo'
+import { TeamMetaEdit } from './team-meta.object'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
+    ...match,
     red: {
       ...match.red,
       color: 'red',
@@ -22,15 +25,12 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
       color: 'blue',
       autoWinner: match.autoWinner,
       opponent: match.red
-    },
-    autoWinner: match.autoWinner,
-    savedAt: match.savedAt,
-    matchId: match.matchId,
-    isElim: match.isElim
+    }
   }
 }
 
-function makeEmptyAllianceScore (isElim: boolean): SavedAllianceScore {
+function makeEmptyAllianceScore (isElim: boolean, teamIds: number[]): SavedAllianceScore {
+  const teams = teamIds.map((teamId) => ({ teamId, noShow: false, dq: false }))
   return {
     allianceInGoal: 0,
     allianceInZone: 0,
@@ -38,7 +38,8 @@ function makeEmptyAllianceScore (isElim: boolean): SavedAllianceScore {
     triballsInZone: 0,
     robot1Tier: Tier.NONE,
     robot2Tier: Tier.NONE,
-    autoWp: isElim ? undefined : false
+    autoWp: isElim ? undefined : false,
+    teams
   }
 }
 
@@ -49,7 +50,8 @@ export class ScoreService {
 
   constructor (
     @InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>,
-    private readonly resultEvent: MatchResultEvent
+    private readonly resultEvent: MatchResultEvent,
+    private readonly matchRepo: MatchRepo
   ) {}
 
   async getScore (matchId: number): Promise<StoredScore> {
@@ -71,12 +73,17 @@ export class ScoreService {
 
     const isElim = false
 
-    const score = {
-      red: makeEmptyAllianceScore(isElim),
-      blue: makeEmptyAllianceScore(isElim),
+    const { redTeams, blueTeams } = await this.matchRepo.getMatchTeams(matchId)
+
+    const score: StoredScore = {
+      red: makeEmptyAllianceScore(isElim, redTeams),
+      blue: makeEmptyAllianceScore(isElim, blueTeams),
       autoWinner: Winner.NONE,
       matchId,
-      isElim
+      isElim,
+      locked: false,
+      changed: true,
+      hidden: isElim
     }
 
     this.workingScores.set(matchId, score)
@@ -85,6 +92,12 @@ export class ScoreService {
 
   async saveScore (matchId: number): Promise<void> {
     const score = await this.getScore(matchId)
+
+    score.changed = false
+    this.workingScores.set(matchId, score)
+
+    if (!score.locked) throw new BadRequestException('Score must be locked before saving')
+
     const string = dehydrate(score)
     const savedAt = new Date()
     this.logger.log(`Saving score for match ${matchId}`)
@@ -99,6 +112,9 @@ export class ScoreService {
 
     const score = hydrate(saved.score)
     score.savedAt = saved.savedAt
+    score.locked = true
+    score.changed = false
+    score.hidden = score.isElim
 
     return makeCalculableScore(score)
   }
@@ -109,6 +125,7 @@ export class ScoreService {
     return saved.map((s) => {
       const score = hydrate(s.score)
       score.savedAt = s.savedAt
+      score.hidden = score.isElim
       return makeCalculableScore(score)
     })
   }
@@ -120,6 +137,7 @@ export class ScoreService {
   async updateScore (matchId: number, edit: ScoreEdit): Promise<CalculableScore> {
     const score = await this.getCalculableScore(matchId)
     const updated = { ...score, ...edit }
+    score.changed = true
     this.workingScores.set(matchId, updated)
     return makeCalculableScore(updated)
   }
@@ -130,6 +148,24 @@ export class ScoreService {
     const partToEdit = score[color]
     const edited = { ...partToEdit, ...edit }
     score[color] = edited
+    score.changed = true
+    this.workingScores.set(matchId, score)
+
+    return makeCalculableScore(score)
+  }
+
+  async updateTeamMeta (matchId: number, teamId: number, edit: TeamMetaEdit): Promise<CalculableScore> {
+    const score = await this.getCalculableScore(matchId)
+
+    const color = score.red.teams.some((t) => t.teamId === teamId) ? 'red' : 'blue'
+    const team = score[color].teams.find((t) => t.teamId === teamId)
+
+    if (team === undefined) throw new BadRequestException('Team not found')
+
+    const edited = { ...team, ...edit }
+    score[color].teams = score[color].teams.map((t) => (t.teamId === teamId ? edited : t))
+    score.changed = true
+
     this.workingScores.set(matchId, score)
 
     return makeCalculableScore(score)

@@ -6,6 +6,9 @@ interface MatchCommon {
   autoWinner: Winner
   savedAt?: Date
   isElim: boolean
+  locked: boolean
+  changed: boolean
+  hidden: boolean
 }
 export interface StoredScore extends MatchCommon {
   red: SavedAllianceScore

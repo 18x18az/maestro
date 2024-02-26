@@ -1,14 +1,21 @@
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql'
 import { Team } from '../../team/team.object'
 
+@InputType()
 @ObjectType()
-export class TeamMeta {
-  @Field(() => Team)
-    team: Team
-
+class TeamMetaBase {
   @Field()
     noShow: boolean
 
   @Field()
     dq: boolean
+}
+
+@InputType()
+export class TeamMetaEdit extends PartialType(TeamMetaBase) {}
+
+@ObjectType()
+export class TeamMeta extends TeamMetaBase {
+  @Field(() => Team)
+    team: Team
 }

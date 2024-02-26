@@ -4,7 +4,7 @@ import { TeamMeta } from './team-meta.object'
 
 @InputType()
 @ObjectType()
-export class SavedAllianceScore {
+class BaseAllianceScore {
   @Field(() => Int)
     allianceInGoal: number
 
@@ -27,17 +27,27 @@ export class SavedAllianceScore {
     autoWp?: boolean
 }
 
+export interface SavedTeamMeta {
+  teamId: number
+  noShow: boolean
+  dq: boolean
+}
+
+export class SavedAllianceScore extends BaseAllianceScore {
+  teams: SavedTeamMeta[]
+}
+
 @InputType()
-export class AllianceScoreEdit extends PartialType(SavedAllianceScore) {}
+export class AllianceScoreEdit extends PartialType(BaseAllianceScore) {}
 
 export class CalculableAllianceScore extends SavedAllianceScore {
   color: 'red' | 'blue'
   autoWinner: Winner
-  opponent: SavedAllianceScore
+  opponent: BaseAllianceScore
 }
 
 @ObjectType()
-export class AllianceScore extends SavedAllianceScore {
+export class AllianceScore extends BaseAllianceScore {
   @Field(() => Int)
     score: number
 

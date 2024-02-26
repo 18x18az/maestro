@@ -24,10 +24,12 @@ import { ScoreService } from './score.service'
 import { AllianceScoreResolver } from './alliance-score.resolver'
 import { ScoreResolver } from './score.resolver'
 import { ScoreEntity } from './score.entity'
+import { TeamMetaResolver } from './team-meta.resolver'
+import { AllianceEntity } from './alliance.entity'
 
 @Module({
   imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
-    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity, ScoreEntity])
+    TypeOrmModule.forFeature([MatchEntity, SittingEntity, ContestEntity, BlockEntity, ScoreEntity, AllianceEntity])
   ],
   controllers: [MatchController],
   providers: [
@@ -44,7 +46,8 @@ import { ScoreEntity } from './score.entity'
     SittingScoredEvent,
     ScoreService,
     AllianceScoreResolver,
-    ScoreResolver
+    ScoreResolver,
+    TeamMetaResolver
   ],
   exports: [MatchService, MatchResultEvent, SittingCompleteEvent]
 })

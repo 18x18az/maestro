@@ -1,7 +1,7 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
 import { Round } from './match.interface'
 import { MatchEntity } from './match.entity'
-import { TeamEntity } from '../../team/team.entity'
+import { AllianceEntity } from './alliance.entity'
 
 @Entity()
 @Unique(['round', 'number'])
@@ -18,11 +18,9 @@ export class ContestEntity {
   @OneToMany(() => MatchEntity, match => match.contest, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     matches: MatchEntity[]
 
-  @ManyToMany(() => TeamEntity, team => team.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-  @JoinTable()
-    redTeams: TeamEntity[]
+  @ManyToOne(() => AllianceEntity, alliance => alliance.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+    redAlliance: AllianceEntity
 
-  @ManyToMany(() => TeamEntity, team => team.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-  @JoinTable()
-    blueTeams: TeamEntity[]
+  @ManyToOne(() => AllianceEntity, alliance => alliance.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+    blueAlliance: AllianceEntity
 }

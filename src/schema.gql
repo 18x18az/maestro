@@ -182,9 +182,9 @@ enum Winner {
 }
 
 type TeamMeta {
-  team: Team!
   noShow: Boolean!
   dq: Boolean!
+  team: Team!
 }
 
 type AllianceScore {
@@ -217,6 +217,15 @@ enum Tier {
 type Score {
   """The winner of the autonomous period, empty if auto has not been scored"""
   autoWinner: Winner
+
+  """Whether the score can be edited"""
+  locked: Boolean!
+
+  """Whether the score has been changed"""
+  changed: Boolean!
+
+  """Whether the score is hidden in the UI"""
+  hidden: Boolean!
   red: AllianceScore!
   blue: AllianceScore!
   winner: Winner!
@@ -546,6 +555,7 @@ type Query {
   nextBlock: Block
   contests: [Contest!]!
   matches: [Match!]!
+  match(id: Int!): Match!
   sittings: [Sitting!]!
   fields(isEnabled: Boolean, isCompetition: Boolean, skillsEnabled: Boolean): [Field!]!
   field(fieldId: Int!): Field!
@@ -577,6 +587,7 @@ type Mutation {
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
   editScore(matchId: Int!, edit: ScoreEdit!): Score!
   editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!
+  editTeamMeta(matchId: Int!, teamId: Int!, edit: TeamMetaEdit!): Score!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
   deleteField(fieldId: Int!): [Field!]!
@@ -624,6 +635,15 @@ input TournamentManagerSetup {
 input ScoreEdit {
   """The winner of the autonomous period, empty if auto has not been scored"""
   autoWinner: Winner
+
+  """Whether the score can be edited"""
+  locked: Boolean
+
+  """Whether the score has been changed"""
+  changed: Boolean
+
+  """Whether the score is hidden in the UI"""
+  hidden: Boolean
 }
 
 """The color of an alliance"""
@@ -640,6 +660,11 @@ input AllianceScoreEdit {
   robot1Tier: Tier
   robot2Tier: Tier
   autoWp: Boolean
+}
+
+input TeamMetaEdit {
+  noShow: Boolean
+  dq: Boolean
 }
 
 input FieldUpdate {
