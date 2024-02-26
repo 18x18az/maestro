@@ -14,6 +14,9 @@ class ScoreBase {
 
   @Field({ description: 'Whether the score has been changed' })
     changed: boolean
+
+  @Field({ description: 'Whether the score is hidden in the UI' })
+    hidden: boolean
 }
 
 @InputType()

@@ -223,6 +223,9 @@ type Score {
 
   """Whether the score has been changed"""
   changed: Boolean!
+
+  """Whether the score is hidden in the UI"""
+  hidden: Boolean!
   red: AllianceScore!
   blue: AllianceScore!
   winner: Winner!
@@ -637,6 +640,9 @@ input ScoreEdit {
 
   """Whether the score has been changed"""
   changed: Boolean
+
+  """Whether the score is hidden in the UI"""
+  hidden: Boolean
 }
 
 """The color of an alliance"""

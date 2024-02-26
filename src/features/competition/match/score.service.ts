@@ -11,6 +11,7 @@ import { MatchResultEvent } from './match-result.event'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
+    ...match,
     red: {
       ...match.red,
       color: 'red',
@@ -22,13 +23,7 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
       color: 'blue',
       autoWinner: match.autoWinner,
       opponent: match.red
-    },
-    autoWinner: match.autoWinner,
-    savedAt: match.savedAt,
-    matchId: match.matchId,
-    isElim: match.isElim,
-    locked: match.locked,
-    changed: match.changed
+    }
   }
 }
 
@@ -80,7 +75,8 @@ export class ScoreService {
       matchId,
       isElim,
       locked: false,
-      changed: true
+      changed: true,
+      hidden: isElim
     }
 
     this.workingScores.set(matchId, score)
@@ -111,6 +107,7 @@ export class ScoreService {
     score.savedAt = saved.savedAt
     score.locked = true
     score.changed = false
+    score.hidden = score.isElim
 
     return makeCalculableScore(score)
   }
@@ -121,6 +118,7 @@ export class ScoreService {
     return saved.map((s) => {
       const score = hydrate(s.score)
       score.savedAt = s.savedAt
+      score.hidden = score.isElim
       return makeCalculableScore(score)
     })
   }
