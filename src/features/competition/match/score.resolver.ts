@@ -8,6 +8,7 @@ import { MatchRepo } from './match.repo'
 import { MatchEntity } from './match.entity'
 import { AllianceScoreEdit } from './alliance-score.object'
 import { ScoreService } from './score.service'
+import { TeamMetaEdit } from './team-meta.object'
 
 @Resolver(() => Score)
 export class ScoreResolver {
@@ -42,5 +43,14 @@ export class ScoreResolver {
       @Args({ name: 'edit', type: () => AllianceScoreEdit }) edit: AllianceScoreEdit
   ): Promise<CalculableScore> {
     return await this.service.updateAllianceScore(matchId, color, edit)
+  }
+
+  @Mutation(() => Score)
+  async editTeamMeta (
+    @Args({ name: 'matchId', type: () => Int }) matchId: number,
+      @Args({ name: 'teamId', type: () => Int }) teamId: number,
+      @Args({ name: 'edit', type: () => TeamMetaEdit }) edit: TeamMetaEdit
+  ): Promise<CalculableScore> {
+    return await this.service.updateTeamMeta(matchId, teamId, edit)
   }
 }

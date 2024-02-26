@@ -182,9 +182,9 @@ enum Winner {
 }
 
 type TeamMeta {
-  team: Team!
   noShow: Boolean!
   dq: Boolean!
+  team: Team!
 }
 
 type AllianceScore {
@@ -587,6 +587,7 @@ type Mutation {
   queueSitting(sittingId: Int!, fieldId: Int!): Sitting!
   editScore(matchId: Int!, edit: ScoreEdit!): Score!
   editAllianceScore(matchId: Int!, color: Color!, edit: AllianceScoreEdit!): Score!
+  editTeamMeta(matchId: Int!, teamId: Int!, edit: TeamMetaEdit!): Score!
   updateField(fieldId: Int!, update: FieldUpdate!): Field!
   addField: Field!
   deleteField(fieldId: Int!): [Field!]!
@@ -659,6 +660,11 @@ input AllianceScoreEdit {
   robot1Tier: Tier
   robot2Tier: Tier
   autoWp: Boolean
+}
+
+input TeamMetaEdit {
+  noShow: Boolean
+  dq: Boolean
 }
 
 input FieldUpdate {

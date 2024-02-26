@@ -9,6 +9,7 @@ import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
 import { MatchResultEvent } from './match-result.event'
 import { MatchRepo } from './match.repo'
+import { TeamMetaEdit } from './team-meta.object'
 
 function makeCalculableScore (match: StoredScore): CalculableScore {
   return {
@@ -148,6 +149,23 @@ export class ScoreService {
     const edited = { ...partToEdit, ...edit }
     score[color] = edited
     score.changed = true
+    this.workingScores.set(matchId, score)
+
+    return makeCalculableScore(score)
+  }
+
+  async updateTeamMeta (matchId: number, teamId: number, edit: TeamMetaEdit): Promise<CalculableScore> {
+    const score = await this.getCalculableScore(matchId)
+
+    const color = score.red.teams.some((t) => t.teamId === teamId) ? 'red' : 'blue'
+    const team = score[color].teams.find((t) => t.teamId === teamId)
+
+    if (team === undefined) throw new BadRequestException('Team not found')
+
+    const edited = { ...team, ...edit }
+    score[color].teams = score[color].teams.map((t) => (t.teamId === teamId ? edited : t))
+    score.changed = true
+
     this.workingScores.set(matchId, score)
 
     return makeCalculableScore(score)
