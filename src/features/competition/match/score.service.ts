@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
@@ -26,7 +26,9 @@ function makeCalculableScore (match: StoredScore): CalculableScore {
     autoWinner: match.autoWinner,
     savedAt: match.savedAt,
     matchId: match.matchId,
-    isElim: match.isElim
+    isElim: match.isElim,
+    locked: match.locked,
+    changed: match.changed
   }
 }
 
@@ -76,7 +78,9 @@ export class ScoreService {
       blue: makeEmptyAllianceScore(isElim),
       autoWinner: Winner.NONE,
       matchId,
-      isElim
+      isElim,
+      locked: false,
+      changed: true
     }
 
     this.workingScores.set(matchId, score)
@@ -85,6 +89,12 @@ export class ScoreService {
 
   async saveScore (matchId: number): Promise<void> {
     const score = await this.getScore(matchId)
+
+    score.changed = false
+    this.workingScores.set(matchId, score)
+
+    if (!score.locked) throw new BadRequestException('Score must be locked before saving')
+
     const string = dehydrate(score)
     const savedAt = new Date()
     this.logger.log(`Saving score for match ${matchId}`)
@@ -99,6 +109,8 @@ export class ScoreService {
 
     const score = hydrate(saved.score)
     score.savedAt = saved.savedAt
+    score.locked = true
+    score.changed = false
 
     return makeCalculableScore(score)
   }
@@ -120,6 +132,7 @@ export class ScoreService {
   async updateScore (matchId: number, edit: ScoreEdit): Promise<CalculableScore> {
     const score = await this.getCalculableScore(matchId)
     const updated = { ...score, ...edit }
+    score.changed = true
     this.workingScores.set(matchId, updated)
     return makeCalculableScore(updated)
   }
@@ -130,6 +143,7 @@ export class ScoreService {
     const partToEdit = score[color]
     const edited = { ...partToEdit, ...edit }
     score[color] = edited
+    score.changed = true
     this.workingScores.set(matchId, score)
 
     return makeCalculableScore(score)
