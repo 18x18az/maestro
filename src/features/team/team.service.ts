@@ -17,6 +17,10 @@ export class TeamService {
     this.resetEvent.registerBefore(this.repo.reset.bind(this.repo))
   }
 
+  async handleUpload (data: string): Promise<void> {
+
+  }
+
   async getTeams (): Promise<TeamEntity[]> {
     return await this.repo.getTeams()
   }
