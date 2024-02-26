@@ -4,10 +4,9 @@ import { StageModule } from '../stage/stage.module'
 import { RankingModule } from '../ranking/ranking.module'
 import { AllianceSelectionResolver } from './alliance-selection.resolver'
 import { TeamModule } from '../team/team.module'
-import { TmModule } from '../../utils/tm/tm.module'
 
 @Module({
-  imports: [RankingModule, StageModule, TeamModule, TmModule],
+  imports: [RankingModule, StageModule, TeamModule],
   providers: [AllianceSelectionInternal, AllianceSelectionModule, AllianceSelectionResolver]
 })
 export class AllianceSelectionModule {}

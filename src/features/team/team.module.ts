@@ -6,19 +6,20 @@ import { TeamRepo } from './team.repo'
 import { TeamEntity } from './team.entity'
 import { TeamListUpdateEvent } from './team-list-update.event'
 import { StageModule } from '../stage/stage.module'
-import { TmModule } from '../../utils/tm/tm.module'
 import { CheckinService } from './checkin.service'
 import { InspectionModule } from '../inspection/inspection.module'
 import { CheckinUpdateEvent } from './checkin-update.event'
+import { TeamController } from './team.controller'
+import { TeamCreateService } from './team-create.service'
 
 @Module({
+  controllers: [TeamController],
   imports: [
     TypeOrmModule.forFeature([TeamEntity]),
     forwardRef(() => StageModule),
-    forwardRef(() => TmModule),
     forwardRef(() => InspectionModule)
   ],
-  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent],
+  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent, TeamCreateService],
   exports: [TeamService, TeamListUpdateEvent, CheckinUpdateEvent, CheckinService]
 })
 export class TeamModule {}
