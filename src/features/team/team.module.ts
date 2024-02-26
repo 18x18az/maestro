@@ -10,6 +10,7 @@ import { CheckinService } from './checkin.service'
 import { InspectionModule } from '../inspection/inspection.module'
 import { CheckinUpdateEvent } from './checkin-update.event'
 import { TeamController } from './team.controller'
+import { TeamCreateService } from './team-create.service'
 
 @Module({
   controllers: [TeamController],
@@ -18,7 +19,7 @@ import { TeamController } from './team.controller'
     forwardRef(() => StageModule),
     forwardRef(() => InspectionModule)
   ],
-  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent],
+  providers: [TeamResolver, TeamService, TeamRepo, TeamListUpdateEvent, CheckinService, CheckinUpdateEvent, TeamCreateService],
   exports: [TeamService, TeamListUpdateEvent, CheckinUpdateEvent, CheckinService]
 })
 export class TeamModule {}
