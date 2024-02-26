@@ -3,9 +3,7 @@ import { SittingStatus } from './match.interface'
 import { MatchInternal } from './match.internal'
 import { DriverEndEvent, DriverEndResult } from '../competition-field/driver-end.event'
 import { MatchRepo } from './match.repo'
-import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 import { MatchEntity } from './match.entity'
-import { TeamEntity } from '../../team/team.entity'
 
 @Injectable()
 export class MatchService {
@@ -44,23 +42,11 @@ export class MatchService {
     await this.service.updateSittingStatus(match, SittingStatus.SCORING)
   }
 
-  async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
-    return await this.repo.getMatchScore(match)
-  }
-
   async getNextSitting (fieldId: number): Promise<number | null> {
     return await this.repo.getNextSitting(fieldId)
   }
 
   async getMatch (matchId: number): Promise<MatchEntity | null> {
     return await this.repo.getMatch(matchId)
-  }
-
-  async getMatchByIdentifier (match: MatchIdentifier): Promise<MatchEntity | null> {
-    return await this.repo.getMatchByIdentifier(match)
-  }
-
-  async createElimsMatch (match: MatchIdentifier, red: TeamEntity[], blue: TeamEntity[]): Promise<void> {
-    await this.repo.createElimsMatch(match, red, blue)
   }
 }

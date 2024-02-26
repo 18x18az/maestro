@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateQualMatch, MatchEntity } from './match.entity'
 import { Repository } from 'typeorm'
@@ -9,7 +9,6 @@ import { SittingEntity } from './sitting.entity'
 import { EventResetEvent } from '../../stage/event-reset.event'
 import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
-import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 import { AllianceEntity } from './alliance.entity'
 
 @Injectable()
@@ -198,40 +197,6 @@ export class MatchRepo {
     await this.blockRepository.update(block, { status })
   }
 
-  async getMatchScore (match: MatchIdentifier): Promise<{ redScore: number, blueScore: number } | null> {
-    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
-
-    if (contest === null) {
-      this.logger.warn(`Could not find contest ${match.round}-${match.contest}`)
-      return null
-    }
-
-    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
-
-    if (matchEntity === null) {
-      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
-      return null
-    }
-
-    if (matchEntity.redScore === null || matchEntity.blueScore === null) {
-      return null
-    }
-
-    return matchEntity
-  }
-
-  async getMatchId (match: MatchIdentifier): Promise<number> {
-    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
-
-    if (contest === null) throw new BadRequestException(`Could not find contest ${match.round}-${match.contest}`)
-
-    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
-
-    if (matchEntity === null) throw new BadRequestException(`Could not find match ${match.round}-${match.contest}-${match.match}`)
-
-    return matchEntity.id
-  }
-
   async updateMatchScore (match: number, redScore: number, blueScore: number): Promise<void> {
     await this.matchRepository.update(match, { redScore, blueScore })
   }
@@ -279,47 +244,5 @@ export class MatchRepo {
   async getContestByMatch (match: number): Promise<ContestEntity> {
     const matchEntity = await this.matchRepository.findOneOrFail({ relations: ['contest'], where: { id: match } })
     return matchEntity.contest
-  }
-
-  async getMatchByIdentifier (match: MatchIdentifier): Promise<MatchEntity | null> {
-    const contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
-
-    if (contest === null) {
-      return null
-    }
-
-    const matchEntity = await this.matchRepository.findOne({ where: { contestId: contest.id, number: match.match } })
-
-    if (matchEntity === null) {
-      this.logger.warn(`Could not find match ${match.round}-${match.contest}-${match.match}`)
-      return null
-    }
-
-    return matchEntity
-  }
-
-  async createElimsMatch (match: MatchIdentifier, red: TeamEntity[], blue: TeamEntity[]): Promise<void> {
-    let contest = await this.contestRepository.findOne({ where: { round: match.round, number: match.contest } })
-
-    if (contest === null) {
-      contest = new ContestEntity()
-      contest.round = match.round
-      contest.number = match.contest
-      // contest.redTeams = red
-      // contest.blueTeams = blue
-      await this.contestRepository.save(contest)
-    }
-
-    const matchEntity = new MatchEntity()
-    matchEntity.contest = contest
-    matchEntity.number = match.match
-    await this.matchRepository.save(matchEntity)
-
-    const sitting = new SittingEntity()
-    sitting.match = matchEntity
-
-    const block = await this.getElimsBlock()
-    sitting.block = block
-    await this.sittingRepository.save(sitting)
   }
 }
