@@ -28,6 +28,20 @@ export class FieldRepo {
   }
 
   async findWhere (args: FindFieldsArgs): Promise<FieldEntity[]> {
+    if (args.skillsEnabled === true) {
+      // return all fields that are either not competition or have skills enabled
+      const fields = await this.fieldRepository.find({
+        where: [
+          { isCompetition: false },
+          { skillsEnabled: true }
+        ]
+      })
+
+      if (args.isEnabled !== undefined) {
+        return fields.filter(field => field.isEnabled === args.isEnabled)
+      }
+      return fields
+    }
     return await this.fieldRepository.find({
       where:
       {
