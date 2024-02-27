@@ -1,186 +1,226 @@
 import { Tier, Winner } from './match.interface'
-import { calculateScore, makeCalculableScore, makeEmptyScore } from './score.calc'
+import { calculateScore, calculateWinner, makeCalculableScore, makeEmptyScore } from './score.calc'
 
-describe('calculateScore', () => {
-  it('should return 0 for a base match', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+describe('score.calc', () => {
+  describe('calculateWinner', () => {
+    it('should return red if red has more points', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      score.red.allianceInGoal = 2
+      score.blue.allianceInGoal = 1
 
-    expect(result).toBe(0)
+      const calculable = makeCalculableScore(score)
+      const result = calculateWinner(calculable)
+
+      expect(result).toBe(Winner.RED)
+    })
+
+    it('should return blue if blue has more points', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+
+      score.red.allianceInGoal = 1
+      score.blue.allianceInGoal = 2
+
+      const calculable = makeCalculableScore(score)
+      const result = calculateWinner(calculable)
+
+      expect(result).toBe(Winner.BLUE)
+    })
+
+    it('should return tie if red and blue have the same points', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+
+      score.red.allianceInGoal = 1
+      score.blue.allianceInGoal = 1
+
+      const calculable = makeCalculableScore(score)
+      const result = calculateWinner(calculable)
+
+      expect(result).toBe(Winner.TIE)
+    })
   })
 
-  it('should award 8 points for winning auto', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+  describe('calculateScore', () => {
+    it('should return 0 for a base match', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    score.autoWinner = Winner.RED
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(0)
+    })
 
-    expect(result).toBe(8)
-  })
+    it('should award 8 points for winning auto', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 4 points for tying auto', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.autoWinner = Winner.RED
 
-    score.autoWinner = Winner.TIE
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(8)
+    })
 
-    expect(result).toBe(4)
-  })
+    it('should award 4 points for tying auto', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 0 points for losing auto', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.autoWinner = Winner.TIE
 
-    score.autoWinner = Winner.BLUE
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(4)
+    })
 
-    expect(result).toBe(0)
-  })
+    it('should award 0 points for losing auto', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award no points if there is no auto winner', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.autoWinner = Winner.BLUE
 
-    score.autoWinner = Winner.NONE
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(0)
+    })
 
-    expect(result).toBe(0)
-  })
+    it('should award no points if there is no auto winner', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 5 points for each alliance ball in goal', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.autoWinner = Winner.NONE
 
-    score.red.allianceInGoal = 2
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(0)
+    })
 
-    expect(result).toBe(10)
-  })
+    it('should award 5 points for each alliance ball in goal', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 5 points for each ball in goal', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.red.allianceInGoal = 2
 
-    score.red.allianceInGoal = 2
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(10)
+    })
 
-    expect(result).toBe(10)
-  })
+    it('should award 5 points for each ball in goal', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 2 points for each alliance ball in zone', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.red.allianceInGoal = 2
 
-    score.red.allianceInZone = 2
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(10)
+    })
 
-    expect(result).toBe(4)
-  })
+    it('should award 2 points for each alliance ball in zone', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 2 points for each ball in zone', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.red.allianceInZone = 2
 
-    score.red.allianceInZone = 2
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+      expect(result).toBe(4)
+    })
 
-    expect(result).toBe(4)
-  })
+    it('should award 2 points for each ball in zone', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-  it('should award 20 points if a robot is the highest tier', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.red.allianceInZone = 2
 
-    score.red.robot1Tier = Tier.B
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.A
-    score.blue.robot2Tier = Tier.A
+      expect(result).toBe(4)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 20 points if a robot is the highest tier', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(20)
-  })
+      score.red.robot1Tier = Tier.B
 
-  it('should award 20 points if a robot is tied for the highest tier', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.blue.robot1Tier = Tier.A
+      score.blue.robot2Tier = Tier.A
 
-    score.red.robot1Tier = Tier.B
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.A
-    score.blue.robot2Tier = Tier.B
+      expect(result).toBe(20)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 20 points if a robot is tied for the highest tier', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(20)
-  })
+      score.red.robot1Tier = Tier.B
 
-  it('should award 15 points if a robot is the second highest tier', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.blue.robot1Tier = Tier.A
+      score.blue.robot2Tier = Tier.B
 
-    score.red.robot1Tier = Tier.A
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.A
-    score.blue.robot2Tier = Tier.B
+      expect(result).toBe(20)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 15 points if a robot is the second highest tier', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(15)
-  })
+      score.red.robot1Tier = Tier.A
 
-  it('should award 15 points if a robot is behind two tied robots', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.blue.robot1Tier = Tier.A
+      score.blue.robot2Tier = Tier.B
 
-    score.red.robot1Tier = Tier.A
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.B
-    score.blue.robot2Tier = Tier.B
+      expect(result).toBe(15)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 15 points if a robot is behind two tied robots', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(15)
-  })
+      score.red.robot1Tier = Tier.A
 
-  it('should award 10 points if a robot is the third highest tier', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.blue.robot1Tier = Tier.B
+      score.blue.robot2Tier = Tier.B
 
-    score.red.robot1Tier = Tier.A
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.B
-    score.blue.robot2Tier = Tier.C
+      expect(result).toBe(15)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 10 points if a robot is the third highest tier', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(10)
-  })
+      score.red.robot1Tier = Tier.A
 
-  it('should award 15 points if the two alliance robots are at the two lowest tiers', () => {
-    const score = makeEmptyScore(1, false, [1, 2], [3, 4])
+      score.blue.robot1Tier = Tier.B
+      score.blue.robot2Tier = Tier.C
 
-    score.red.robot1Tier = Tier.A
-    score.red.robot2Tier = Tier.B
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
 
-    score.blue.robot1Tier = Tier.C
-    score.blue.robot2Tier = Tier.D
+      expect(result).toBe(10)
+    })
 
-    const calculable = makeCalculableScore(score)
-    const result = calculateScore(calculable.red)
+    it('should award 15 points if the two alliance robots are at the two lowest tiers', () => {
+      const score = makeEmptyScore(1, false, [1, 2], [3, 4])
 
-    expect(result).toBe(15)
+      score.red.robot1Tier = Tier.A
+      score.red.robot2Tier = Tier.B
+
+      score.blue.robot1Tier = Tier.C
+      score.blue.robot2Tier = Tier.D
+
+      const calculable = makeCalculableScore(score)
+      const result = calculateScore(calculable.red)
+
+      expect(result).toBe(15)
+    })
   })
 })
