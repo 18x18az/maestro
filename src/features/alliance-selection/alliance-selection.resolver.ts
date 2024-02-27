@@ -15,10 +15,10 @@ export class AllianceSelectionResolver {
     return this.service.getStatus()
   }
 
-  @Mutation(() => AllianceSelection)
-  async startAllianceSelection (): Promise<AllianceSelectionStatus> {
-    return await this.service.startAllianceSelection()
-  }
+  // @Mutation(() => AllianceSelection)
+  // async startAllianceSelection (): Promise<AllianceSelectionStatus> {
+  //   return await this.service.startAllianceSelection()
+  // }
 
   @Mutation(() => AllianceSelection)
   allianceSelectionPick (@Args({ type: () => Int, name: 'teamId' }) teamId: number): AllianceSelectionStatus | null {

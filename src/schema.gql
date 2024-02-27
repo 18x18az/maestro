@@ -552,7 +552,6 @@ type Mutation {
 
   """Reset the event. Only available in test mode."""
   reset: Stage!
-  startAllianceSelection: AllianceSelection!
   allianceSelectionPick(teamId: Int!): AllianceSelection!
   allianceSelectionAccept: AllianceSelection!
   allianceSelectionDecline: AllianceSelection!
