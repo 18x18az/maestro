@@ -9,6 +9,7 @@ import { ContestEntity } from './contest.entity'
 import { Score } from './score.object'
 import { ScoreService } from './score.service'
 import { CalculableScore } from './score.interface'
+import { Winner } from './match.interface'
 
 @Resolver(() => Match)
 export class MatchResolver {
@@ -45,6 +46,11 @@ export class MatchResolver {
   @ResolveField(() => [Score])
   async scoreHistory (@Parent() match: MatchEntity): Promise<CalculableScore[]> {
     return await this.scores.getSavedScores(match.id)
+  }
+
+  @ResolveField(() => Winner)
+  async winner (@Parent() match: MatchEntity): Promise<Winner> {
+    return await this.scores.getWinner(match.id)
   }
 
   @Mutation(() => Match)

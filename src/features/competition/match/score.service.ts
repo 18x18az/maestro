@@ -3,7 +3,7 @@ import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
 import { ScoreEdit } from './score.object'
-import { dehydrate, hydrate } from './score.calc'
+import { calculateWinner, dehydrate, hydrate } from './score.calc'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
@@ -128,6 +128,14 @@ export class ScoreService {
       score.hidden = score.isElim
       return makeCalculableScore(score)
     })
+  }
+
+  async getWinner (matchId: number): Promise<Winner> {
+    const score = await this.getSavedScore(matchId)
+
+    if (score === null) return Winner.NONE
+
+    return calculateWinner(score)
   }
 
   async getCalculableScore (matchId: number): Promise<CalculableScore> {
