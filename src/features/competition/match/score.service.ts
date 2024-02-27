@@ -1,47 +1,15 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
-import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
-import { Tier, Winner } from './match.interface'
+import { AllianceScoreEdit } from './alliance-score.object'
+import { Winner } from './match.interface'
 import { ScoreEdit } from './score.object'
-import { calculateWinner, dehydrate, hydrate } from './score.calc'
+import { calculateWinner, dehydrate, hydrate, makeCalculableScore, makeEmptyScore } from './score.calc'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
 import { MatchResultEvent } from './match-result.event'
 import { MatchRepo } from './match.repo'
 import { TeamMetaEdit } from './team-meta.object'
-
-function makeCalculableScore (match: StoredScore): CalculableScore {
-  return {
-    ...match,
-    red: {
-      ...match.red,
-      color: 'red',
-      autoWinner: match.autoWinner,
-      opponent: match.blue
-    },
-    blue: {
-      ...match.blue,
-      color: 'blue',
-      autoWinner: match.autoWinner,
-      opponent: match.red
-    }
-  }
-}
-
-function makeEmptyAllianceScore (isElim: boolean, teamIds: number[]): SavedAllianceScore {
-  const teams = teamIds.map((teamId) => ({ teamId, noShow: false, dq: false }))
-  return {
-    allianceInGoal: 0,
-    allianceInZone: 0,
-    triballsInGoal: 0,
-    triballsInZone: 0,
-    robot1Tier: Tier.NONE,
-    robot2Tier: Tier.NONE,
-    autoWp: isElim ? undefined : false,
-    teams
-  }
-}
 
 @Injectable()
 export class ScoreService {
@@ -75,16 +43,7 @@ export class ScoreService {
 
     const { redTeams, blueTeams } = await this.matchRepo.getMatchTeams(matchId)
 
-    const score: StoredScore = {
-      red: makeEmptyAllianceScore(isElim, redTeams),
-      blue: makeEmptyAllianceScore(isElim, blueTeams),
-      autoWinner: Winner.NONE,
-      matchId,
-      isElim,
-      locked: false,
-      changed: true,
-      hidden: isElim
-    }
+    const score = makeEmptyScore(matchId, isElim, redTeams, blueTeams)
 
     this.workingScores.set(matchId, score)
     return score
