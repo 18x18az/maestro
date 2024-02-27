@@ -137,7 +137,7 @@ export class ScoreService {
   async updateScore (matchId: number, edit: ScoreEdit): Promise<CalculableScore> {
     const score = await this.getCalculableScore(matchId)
     const updated = { ...score, ...edit }
-    score.changed = true
+    updated.changed = true
     this.workingScores.set(matchId, updated)
     return makeCalculableScore(updated)
   }
