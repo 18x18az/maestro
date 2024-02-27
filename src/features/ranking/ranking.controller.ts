@@ -13,7 +13,7 @@ export class RankingController {
     const file = await multipart.next()
     const buffer = await file.value.toBuffer()
     const string = buffer.toString('utf-8')
-    console.log(string)
-    // await this.createService.handleUpload(string)
+    const rankings = string.split('\n').slice(1, -1).map(line => line.split(',')[1])
+    await this.event.execute({ rankings })
   }
 }
