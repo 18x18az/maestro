@@ -18,9 +18,9 @@ export class ContestEntity {
   @OneToMany(() => MatchEntity, match => match.contest, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     matches: MatchEntity[]
 
-  @ManyToOne(() => AllianceEntity, alliance => alliance.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-    redAlliance: AllianceEntity
+  @ManyToOne(() => AllianceEntity, alliance => alliance.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
+    redAlliance: AllianceEntity | null
 
-  @ManyToOne(() => AllianceEntity, alliance => alliance.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-    blueAlliance: AllianceEntity
+  @ManyToOne(() => AllianceEntity, alliance => alliance.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
+    blueAlliance: AllianceEntity | null
 }

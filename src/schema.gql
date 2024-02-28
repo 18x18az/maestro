@@ -152,10 +152,10 @@ type Contest {
   number: Float!
 
   """The red alliance"""
-  redTeams: [Team!]!
+  redTeams: [Team!]
 
   """The blue alliance"""
-  blueTeams: [Team!]!
+  blueTeams: [Team!]
 
   """The matches in this contest"""
   matches: [Match!]!

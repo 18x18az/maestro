@@ -43,6 +43,8 @@ export class ScoreService {
 
     const { redTeams, blueTeams } = await this.matchRepo.getMatchTeams(matchId)
 
+    if (redTeams === undefined || blueTeams === undefined) throw new BadRequestException('Match has no teams')
+
     const score = makeEmptyScore(matchId, isElim, redTeams, blueTeams)
 
     this.workingScores.set(matchId, score)

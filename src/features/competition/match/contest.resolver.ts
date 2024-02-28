@@ -16,12 +16,12 @@ export class ContestResolver {
   }
 
   @ResolveField(() => [Team])
-  async redTeams (@Parent() contest: ContestEntity): Promise<TeamEntity[]> {
+  async redTeams (@Parent() contest: ContestEntity): Promise<TeamEntity[] | undefined> {
     return await this.repo.getRedTeams(contest.id)
   }
 
   @ResolveField(() => [Team])
-  async blueTeams (@Parent() contest: ContestEntity): Promise<TeamEntity[]> {
+  async blueTeams (@Parent() contest: ContestEntity): Promise<TeamEntity[] | undefined> {
     return await this.repo.getBlueTeams(contest.id)
   }
 
