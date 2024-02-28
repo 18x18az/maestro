@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
 import { AllianceScoreEdit } from './alliance-score.object'
-import { Winner } from './match.interface'
+import { Round, Winner } from './match.interface'
 import { ScoreEdit } from './score.object'
 import { calculateWinner, dehydrate, hydrate, makeCalculableScore, makeEmptyScore } from './score.calc'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -10,6 +10,7 @@ import { Repository } from 'typeorm'
 import { MatchResultEvent } from './match-result.event'
 import { MatchRepo } from './match.repo'
 import { TeamMetaEdit } from './team-meta.object'
+import { ContestEntity } from './contest.entity'
 
 @Injectable()
 export class ScoreService {
@@ -89,6 +90,39 @@ export class ScoreService {
       score.hidden = score.isElim
       return makeCalculableScore(score)
     })
+  }
+
+  async getContestWinner (contest: ContestEntity): Promise<Winner> {
+    const round = contest.round
+
+    const matches = await this.matchRepo.getMatchesByContest(contest.id)
+
+    if (matches.length === 0) return Winner.NONE
+
+    const winners = await Promise.all(matches.map(async (m) => await this.getWinner(m.id)))
+
+    if (round === Round.QUAL) {
+      return winners[0]
+    }
+
+    if (round !== Round.F) {
+      const result = winners[winners.length - 1]
+
+      if (result === Winner.BLUE || result === Winner.RED) return result
+
+      return Winner.NONE
+    }
+
+    // TODO eventually we'll need to handle normal non championship events
+    const redWins = winners.filter((w) => w === Winner.RED).length >= 2
+
+    if (redWins) return Winner.RED
+
+    const blueWins = winners.filter((w) => w === Winner.BLUE).length >= 2
+
+    if (blueWins) return Winner.BLUE
+
+    return Winner.NONE
   }
 
   async getWinner (matchId: number): Promise<Winner> {
