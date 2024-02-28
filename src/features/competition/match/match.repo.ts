@@ -11,6 +11,8 @@ import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
 import { AllianceEntity } from './alliance.entity'
 
+const ELIMS_BLOCK_NAME = 'Eliminations'
+
 @Injectable()
 export class MatchRepo {
   private readonly logger = new Logger(MatchRepo.name)
@@ -103,10 +105,10 @@ export class MatchRepo {
   }
 
   async getElimsBlock (): Promise<BlockEntity> {
-    let block = await this.blockRepository.findOne({ where: { name: 'Eliminations' } })
+    let block = await this.blockRepository.findOne({ where: { name: ELIMS_BLOCK_NAME } })
     if (block === null) {
       block = new BlockEntity()
-      block.name = 'Eliminations'
+      block.name = ELIMS_BLOCK_NAME
       await this.blockRepository.save(block)
     }
     return block
@@ -200,7 +202,25 @@ export class MatchRepo {
   }
 
   async getUnqueuedSittingsByBlock (block: number): Promise<SittingEntity[]> {
-    return await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED } })
+    const sittings = await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED }, relations: { match: { contest: true } } })
+
+    const blockName = (await this.blockRepository.findOneOrFail({ where: { id: block } })).name
+
+    // if it's not elims, return the sittings
+    if (blockName !== 'Eliminations') return sittings
+
+    // sort first by contest round, then by sitting ID
+
+    const roundOrder = [Round.Ro16, Round.QF, Round.SF, Round.F]
+
+    return sittings.sort((a, b) => {
+      const aRound = a.match.contest.round
+      const bRound = b.match.contest.round
+
+      if (aRound === bRound) return a.id - b.id
+
+      return roundOrder.indexOf(aRound) - roundOrder.indexOf(bRound)
+    })
   }
 
   async getRedTeams (contest: number): Promise<TeamEntity[] | undefined> {
