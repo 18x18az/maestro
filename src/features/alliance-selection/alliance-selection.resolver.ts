@@ -15,10 +15,10 @@ export class AllianceSelectionResolver {
     return this.service.getStatus()
   }
 
-  @Mutation(() => AllianceSelection)
-  async startAllianceSelection (): Promise<AllianceSelectionStatus> {
-    return await this.service.startAllianceSelection()
-  }
+  // @Mutation(() => AllianceSelection)
+  // async startAllianceSelection (): Promise<AllianceSelectionStatus> {
+  //   return await this.service.startAllianceSelection()
+  // }
 
   @Mutation(() => AllianceSelection)
   allianceSelectionPick (@Args({ type: () => Int, name: 'teamId' }) teamId: number): AllianceSelectionStatus | null {
@@ -80,5 +80,10 @@ export class AllianceSelectionResolver {
   @ResolveField(() => [Team])
   async remaining (@Parent() status: AllianceSelectionStatus): Promise<TeamEntity[]> {
     return await Promise.all(status.remaining.map(async (team) => await this.teams.getTeam(team)))
+  }
+
+  @Mutation(() => AllianceSelection, { nullable: true })
+  async finalizeAlliances (): Promise<void> {
+    await this.service.finalize()
   }
 }

@@ -1,47 +1,17 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { CalculableScore, StoredScore } from './score.interface'
-import { AllianceScoreEdit, SavedAllianceScore } from './alliance-score.object'
-import { Tier, Winner } from './match.interface'
+import { AllianceScoreEdit } from './alliance-score.object'
+import { Round, Winner } from './match.interface'
 import { ScoreEdit } from './score.object'
-import { calculateWinner, dehydrate, hydrate } from './score.calc'
+import { calculateWinner, dehydrate, hydrate, makeCalculableScore, makeEmptyScore } from './score.calc'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
-import { MatchResultEvent } from './match-result.event'
+import { MatchResultEvent, MatchResultPayload } from './match-result.event'
 import { MatchRepo } from './match.repo'
 import { TeamMetaEdit } from './team-meta.object'
-
-function makeCalculableScore (match: StoredScore): CalculableScore {
-  return {
-    ...match,
-    red: {
-      ...match.red,
-      color: 'red',
-      autoWinner: match.autoWinner,
-      opponent: match.blue
-    },
-    blue: {
-      ...match.blue,
-      color: 'blue',
-      autoWinner: match.autoWinner,
-      opponent: match.red
-    }
-  }
-}
-
-function makeEmptyAllianceScore (isElim: boolean, teamIds: number[]): SavedAllianceScore {
-  const teams = teamIds.map((teamId) => ({ teamId, noShow: false, dq: false }))
-  return {
-    allianceInGoal: 0,
-    allianceInZone: 0,
-    triballsInGoal: 0,
-    triballsInZone: 0,
-    robot1Tier: Tier.NONE,
-    robot2Tier: Tier.NONE,
-    autoWp: isElim ? undefined : false,
-    teams
-  }
-}
+import { ContestEntity } from './contest.entity'
+import { ContestResultEvent } from './contest-result.event'
 
 @Injectable()
 export class ScoreService {
@@ -51,8 +21,20 @@ export class ScoreService {
   constructor (
     @InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>,
     private readonly resultEvent: MatchResultEvent,
+    private readonly contestResultEvent: ContestResultEvent,
     private readonly matchRepo: MatchRepo
-  ) {}
+  ) {
+    resultEvent.registerAfter(this.onMatchResult.bind(this))
+  }
+
+  async onMatchResult (data: MatchResultPayload): Promise<void> {
+    const contest = await this.matchRepo.getContestByMatch(data.matchId)
+    const winner = await this.getContestWinner(contest)
+
+    if (winner === Winner.NONE) return
+
+    await this.contestResultEvent.execute({ contest, winner })
+  }
 
   async getScore (matchId: number): Promise<StoredScore> {
     const existing = this.workingScores.get(matchId)
@@ -75,16 +57,9 @@ export class ScoreService {
 
     const { redTeams, blueTeams } = await this.matchRepo.getMatchTeams(matchId)
 
-    const score: StoredScore = {
-      red: makeEmptyAllianceScore(isElim, redTeams),
-      blue: makeEmptyAllianceScore(isElim, blueTeams),
-      autoWinner: Winner.NONE,
-      matchId,
-      isElim,
-      locked: false,
-      changed: true,
-      hidden: isElim
-    }
+    if (redTeams === undefined || blueTeams === undefined) throw new BadRequestException('Match has no teams')
+
+    const score = makeEmptyScore(matchId, isElim, redTeams, blueTeams)
 
     this.workingScores.set(matchId, score)
     return score
@@ -128,6 +103,39 @@ export class ScoreService {
       score.hidden = score.isElim
       return makeCalculableScore(score)
     })
+  }
+
+  async getContestWinner (contest: ContestEntity): Promise<Winner> {
+    const round = contest.round
+
+    const matches = await this.matchRepo.getMatchesByContest(contest.id)
+
+    if (matches.length === 0) return Winner.NONE
+
+    const winners = await Promise.all(matches.map(async (m) => await this.getWinner(m.id)))
+
+    if (round === Round.QUAL) {
+      return winners[0]
+    }
+
+    if (round !== Round.F) {
+      const result = winners[winners.length - 1]
+
+      if (result === Winner.BLUE || result === Winner.RED) return result
+
+      return Winner.NONE
+    }
+
+    // TODO eventually we'll need to handle normal non championship events
+    const redWins = winners.filter((w) => w === Winner.RED).length >= 2
+
+    if (redWins) return Winner.RED
+
+    const blueWins = winners.filter((w) => w === Winner.BLUE).length >= 2
+
+    if (blueWins) return Winner.BLUE
+
+    return Winner.NONE
   }
 
   async getWinner (matchId: number): Promise<Winner> {

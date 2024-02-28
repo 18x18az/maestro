@@ -14,11 +14,11 @@ export class Contest {
   @Field(() => Number, { description: 'The number of the contest' })
     number: number
 
-  @Field(() => [Team], { description: 'The red alliance' })
-    redTeams: Team[]
+  @Field(() => [Team], { description: 'The red alliance', nullable: true })
+    redTeams?: Team[]
 
-  @Field(() => [Team], { description: 'The blue alliance' })
-    blueTeams: Team[]
+  @Field(() => [Team], { description: 'The blue alliance', nullable: true })
+    blueTeams?: Team[]
 
   @Field(() => [Match], { description: 'The matches in this contest' })
     matches: Match[]

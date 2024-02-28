@@ -1,10 +1,11 @@
 import { registerEnumType } from '@nestjs/graphql'
 
+export type Alliance = [number, number]
 export interface AllianceSelectionStatus {
   picking: number | null
   picked: number | null
   pickable: number[]
-  alliances: Array<[number, number]>
+  alliances: Alliance[]
   remaining: number[]
 }
 

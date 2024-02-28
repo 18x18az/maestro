@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { AllianceSelectionOperationType, AllianceSelectionStatus } from './alliance-selection.interfaces'
-import { RankingService } from '../ranking/ranking.service'
+import { Alliance, AllianceSelectionOperationType, AllianceSelectionStatus } from './alliance-selection.interfaces'
 import { StageService } from '../stage/stage.service'
 import { EventStage } from '../stage/stage.interface'
 import { RankingsUpdateEvent } from '../ranking/ranking-update.event'
 import { TeamService } from '../team/team.service'
 import { StageChangeEvent } from '../stage/stage-change.event'
+import { ElimsService } from '../competition/match/elims.service'
 
 interface AllianceSelectionOperation {
   type: AllianceSelectionOperationType
@@ -53,27 +53,35 @@ export class AllianceSelectionInternal {
   private readonly operationStack: AllianceSelectionOperation[] = []
 
   constructor (
-    private readonly rankingService: RankingService,
     private readonly stageService: StageService,
-    private readonly stageChange: StageChangeEvent,
     private readonly rankingUpdate: RankingsUpdateEvent,
-    private readonly teams: TeamService
+    private readonly teams: TeamService,
+    private readonly stageChange: StageChangeEvent,
+    private readonly elims: ElimsService
   ) {}
 
-  async initialize (): Promise<void> {
+  async initialize (rankings: string[]): Promise<void> {
     this.logger.log('Initializing alliance selection')
-    const rankings = this.rankingService.getRankings()
-    this.rankings = await Promise.all(rankings.map(async teamNumber => {
-      const team = await this.teams.getTeamByNumber(teamNumber)
-      return team.id
-    }))
-    this.doProcess()
+    const teams = await this.teams.getTeams()
+    this.rankings = rankings.map(team => teams.find(t => t.number === team)?.id ?? 0)
+    this.status = {
+      picking: this.rankings[0],
+      picked: null,
+      pickable: this.rankings.slice(1),
+      remaining: this.rankings.slice(1),
+      alliances: []
+    }
+    this.operationStack.splice(0, this.operationStack.length)
   }
 
-  async checkStartAllianceSelection (): Promise<void> {
+  async checkStartAllianceSelection (data: { rankings: string[] }): Promise<void> {
     const stage = await this.stageService.getStage()
-    if (stage === EventStage.ALLIANCE_SELECTION) {
-      await this.initialize()
+    if (stage === EventStage.ALLIANCE_SELECTION || stage === EventStage.QUALIFICATIONS) {
+      await this.initialize(data.rankings)
+
+      if (stage === EventStage.QUALIFICATIONS) {
+        await this.stageChange.execute({ stage: EventStage.ALLIANCE_SELECTION })
+      }
     }
   }
 
@@ -83,20 +91,6 @@ export class AllianceSelectionInternal {
 
   onModuleInit (): void {
     this.rankingUpdate.registerOnComplete(this.checkStartAllianceSelection.bind(this))
-  }
-
-  async startAllianceSelection (): Promise<AllianceSelectionStatus> {
-    const stage = await this.stageService.getStage()
-    if (stage !== EventStage.QUALIFICATIONS) {
-      throw new BadRequestException('Alliance selection can only be started at end of qualifications')
-    }
-    await this.initialize()
-    const status = this.status
-    if (status === null) {
-      throw new Error('Alliance selection status is null')
-    }
-    await this.stageChange.execute({ stage: EventStage.ALLIANCE_SELECTION })
-    return status
   }
 
   doProcess (): void {
@@ -253,5 +247,17 @@ export class AllianceSelectionInternal {
 
     this.operationStack.pop()
     this.doProcess()
+  }
+
+  async finalize (): Promise<void> {
+    if (this.status?.picking !== null) {
+      throw new BadRequestException('Alliance selection not complete')
+    }
+
+    this.logger.log('Finalizing alliance selection')
+    const alliances: Alliance[] = this.status.alliances.map(alliance => [alliance[0], alliance[1]])
+
+    await this.elims.createAlliances(alliances)
+    await this.stageChange.execute({ stage: EventStage.ELIMS })
   }
 }

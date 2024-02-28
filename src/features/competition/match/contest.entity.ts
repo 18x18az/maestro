@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
 import { Round } from './match.interface'
 import { MatchEntity } from './match.entity'
 import { AllianceEntity } from './alliance.entity'
@@ -18,9 +18,17 @@ export class ContestEntity {
   @OneToMany(() => MatchEntity, match => match.contest, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     matches: MatchEntity[]
 
-  @ManyToOne(() => AllianceEntity, alliance => alliance.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-    redAlliance: AllianceEntity
+  @Column({ type: 'int', nullable: true })
+    redAllianceId: number | null
 
-  @ManyToOne(() => AllianceEntity, alliance => alliance.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-    blueAlliance: AllianceEntity
+  @ManyToOne(() => AllianceEntity, alliance => alliance.redContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'redAllianceId' })
+    redAlliance: AllianceEntity | null
+
+  @Column({ type: 'int', nullable: true })
+    blueAllianceId: number | null
+
+  @ManyToOne(() => AllianceEntity, alliance => alliance.blueContests, { onUpdate: 'CASCADE', onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'blueAllianceId' })
+    blueAlliance: AllianceEntity | null
 }

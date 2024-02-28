@@ -26,6 +26,8 @@ import { ScoreResolver } from './score.resolver'
 import { ScoreEntity } from './score.entity'
 import { TeamMetaResolver } from './team-meta.resolver'
 import { AllianceEntity } from './alliance.entity'
+import { ElimsService } from './elims.service'
+import { ContestResultEvent } from './contest-result.event'
 
 @Module({
   imports: [TeamModule, StageModule, forwardRef(() => FieldModule), forwardRef(() => CompetitionFieldModule),
@@ -47,8 +49,10 @@ import { AllianceEntity } from './alliance.entity'
     ScoreService,
     AllianceScoreResolver,
     ScoreResolver,
-    TeamMetaResolver
+    TeamMetaResolver,
+    ElimsService,
+    ContestResultEvent
   ],
-  exports: [MatchService, MatchResultEvent, SittingCompleteEvent]
+  exports: [MatchService, MatchResultEvent, SittingCompleteEvent, ElimsService]
 })
 export class MatchModule {}

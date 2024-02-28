@@ -1,4 +1,4 @@
-import { CalculableAllianceScore } from './alliance-score.object'
+import { CalculableAllianceScore, SavedAllianceScore } from './alliance-score.object'
 import { Tier, Winner } from './match.interface'
 import { CalculableScore, StoredScore } from './score.interface'
 
@@ -89,4 +89,51 @@ export function dehydrate (raw: StoredScore): string {
 
 export function hydrate (raw: string): StoredScore {
   return JSON.parse(raw)
+}
+
+export function makeCalculableScore (match: StoredScore): CalculableScore {
+  return {
+    ...match,
+    red: {
+      ...match.red,
+      color: 'red',
+      autoWinner: match.autoWinner,
+      opponent: match.blue
+    },
+    blue: {
+      ...match.blue,
+      color: 'blue',
+      autoWinner: match.autoWinner,
+      opponent: match.red
+    }
+  }
+}
+
+function makeEmptyAllianceScore (isElim: boolean, teamIds: number[]): SavedAllianceScore {
+  const teams = teamIds.map((teamId) => ({ teamId, noShow: false, dq: false }))
+  return {
+    allianceInGoal: 0,
+    allianceInZone: 0,
+    triballsInGoal: 0,
+    triballsInZone: 0,
+    robot1Tier: Tier.NONE,
+    robot2Tier: Tier.NONE,
+    autoWp: isElim ? undefined : false,
+    teams
+  }
+}
+
+export function makeEmptyScore (matchId: number, isElim: boolean, redTeams: number[], blueTeams: number[]): StoredScore {
+  const score: StoredScore = {
+    red: makeEmptyAllianceScore(isElim, redTeams),
+    blue: makeEmptyAllianceScore(isElim, blueTeams),
+    autoWinner: Winner.NONE,
+    matchId,
+    isElim,
+    locked: false,
+    changed: true,
+    hidden: isElim
+  }
+
+  return score
 }

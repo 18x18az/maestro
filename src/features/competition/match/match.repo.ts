@@ -11,6 +11,8 @@ import { TeamEntity } from '../../team/team.entity'
 import { FieldEntity } from '../../field/field.entity'
 import { AllianceEntity } from './alliance.entity'
 
+const ELIMS_BLOCK_NAME = 'Eliminations'
+
 @Injectable()
 export class MatchRepo {
   private readonly logger = new Logger(MatchRepo.name)
@@ -26,10 +28,18 @@ export class MatchRepo {
     this.resetEvent.registerBefore(this.reset.bind(this))
   }
 
-  async getMatchTeams (match: number): Promise<{ redTeams: number[], blueTeams: number[] }> {
+  async getMatchTeams (match: number): Promise<{ redTeams: number[] | undefined, blueTeams: number[] | undefined }> {
     const m = await this.matchRepository.findOneOrFail({ relations: { contest: { redAlliance: true, blueAlliance: true } }, where: { id: match } })
-    const redTeams = m.contest.redAlliance.team2Id !== undefined ? [m.contest.redAlliance.team1Id, m.contest.redAlliance.team2Id] : [m.contest.redAlliance.team1Id]
-    const blueTeams = m.contest.blueAlliance.team2Id !== undefined ? [m.contest.blueAlliance.team1Id, m.contest.blueAlliance.team2Id] : [m.contest.blueAlliance.team1Id]
+    const red = m.contest.redAlliance
+    let redTeams: number[] | undefined
+    let blueTeams: number[] | undefined
+
+    if (red !== null) {
+      redTeams = red.team2Id !== undefined ? [red.team1Id, red.team2Id] : [red.team1Id]
+    }
+    if (m.contest.blueAlliance !== null) {
+      blueTeams = m.contest.blueAlliance.team2Id !== undefined ? [m.contest.blueAlliance.team1Id, m.contest.blueAlliance.team2Id] : [m.contest.blueAlliance.team1Id]
+    }
 
     return { redTeams, blueTeams }
   }
@@ -95,13 +105,60 @@ export class MatchRepo {
   }
 
   async getElimsBlock (): Promise<BlockEntity> {
-    let block = await this.blockRepository.findOne({ where: { name: 'Eliminations' } })
+    let block = await this.blockRepository.findOne({ where: { name: ELIMS_BLOCK_NAME } })
     if (block === null) {
       block = new BlockEntity()
-      block.name = 'Eliminations'
+      block.name = ELIMS_BLOCK_NAME
       await this.blockRepository.save(block)
     }
     return block
+  }
+
+  async createElimsContest (round: Round, number: number): Promise<ContestEntity> {
+    const contest = new ContestEntity()
+    contest.round = round
+    contest.number = number
+    await this.contestRepository.save(contest)
+
+    const match = new MatchEntity()
+    match.contest = contest
+    await this.matchRepository.save(match)
+
+    const sitting = new SittingEntity()
+    const block = await this.getElimsBlock()
+    sitting.block = block
+    sitting.match = match
+    await this.sittingRepository.save(sitting)
+
+    return contest
+  }
+
+  async addContestMatch (contest: ContestEntity): Promise<void> {
+    const lastMatch = await this.matchRepository.findOneOrFail({ where: { contestId: contest.id }, order: { number: 'DESC' } })
+    const matchNumber = lastMatch.number + 1
+
+    const match = new MatchEntity()
+    match.contest = contest
+    match.number = matchNumber
+
+    await this.matchRepository.save(match)
+
+    const sitting = new SittingEntity()
+    sitting.match = match
+    sitting.block = await this.getElimsBlock()
+    await this.sittingRepository.save(sitting)
+  }
+
+  async assignAllianceToContest (alliance: AllianceEntity, round: Round, number: number, color: 'red' | 'blue'): Promise<void> {
+    const entity = await this.contestRepository.findOneOrFail({ where: { round, number } })
+
+    if (color === 'red') {
+      entity.redAlliance = alliance
+    } else {
+      entity.blueAlliance = alliance
+    }
+
+    await this.contestRepository.save(entity)
   }
 
   async getNextBlock (): Promise<BlockEntity | null> {
@@ -145,18 +202,44 @@ export class MatchRepo {
   }
 
   async getUnqueuedSittingsByBlock (block: number): Promise<SittingEntity[]> {
-    return await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED } })
+    const sittings = await this.sittingRepository.find({ where: { blockId: block, status: SittingStatus.NOT_STARTED }, relations: { match: { contest: true } } })
+
+    const blockName = (await this.blockRepository.findOneOrFail({ where: { id: block } })).name
+
+    // if it's not elims, return the sittings
+    if (blockName !== 'Eliminations') return sittings
+
+    // sort first by contest round, then by sitting ID
+
+    const roundOrder = [Round.Ro16, Round.QF, Round.SF, Round.F]
+
+    return sittings.sort((a, b) => {
+      const aRound = a.match.contest.round
+      const bRound = b.match.contest.round
+
+      if (aRound === bRound) return a.id - b.id
+
+      return roundOrder.indexOf(aRound) - roundOrder.indexOf(bRound)
+    })
   }
 
-  async getRedTeams (contest: number): Promise<TeamEntity[]> {
+  async getRedTeams (contest: number): Promise<TeamEntity[] | undefined> {
     const c = await this.contestRepository.findOneOrFail({ relations: { redAlliance: { team1: true, team2: true } }, where: { id: contest } })
-    const teams = c.redAlliance.team2 !== undefined ? [c.redAlliance.team1, c.redAlliance.team2] : [c.redAlliance.team1]
+    const alliance = c.redAlliance
+
+    if (alliance === null) return
+
+    const teams = alliance.team2 !== undefined ? [alliance.team1, alliance.team2] : [alliance.team1]
     return teams
   }
 
-  async getBlueTeams (contest: number): Promise<TeamEntity[]> {
+  async getBlueTeams (contest: number): Promise<TeamEntity[] | undefined> {
     const c = await this.contestRepository.findOneOrFail({ relations: { blueAlliance: { team1: true, team2: true } }, where: { id: contest } })
-    const teams = c.blueAlliance.team2 !== undefined ? [c.blueAlliance.team1, c.blueAlliance.team2] : [c.blueAlliance.team1]
+    const alliance = c.blueAlliance
+
+    if (alliance === null) return
+
+    const teams = alliance.team2 !== undefined ? [alliance.team1, alliance.team2] : [alliance.team1]
     return teams
   }
 
