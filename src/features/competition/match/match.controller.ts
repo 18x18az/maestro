@@ -1,10 +1,12 @@
 import { Controller, Post, Request } from '@nestjs/common'
 import { QualService } from './qual.service'
+import { ElimsService } from './elims.service'
 
 @Controller('matches')
 export class MatchController {
   constructor (
-    private readonly quals: QualService
+    private readonly quals: QualService,
+    private readonly elims: ElimsService
   ) {}
 
   @Post('quals')

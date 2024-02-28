@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import { AllianceSelectionOperationType, AllianceSelectionStatus } from './alliance-selection.interfaces'
+import { Alliance, AllianceSelectionOperationType, AllianceSelectionStatus } from './alliance-selection.interfaces'
 import { StageService } from '../stage/stage.service'
 import { EventStage } from '../stage/stage.interface'
 import { RankingsUpdateEvent } from '../ranking/ranking-update.event'
 import { TeamService } from '../team/team.service'
 import { StageChangeEvent } from '../stage/stage-change.event'
+import { ElimsService } from '../competition/match/elims.service'
 
 interface AllianceSelectionOperation {
   type: AllianceSelectionOperationType
@@ -55,7 +56,8 @@ export class AllianceSelectionInternal {
     private readonly stageService: StageService,
     private readonly rankingUpdate: RankingsUpdateEvent,
     private readonly teams: TeamService,
-    private readonly stageChange: StageChangeEvent
+    private readonly stageChange: StageChangeEvent,
+    private readonly elims: ElimsService
   ) {}
 
   async initialize (rankings: string[]): Promise<void> {
@@ -245,5 +247,17 @@ export class AllianceSelectionInternal {
 
     this.operationStack.pop()
     this.doProcess()
+  }
+
+  async finalize (): Promise<void> {
+    if (this.status?.picking !== null) {
+      throw new BadRequestException('Alliance selection not complete')
+    }
+
+    this.logger.log('Finalizing alliance selection')
+    const alliances: Alliance[] = this.status.alliances.map(alliance => [alliance[0], alliance[1]])
+
+    await this.elims.createAlliances(alliances)
+    await this.stageChange.execute({ stage: EventStage.ELIMS })
   }
 }

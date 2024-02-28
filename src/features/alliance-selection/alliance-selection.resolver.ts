@@ -81,4 +81,9 @@ export class AllianceSelectionResolver {
   async remaining (@Parent() status: AllianceSelectionStatus): Promise<TeamEntity[]> {
     return await Promise.all(status.remaining.map(async (team) => await this.teams.getTeam(team)))
   }
+
+  @Mutation(() => AllianceSelection, { nullable: true })
+  async finalizeAlliances (): Promise<void> {
+    await this.service.finalize()
+  }
 }

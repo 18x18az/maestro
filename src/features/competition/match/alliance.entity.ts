@@ -7,6 +7,9 @@ export class AllianceEntity {
   @PrimaryGeneratedColumn()
     id: number
 
+  @Column({ nullable: true })
+    elimRank: number
+
   @Column()
     team1Id: number
 

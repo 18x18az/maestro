@@ -557,6 +557,7 @@ type Mutation {
   allianceSelectionDecline: AllianceSelection!
   allianceSelectionUndo: AllianceSelection!
   allianceSelectionCancel: AllianceSelection!
+  finalizeAlliances: AllianceSelection
   startNextBlock: Block!
   concludeBlock: Block!
   saveScore(matchId: Int!): Match!
