@@ -7,10 +7,11 @@ import { calculateWinner, dehydrate, hydrate, makeCalculableScore, makeEmptyScor
 import { InjectRepository } from '@nestjs/typeorm'
 import { ScoreEntity } from './score.entity'
 import { Repository } from 'typeorm'
-import { MatchResultEvent } from './match-result.event'
+import { MatchResultEvent, MatchResultPayload } from './match-result.event'
 import { MatchRepo } from './match.repo'
 import { TeamMetaEdit } from './team-meta.object'
 import { ContestEntity } from './contest.entity'
+import { ContestResultEvent } from './contest-result.event'
 
 @Injectable()
 export class ScoreService {
@@ -20,8 +21,20 @@ export class ScoreService {
   constructor (
     @InjectRepository(ScoreEntity) private readonly repo: Repository<ScoreEntity>,
     private readonly resultEvent: MatchResultEvent,
+    private readonly contestResultEvent: ContestResultEvent,
     private readonly matchRepo: MatchRepo
-  ) {}
+  ) {
+    resultEvent.registerAfter(this.onMatchResult.bind(this))
+  }
+
+  async onMatchResult (data: MatchResultPayload): Promise<void> {
+    const contest = await this.matchRepo.getContestByMatch(data.matchId)
+    const winner = await this.getContestWinner(contest)
+
+    if (winner === Winner.NONE) return
+
+    await this.contestResultEvent.execute({ contest, winner })
+  }
 
   async getScore (matchId: number): Promise<StoredScore> {
     const existing = this.workingScores.get(matchId)
