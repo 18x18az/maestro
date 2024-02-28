@@ -20,7 +20,7 @@ export class InspectionRepo {
   }
 
   async createIfNotExistsInspectionPoint (group: InspectionGroupEntity, text: string): Promise<InspectionPointEntity> {
-    const point = await this.inspectionPointRepo.findOne({ where: { group, text } })
+    const point = await this.inspectionPointRepo.findOne({ where: { groupId: group.id, text } })
     if (point !== null) return point
 
     return await this.inspectionPointRepo.save({ group, text })

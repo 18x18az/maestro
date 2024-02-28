@@ -5,8 +5,25 @@ import { AllianceEntity } from './alliance.entity'
 import { IsNull, Not, Repository } from 'typeorm'
 import { StageChangeEvent } from '../../stage/stage-change.event'
 import { EventStage } from '../../stage/stage.interface'
-import { Round } from './match.interface'
+import { Round, Winner } from './match.interface'
 import { MatchRepo } from './match.repo'
+import { MatchResultEvent, MatchResultPayload } from './match-result.event'
+import { ScoreService } from './score.service'
+
+function getNextRound (round: Round): Round | null {
+  switch (round) {
+    case Round.Ro16:
+      return Round.QF
+    case Round.QF:
+      return Round.SF
+    case Round.SF:
+      return Round.F
+    case Round.F:
+      return null
+    default:
+      throw new Error('Invalid round')
+  }
+}
 
 @Injectable()
 export class ElimsService {
@@ -14,13 +31,47 @@ export class ElimsService {
   constructor (
     @InjectRepository(AllianceEntity) private readonly allianceRepo: Repository<AllianceEntity>,
     private readonly stageChange: StageChangeEvent,
-    private readonly matchRepo: MatchRepo
+    private readonly matchRepo: MatchRepo,
+    private readonly matchResultEvent: MatchResultEvent,
+    private readonly score: ScoreService
   ) {
     this.stageChange.registerAfter(async data => {
       if (data.stage === EventStage.ELIMS) {
         await this.createElims()
       }
     })
+    this.matchResultEvent.registerOnComplete(this.onMatchResult.bind(this))
+  }
+
+  async onMatchResult (data: MatchResultPayload): Promise<void> {
+    const contest = await this.matchRepo.getContestByMatch(data.matchId)
+    const round = contest.round
+
+    if (round === Round.QUAL) return
+
+    const winner = await this.score.getContestWinner(contest)
+
+    if (winner === Winner.NONE) {
+      this.logger.log(`Creating new match for ${round} contest ${contest.number}`)
+      await this.matchRepo.addContestMatch(contest)
+      return
+    }
+
+    if (winner === Winner.RED || winner === Winner.BLUE) {
+      this.logger.log(`Advancing ${winner} alliance of ${round} contest ${contest.number} to next round`)
+      const winningId = winner === Winner.RED ? contest.redAllianceId : contest.blueAllianceId
+      if (winningId === null) throw new Error('Winner is null')
+
+      const winningAlliance = await this.allianceRepo.findOneOrFail({ where: { id: winningId } })
+      const nextRound = getNextRound(round)
+
+      if (nextRound === null) return
+
+      const nextContestNumber = Math.ceil(contest.number / 2)
+      const alliance = contest.number % 2 === 1 ? 'red' : 'blue'
+
+      await this.matchRepo.assignAllianceToContest(winningAlliance, nextRound, nextContestNumber, alliance)
+    }
   }
 
   async createAlliances (alliances: Alliance[]): Promise<void> {

@@ -131,6 +131,22 @@ export class MatchRepo {
     return contest
   }
 
+  async addContestMatch (contest: ContestEntity): Promise<void> {
+    const lastMatch = await this.matchRepository.findOneOrFail({ where: { contestId: contest.id }, order: { number: 'DESC' } })
+    const matchNumber = lastMatch.number + 1
+
+    const match = new MatchEntity()
+    match.contest = contest
+    match.number = matchNumber
+
+    await this.matchRepository.save(match)
+
+    const sitting = new SittingEntity()
+    sitting.match = match
+    sitting.block = await this.getElimsBlock()
+    await this.sittingRepository.save(sitting)
+  }
+
   async assignAllianceToContest (alliance: AllianceEntity, round: Round, number: number, color: 'red' | 'blue'): Promise<void> {
     const entity = await this.contestRepository.findOneOrFail({ where: { round, number } })
 
