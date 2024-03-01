@@ -6,6 +6,8 @@ import { MatchRepo } from './match.repo'
 import { MatchIdentifier } from '../../../utils/tm/tm.interface'
 import { MatchEntity } from './match.entity'
 import { TeamEntity } from '../../team/team.entity'
+import { SittingEntity } from './sitting.entity'
+import { ContestEntity } from './contest.entity'
 
 @Injectable()
 export class MatchService {
@@ -62,5 +64,13 @@ export class MatchService {
 
   async createElimsMatch (match: MatchIdentifier, red: TeamEntity[], blue: TeamEntity[]): Promise<void> {
     await this.repo.createElimsMatch(match, red, blue)
+  }
+
+  async getSitting (sittingId: number): Promise<SittingEntity> {
+    return await this.repo.getSitting(sittingId)
+  }
+
+  async getContestWithTeams (contestId: number): Promise<ContestEntity> {
+    return await this.repo.getContestWithTeams(contestId)
   }
 }

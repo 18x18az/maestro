@@ -100,6 +100,10 @@ export class MatchRepo {
     return await this.contestRepository.findOneByOrFail({ id })
   }
 
+  async getContestWithTeams (id: number): Promise<ContestEntity> {
+    return await this.contestRepository.findOneOrFail({ relations: ['redTeams', 'blueTeams'], where: { id } })
+  }
+
   async getMatches (): Promise<MatchEntity[]> {
     return await this.matchRepository.find()
   }

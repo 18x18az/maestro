@@ -39,6 +39,15 @@ import { OnFieldEvent } from './on-field.event'
     CompetitionFieldResolver, QueueSittingEvent, RemoveOnFieldSittingEvent, RemoveOnTableSittingEvent, UnqueueSittingEvent,
     PeriodEndEvent, PeriodStartEvent, AutonStartEvent, CompetitionFieldControlCache, DriverStartEvent, AutonEndEvent, DriverEndEvent,
     TimingService, AutonResetEvent, ReplayMatchEvent, TableEmptyEvent, OnFieldEvent],
-  exports: [CompetitionFieldService, QueueSittingEvent, RemoveOnFieldSittingEvent, UnqueueSittingEvent, DriverEndEvent, ReplayMatchEvent]
+  exports: [
+    CompetitionFieldService,
+    QueueSittingEvent,
+    RemoveOnFieldSittingEvent,
+    RemoveOnTableSittingEvent,
+    UnqueueSittingEvent,
+    DriverEndEvent,
+    ReplayMatchEvent,
+    AutonStartEvent
+  ]
 })
 export class CompetitionFieldModule {}

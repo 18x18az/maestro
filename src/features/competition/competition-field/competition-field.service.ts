@@ -119,4 +119,8 @@ export class CompetitionFieldService {
 
     return sitting.status
   }
+
+  async getStatus (): Promise<CompetitionFieldEntity[]> {
+    return await this.repo.getAllFields()
+  }
 }
