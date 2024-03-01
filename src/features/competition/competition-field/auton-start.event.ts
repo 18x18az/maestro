@@ -3,7 +3,7 @@ import { EventService } from '../../../utils/classes/event-service'
 import { MATCH_STAGE } from './competition-field.interface'
 import { CompetitionFieldControlCache } from './competition-field-control.cache'
 
-interface AutonStartPayload {
+export interface AutonStartPayload {
   fieldId: number
 }
 

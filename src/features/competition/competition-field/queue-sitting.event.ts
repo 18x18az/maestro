@@ -13,7 +13,7 @@ interface QueueSittingContext extends QueueSittingPayload {
   field: CompetitionFieldEntity
 }
 
-interface QueueSittingResult extends QueueSittingContext {
+export interface QueueSittingResult extends QueueSittingContext {
   location: 'ON_TABLE' | 'ON_FIELD'
 }
 

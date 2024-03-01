@@ -11,11 +11,11 @@ import { InspectionUpdateEvent } from '../../features/inspection/inspection-upda
 import { StageChangeEvent } from '../../features/stage/stage-change.event'
 import { EventStage } from '../../features/stage/stage.interface'
 import { StageService } from '../../features/stage/stage.service'
-import { QueueSittingEvent } from '../../features/competition/competition-field/queue-sitting.event'
-import { AutonStartEvent } from '../../features/competition/competition-field/auton-start.event'
-import { DriverEndEvent } from '../../features/competition/competition-field/driver-end.event'
-import { RemoveOnFieldSittingEvent } from '../../features/competition/competition-field/remove-on-field-sitting.event'
-import { RemoveOnTableSittingEvent } from '../../features/competition/competition-field/remove-on-table-sitting.event'
+import { QueueSittingEvent, QueueSittingResult } from '../../features/competition/competition-field/queue-sitting.event'
+import { AutonStartEvent, AutonStartPayload } from '../../features/competition/competition-field/auton-start.event'
+import { DriverEndEvent, DriverEndResult } from '../../features/competition/competition-field/driver-end.event'
+import { RemoveOnFieldSittingContext, RemoveOnFieldSittingEvent } from '../../features/competition/competition-field/remove-on-field-sitting.event'
+import { RemoveOnTableSittingContext, RemoveOnTableSittingEvent } from '../../features/competition/competition-field/remove-on-table-sitting.event'
 import { CompetitionFieldService } from '../../features/competition/competition-field/competition-field.service'
 import { FieldService } from '../../features/field/field.service'
 import { MatchService } from '../../features/competition/match/match.service'
@@ -82,6 +82,8 @@ export class BackendService {
   private status: BackendStatus = BackendStatus.NOT_CONFIGURED
   private client: GraphQLClient | undefined
 
+  private inProgressField: number | null = null
+
   constructor (
     private readonly storage: StorageService,
     teamListUpdate: TeamListUpdateEvent,
@@ -115,19 +117,21 @@ export class BackendService {
     stageUpdate.registerOnComplete(async (stage) => {
       await this.updateStage(stage.stage)
     })
-    queueEvent.registerOnComplete(async () => {
+    queueEvent.registerOnComplete(async (data: QueueSittingResult) => {
       await this.updateMatchesOnFields()
     })
-    autoStart.registerOnComplete(async () => {
+    autoStart.registerOnComplete(async (data: AutonStartPayload) => {
+      this.inProgressField = data.fieldId
       await this.updateMatchesOnFields()
     })
-    driverEnd.registerOnComplete(async () => {
+    driverEnd.registerOnComplete(async (data: DriverEndResult) => {
+      this.inProgressField = null
       await this.updateMatchesOnFields()
     })
-    removeOnField.registerOnComplete(async () => {
+    removeOnField.registerOnComplete(async (data: RemoveOnFieldSittingContext) => {
       await this.updateMatchesOnFields()
     })
-    removeOnTable.registerOnComplete(async () => {
+    removeOnTable.registerOnComplete(async (data: RemoveOnTableSittingContext) => {
       await this.updateMatchesOnFields()
     })
   }
@@ -252,7 +256,7 @@ export class BackendService {
     await this.request(updateStage, { stage })
   }
 
-  private async getSittingInfo (sittingId: number, field: string): Promise<SittingInput> {
+  private async getSittingInfo (sittingId: number, field: string, inProgress: boolean): Promise<SittingInput> {
     const sitting = await this.matches.getSitting(sittingId)
     let status = SittingStatusShort.UPCOMING
 
@@ -264,6 +268,10 @@ export class BackendService {
 
     if (sitting.status === SittingStatus.SCORING) {
       status = SittingStatusShort.SCORING
+    }
+
+    if (inProgress) {
+      status = SittingStatusShort.IN_PROGRESS
     }
 
     const red = contest.redTeams.map(t => t.id)
@@ -290,11 +298,12 @@ export class BackendService {
       const fieldInfo = await this.fields.getField(compField.fieldId)
 
       if (compField.onFieldSittingId !== null) {
-        const sitting = await this.getSittingInfo(compField.onFieldSittingId, fieldInfo.name)
+        const isInProgress = this.inProgressField === compField.fieldId
+        const sitting = await this.getSittingInfo(compField.onFieldSittingId, fieldInfo.name, isInProgress)
         sittings.push(sitting)
       }
       if (compField.onTableSittingId !== null) {
-        const sitting = await this.getSittingInfo(compField.onTableSittingId, fieldInfo.name)
+        const sitting = await this.getSittingInfo(compField.onTableSittingId, fieldInfo.name, false)
         sittings.push(sitting)
       }
     }
