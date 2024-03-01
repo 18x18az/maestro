@@ -1,11 +1,11 @@
 import { registerEnumType } from '@nestjs/graphql'
 
 export enum Round {
-  QUAL = 'qual',
-  Ro16 = 'ro16',
-  QF = 'qf',
-  SF = 'sf',
-  F = 'f'
+  QUAL = 'QUAL',
+  Ro16 = 'Ro16',
+  QF = 'QF',
+  SF = 'SF',
+  F = 'F'
 }
 
 registerEnumType(Round, {

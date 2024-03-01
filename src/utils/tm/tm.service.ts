@@ -125,8 +125,8 @@ export class TmService {
       const red = getAlliance(cells, 1)
       const blue = getAlliance(cells, 3)
 
-      const redScore = parseInt(cells[5].rawText)
-      const blueScore = parseInt(cells[6].rawText)
+      const redScore = parseInt(cells[5].rawText.replaceAll('\\n', ''))
+      const blueScore = parseInt(cells[6].rawText.replaceAll('\\n', ''))
 
       // log a warning and return if the score is NaN
       if (isNaN(redScore) || isNaN(blueScore)) {

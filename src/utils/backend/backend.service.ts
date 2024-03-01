@@ -53,6 +53,14 @@ mutation($stage: EventStage!) {
 }
 `
 
+const setSittings = gql`
+mutation($sittings: [SittingInput!]!) {
+  setSittings(sittings: $sittings) {
+    id
+  }
+}
+`
+
 interface TeamInput {
   number: string
 }
@@ -64,9 +72,9 @@ interface SittingInput {
   contest: number
   field: string
   status: SittingStatusShort
-  Round: Round
-  red: number[]
-  blue: number[]
+  round: Round
+  red: string[]
+  blue: string[]
 }
 
 enum SittingStatusShort {
@@ -228,6 +236,7 @@ export class BackendService {
 
   private async request (document: string, variables?: any): Promise<unknown> {
     if (this.client === undefined) {
+      this.logger.warn('No client')
       return
     }
 
@@ -274,8 +283,8 @@ export class BackendService {
       status = SittingStatusShort.IN_PROGRESS
     }
 
-    const red = contest.redTeams.map(t => t.id)
-    const blue = contest.blueTeams.map(t => t.id)
+    const red = contest.redTeams.map(t => t.number)
+    const blue = contest.blueTeams.map(t => t.number)
 
     return {
       id: sittingId,
@@ -284,7 +293,7 @@ export class BackendService {
       status,
       match: match.number,
       contest: contest.number,
-      Round: contest.round,
+      round: contest.round,
       red,
       blue
     }
@@ -308,6 +317,8 @@ export class BackendService {
       }
     }
 
-    console.log(sittings)
+    sittings.sort((a, b) => a.id - b.id)
+
+    await this.request(setSittings, { sittings })
   }
 }
