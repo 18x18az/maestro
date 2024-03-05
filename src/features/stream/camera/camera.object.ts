@@ -1,6 +1,7 @@
 import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql'
 import { GraphQLIP } from 'graphql-scalars'
 import { Preset } from './preset.object'
+import { Scene } from '../switcher/scene.object'
 
 @InputType()
 @ObjectType()
@@ -25,4 +26,7 @@ export class Camera extends CameraBase {
 
   @Field(() => Preset, { nullable: true })
     currentPreset?: Preset
+
+  @Field(() => Scene)
+    scene: Scene
 }

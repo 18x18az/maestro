@@ -21,6 +21,7 @@ import { AwardModule } from './features/award/award.module'
 import { InspectionModule } from './features/inspection/inspection.module'
 import { BackendModule } from './utils/backend/backend.module'
 import { StreamModule } from './features/stream/stream.module'
+import { SwitcherModule } from './features/stream/switcher/switcher.module'
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { StreamModule } from './features/stream/stream.module'
     TeamModule,
     DisplayModule,
     SettingsModule,
+    SwitcherModule,
     StageModule,
     ResultsModule,
     StreamModule,

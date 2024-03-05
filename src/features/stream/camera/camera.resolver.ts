@@ -32,6 +32,12 @@ export class CameraResolver {
     return await this.service.addCamera()
   }
 
+  @Mutation(() => [Camera])
+  async removeCamera (@Args('id', { type: () => Int }) id: number): Promise<CameraEntity[]> {
+    await this.service.removeCamera(id)
+    return await this.service.findAll()
+  }
+
   @Mutation(() => Camera)
   async editCamera (@Args('id', { type: () => Int }) id: number, @Args('data') data: CameraEdit): Promise<CameraEntity> {
     return await this.service.editCamera(id, data)

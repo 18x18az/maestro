@@ -468,12 +468,19 @@ type Preset {
   name: String!
 }
 
+type Scene {
+  name: String!
+  key: String!
+  id: Int!
+}
+
 type Camera {
   ip: IP!
   name: String!
   id: Int!
   presets: [Preset!]!
   currentPreset: Preset
+  scene: Scene!
 }
 
 """
@@ -547,6 +554,7 @@ type Mutation {
   clearResults: Results!
   promoteResults: Results!
   addCamera: [Camera!]!
+  removeCamera(id: Int!): [Camera!]!
   editCamera(id: Int!, data: CameraEdit!): Camera!
 }
 
