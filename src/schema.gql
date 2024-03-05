@@ -463,6 +463,24 @@ enum BackendStatus {
   CONNECTED
 }
 
+type Preset {
+  id: Int!
+  name: String!
+}
+
+type Camera {
+  ip: IP!
+  name: String!
+  id: Int!
+  presets: [Preset!]!
+  currentPreset: Preset
+}
+
+"""
+A field whose value is either an IPv4 or IPv6 address: https://en.wikipedia.org/wiki/IP_address.
+"""
+scalar IP
+
 type Query {
   backend: Backend!
   teams(inspectionStatus: Inspection): [Team!]!
@@ -485,6 +503,8 @@ type Query {
   displays: [Display!]!
   display(uuid: String!): Display!
   results: Results!
+  cameras: [Camera!]!
+  camera(id: Int!): Camera!
 }
 
 type Mutation {
@@ -526,6 +546,8 @@ type Mutation {
   setDisplayField(uuid: String!, fieldId: Int): Display!
   clearResults: Results!
   promoteResults: Results!
+  addCamera: [Camera!]!
+  editCamera(id: Int!, data: CameraEdit!): Camera!
 }
 
 input BackendSetup {
@@ -562,6 +584,11 @@ input FieldUpdate {
   Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
   """
   canRunSkills: Boolean
+}
+
+input CameraEdit {
+  ip: IP
+  name: String
 }
 
 type Subscription {

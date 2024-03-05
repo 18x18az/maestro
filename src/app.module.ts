@@ -20,6 +20,7 @@ import { TimeoutModule } from './features/competition/timeout/timeout.module'
 import { AwardModule } from './features/award/award.module'
 import { InspectionModule } from './features/inspection/inspection.module'
 import { BackendModule } from './utils/backend/backend.module'
+import { StreamModule } from './features/stream/stream.module'
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { BackendModule } from './utils/backend/backend.module'
     SettingsModule,
     StageModule,
     ResultsModule,
+    StreamModule,
     MatchModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
