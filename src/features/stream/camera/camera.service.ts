@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { PresetEntity } from './preset.entity'
 import { CameraInternal } from './camera.internal'
 import { SwitcherService } from '../switcher/switcher.service'
+import { SceneEntity } from '../switcher/scene.entity'
 
 @Injectable()
 export class CameraService {
@@ -86,5 +87,10 @@ export class CameraService {
   async deletePreset (cameraId: number, presetId: number): Promise<void> {
     const preset = await this.presetRepo.findOneOrFail({ where: { id: presetId, camera: { id: cameraId } } })
     await this.presetRepo.remove(preset)
+  }
+
+  async findScene (id: number): Promise<SceneEntity> {
+    const camera = await this.cameraRepo.findOneOrFail({ where: { sceneId: id }, relations: ['scene'] })
+    return camera.scene
   }
 }

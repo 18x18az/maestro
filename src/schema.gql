@@ -509,6 +509,8 @@ type Query {
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
+  scenes: [Scene!]!
+  scene: Scene!
   results: Results!
   cameras: [Camera!]!
   camera(id: Int!): Camera!

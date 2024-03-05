@@ -3,6 +3,7 @@ import { Camera, CameraEdit } from './camera.object'
 import { CameraService } from './camera.service'
 import { CameraEntity } from './camera.entity'
 import { Preset } from './preset.object'
+import { Scene } from '../switcher/scene.object'
 
 @Resolver(() => Camera)
 export class CameraResolver {
@@ -41,5 +42,10 @@ export class CameraResolver {
   @Mutation(() => Camera)
   async editCamera (@Args('id', { type: () => Int }) id: number, @Args('data') data: CameraEdit): Promise<CameraEntity> {
     return await this.service.editCamera(id, data)
+  }
+
+  @ResolveField(() => Scene)
+  async scene (@Parent() camera: CameraEntity): Promise<Scene> {
+    return await this.service.findScene(camera.sceneId)
   }
 }
