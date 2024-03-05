@@ -553,6 +553,7 @@ type Mutation {
   cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
+  editScene(id: Int!, data: SceneEdit!): Scene!
   clearResults: Results!
   promoteResults: Results!
   addCamera: [Camera!]!
@@ -594,6 +595,11 @@ input FieldUpdate {
   Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
   """
   canRunSkills: Boolean
+}
+
+input SceneEdit {
+  name: String
+  key: String
 }
 
 input CameraEdit {

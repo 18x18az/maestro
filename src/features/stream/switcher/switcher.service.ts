@@ -25,4 +25,10 @@ export class SwitcherService {
     this.logger.log(`Added scene ${scene.id}`)
     return scene
   }
+
+  async editScene (id: number, data: Partial<SceneEntity>): Promise<SceneEntity> {
+    const scene = await this.findOne(id)
+    await this.sceneRepo.save({ ...scene, ...data })
+    return scene
+  }
 }
