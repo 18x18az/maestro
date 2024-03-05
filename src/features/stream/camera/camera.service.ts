@@ -89,8 +89,7 @@ export class CameraService {
     await this.presetRepo.remove(preset)
   }
 
-  async findScene (id: number): Promise<SceneEntity> {
-    const camera = await this.cameraRepo.findOneOrFail({ where: { sceneId: id }, relations: ['scene'] })
-    return camera.scene
+  async findScene (camera: CameraEntity): Promise<SceneEntity> {
+    return await this.switcher.findOne(camera.sceneId)
   }
 }

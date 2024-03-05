@@ -46,6 +46,6 @@ export class CameraResolver {
 
   @ResolveField(() => Scene)
   async scene (@Parent() camera: CameraEntity): Promise<Scene> {
-    return await this.service.findScene(camera.sceneId)
+    return await this.service.findScene(camera)
   }
 }
