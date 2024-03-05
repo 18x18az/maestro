@@ -1,5 +1,6 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { CameraEntity } from '../camera/camera.entity'
+import { FieldEntity } from '../../field/field.entity'
 
 @Entity()
 export class SceneEntity {
@@ -14,4 +15,7 @@ export class SceneEntity {
 
   @OneToOne(() => CameraEntity, camera => camera.scene, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
     camera?: CameraEntity
+
+  @OneToMany(() => FieldEntity, field => field.scene, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
+    fields: FieldEntity[]
 }

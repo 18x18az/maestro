@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { FieldEntity } from './field.entity'
 import { Repository } from 'typeorm'
 import { FindFieldsArgs } from './dto/find-fields.args'
+import { SceneEntity } from '../stream/switcher/scene.entity'
 
 @Injectable()
 export class FieldRepo {
@@ -70,5 +71,10 @@ export class FieldRepo {
       field.skillsEnabled = enabled
       await this.fieldRepository.save(field)
     }
+  }
+
+  async getScene (fieldId: number): Promise<SceneEntity> {
+    const field = await this.fieldRepository.findOneOrFail({ where: { id: fieldId }, relations: ['scene'] })
+    return field.scene
   }
 }

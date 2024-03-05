@@ -16,4 +16,7 @@ class FieldMutation {
 }
 
 @InputType()
-export class FieldUpdate extends PartialType(FieldMutation) {}
+export class FieldUpdate extends PartialType(FieldMutation) {
+  @Field({ description: 'ID of the scene associated with the field', nullable: true })
+    sceneId?: number
+}

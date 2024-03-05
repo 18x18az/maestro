@@ -10,6 +10,7 @@ import { CompetitionFieldService } from '../competition/competition-field/compet
 import { CompetitionFieldEntity } from '../competition/competition-field/competition-field.entity'
 import { SkillsService } from '../skills/skills.service'
 import { Skills } from '../skills/skills.object'
+import { SceneEntity } from '../stream/switcher/scene.entity'
 @Resolver(() => Field)
 export class FieldResolver {
   constructor (
@@ -93,5 +94,10 @@ export class FieldResolver {
   @ResolveField(() => Skills)
   async skills (@Parent() field: FieldEntity): Promise<Skills | undefined> {
     return await this.skillsService.getSkillsMatch(field.id)
+  }
+
+  @ResolveField()
+  async scene (@Parent() field: FieldEntity): Promise<SceneEntity> {
+    return await this.fieldService.getScene(field.id)
   }
 }

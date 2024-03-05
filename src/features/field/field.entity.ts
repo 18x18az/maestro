@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { SittingEntity } from '../competition/match/sitting.entity'
 import { DisplayEntity } from '../display/display.entity'
+import { SceneEntity } from '../stream/switcher/scene.entity'
 
 @Entity()
 export class FieldEntity {
@@ -24,4 +25,11 @@ export class FieldEntity {
 
   @OneToMany(() => DisplayEntity, display => display.field)
     displays: DisplayEntity[]
+
+  @Column({ nullable: true })
+    sceneId: number
+
+  @JoinColumn({ name: 'sceneId' })
+  @ManyToOne(() => SceneEntity, scene => scene.fields, { nullable: true, onUpdate: 'CASCADE', onDelete: 'SET NULL' })
+    scene: SceneEntity
 }

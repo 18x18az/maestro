@@ -5,6 +5,7 @@ import { FieldRepo } from './field.repo'
 import { EnableFieldEvent } from './enable-field.event'
 import { DisableFieldEvent } from './disable-field.event'
 import { FindFieldsArgs } from './dto/find-fields.args'
+import { SceneEntity } from '../stream/switcher/scene.entity'
 
 @Injectable()
 export class FieldService {
@@ -102,13 +103,16 @@ export class FieldService {
 
   async updateField (id: number, update: FieldUpdate): Promise<FieldEntity> {
     let field = await this.repo.findByIdOrFail(id)
-    this.logger.log(`Updating field ${id}`)
+    this.logger.log(`Updating field ${id} with ${JSON.stringify(update)}`)
 
-    const { name, isCompetition, canRunSkills, isEnabled } = update
+    const { name, isCompetition, canRunSkills, isEnabled, sceneId } = update
 
     if (name !== undefined) field.name = name
     if (isCompetition !== undefined) field.isCompetition = isCompetition
     if (canRunSkills !== undefined) field.skillsEnabled = canRunSkills
+    if (sceneId !== undefined) {
+      field.sceneId = sceneId
+    }
 
     await this.repo.save(field)
 
@@ -135,5 +139,9 @@ export class FieldService {
   async setSkillsEnabled (enabled: boolean): Promise<void> {
     this.logger.log(`Setting skills enabled to ${enabled.toString()}`)
     await this.repo.setSkillsEnabled(enabled)
+  }
+
+  async getScene (fieldId: number): Promise<SceneEntity> {
+    return await this.repo.getScene(fieldId)
   }
 }

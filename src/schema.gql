@@ -300,6 +300,12 @@ type Skills {
   fieldId: Float!
 }
 
+type Scene {
+  name: String!
+  key: String!
+  id: Int!
+}
+
 """Representation of a single field"""
 type Field {
   """Unique identifier for the field"""
@@ -340,6 +346,9 @@ type Field {
   Information about skills matches associated with this field. Null if the field is not being used for skills matches.
   """
   skills: Skills
+
+  """The scene which displays the field"""
+  scene: Scene
 }
 
 type TournamentManager {
@@ -468,12 +477,6 @@ type Preset {
   name: String!
 }
 
-type Scene {
-  name: String!
-  key: String!
-  id: Int!
-}
-
 type Camera {
   ip: IP!
   name: String!
@@ -597,6 +600,9 @@ input FieldUpdate {
   Set a competition field to be able to run skills. Meaningless if the field is already a dedicated skills field.
   """
   canRunSkills: Boolean
+
+  """ID of the scene associated with the field"""
+  sceneId: Float
 }
 
 input SceneEdit {
