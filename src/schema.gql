@@ -554,6 +554,7 @@ type Mutation {
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
   addScene: [Scene!]!
+  removeScene(id: Int!): [Scene!]!
   editScene(id: Int!, data: SceneEdit!): Scene!
   clearResults: Results!
   promoteResults: Results!

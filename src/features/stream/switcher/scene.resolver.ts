@@ -23,6 +23,12 @@ export class SceneResolver {
     return await this.service.findAll()
   }
 
+  @Mutation(() => [Scene])
+  async removeScene (@Args('id', { type: () => Int }) id: number): Promise<SceneEntity[]> {
+    await this.service.removeScene(id)
+    return await this.service.findAll()
+  }
+
   @Mutation(() => Scene)
   async editScene (@Args('id', { type: () => Int }) id: number, @Args('data') data: SceneEdit): Promise<SceneEntity> {
     return await this.service.editScene(id, data)

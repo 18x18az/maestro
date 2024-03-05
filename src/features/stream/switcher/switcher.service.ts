@@ -26,6 +26,11 @@ export class SwitcherService {
     return scene
   }
 
+  async removeScene (id: number): Promise<void> {
+    await this.sceneRepo.delete(id)
+    this.logger.log(`Removed scene ${id}`)
+  }
+
   async editScene (id: number, data: Partial<SceneEntity>): Promise<SceneEntity> {
     const scene = await this.findOne(id)
     await this.sceneRepo.save({ ...scene, ...data })
