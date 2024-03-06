@@ -6,6 +6,7 @@ import { PresetEntity } from './preset.entity'
 import { CameraInternal } from './camera.internal'
 import { SwitcherService } from '../switcher/switcher.service'
 import { SceneEntity } from '../switcher/scene.entity'
+import { PresetUpdate } from './preset.object'
 
 @Injectable()
 export class CameraService {
@@ -79,7 +80,7 @@ export class CameraService {
     preset.camera = camera
     await this.presetRepo.save(preset)
 
-    await this.service.savePreset(cameraId)
+    await this.service.createPreset(cameraId, preset.id)
 
     return camera
   }
@@ -91,5 +92,11 @@ export class CameraService {
 
   async findScene (camera: CameraEntity): Promise<SceneEntity> {
     return await this.switcher.findOne(camera.sceneId)
+  }
+
+  async updatePreset (id: number, update: PresetUpdate): Promise<PresetEntity> {
+    const preset = await this.presetRepo.findOneOrFail({ where: { id } })
+    await this.presetRepo.save({ ...preset, ...update })
+    return preset
   }
 }

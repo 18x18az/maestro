@@ -473,8 +473,8 @@ enum BackendStatus {
 }
 
 type Preset {
-  id: Int!
   name: String!
+  id: Int!
 }
 
 type Camera {
@@ -564,6 +564,8 @@ type Mutation {
   addCamera: [Camera!]!
   removeCamera(id: Int!): [Camera!]!
   editCamera(id: Int!, data: CameraEdit!): Camera!
+  createPreset(id: Int!): Camera!
+  updatePreset(id: Int!, update: PresetUpdate!): Preset!
 }
 
 input BackendSetup {
@@ -612,6 +614,10 @@ input SceneEdit {
 
 input CameraEdit {
   ip: IP
+  name: String
+}
+
+input PresetUpdate {
   name: String
 }
 

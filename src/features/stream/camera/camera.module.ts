@@ -7,6 +7,7 @@ import { CameraInternal } from './camera.internal'
 import { HttpModule } from '@nestjs/axios'
 import { PresetEntity } from './preset.entity'
 import { SwitcherModule } from '../switcher/switcher.module'
+import { PresetResolver } from './preset.resolver'
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { SwitcherModule } from '../switcher/switcher.module'
     HttpModule,
     forwardRef(() => SwitcherModule)
   ],
-  providers: [CameraResolver, CameraService, CameraInternal]
+  providers: [CameraResolver, CameraService, CameraInternal, PresetResolver]
 })
 export class CameraModule {}

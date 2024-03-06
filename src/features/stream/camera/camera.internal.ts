@@ -70,6 +70,11 @@ export class CameraInternal {
     await this.presetAction(cameraId, presetId, PRESET_ACTION.SET)
   }
 
+  async createPreset (cameraId: number, presetId: number): Promise<void> {
+    this.currentPresets.set(cameraId, presetId)
+    await this.savePreset(cameraId)
+  }
+
   private getCurrentPresetId (cameraId: number): number | undefined {
     return this.currentPresets.get(cameraId)
   }

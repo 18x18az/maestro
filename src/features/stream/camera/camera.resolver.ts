@@ -48,4 +48,9 @@ export class CameraResolver {
   async scene (@Parent() camera: CameraEntity): Promise<Scene> {
     return await this.service.findScene(camera)
   }
+
+  @Mutation(() => Camera)
+  async createPreset (@Args('id', { type: () => Int }) id: number): Promise<CameraEntity> {
+    return await this.service.createPreset(id)
+  }
 }
