@@ -47,10 +47,12 @@ export class CameraInternal {
 
     if (preset === undefined) throw new BadRequestException(`Preset ${presetId} not found on camera ${cameraId}`)
 
+    this.logger.log(`Sending ${action} to camera ${cameraId} for preset ${presetId}`)
+
     const payload = {
       nChanel: 0,
       szPtzCmd: action,
-      byValue: preset
+      byValue: preset.number
     }
     await this.cameraCommand(ip, payload)
   }

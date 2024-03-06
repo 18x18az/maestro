@@ -53,4 +53,16 @@ export class CameraResolver {
   async createPreset (@Args('id', { type: () => Int }) id: number): Promise<CameraEntity> {
     return await this.service.createPreset(id)
   }
+
+  @Mutation(() => Camera)
+  async callPreset (@Args('cameraId', { type: () => Int }) cameraId: number, @Args('presetId', { type: () => Int }) presetId: number): Promise<CameraEntity> {
+    await this.service.callPreset(cameraId, presetId)
+    return await this.service.findOne(cameraId)
+  }
+
+  @Mutation(() => Camera)
+  async savePreset (@Args('id', { type: () => Int }) id: number): Promise<CameraEntity> {
+    await this.service.savePreset(id)
+    return await this.service.findOne(id)
+  }
 }
