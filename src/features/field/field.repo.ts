@@ -4,6 +4,7 @@ import { FieldEntity } from './field.entity'
 import { Repository } from 'typeorm'
 import { FindFieldsArgs } from './dto/find-fields.args'
 import { SceneEntity } from '../stream/switcher/scene.entity'
+import { PresetEntity } from '../stream/camera/preset.entity'
 
 @Injectable()
 export class FieldRepo {
@@ -76,5 +77,10 @@ export class FieldRepo {
   async getScene (fieldId: number): Promise<SceneEntity> {
     const field = await this.fieldRepository.findOneOrFail({ where: { id: fieldId }, relations: ['scene'] })
     return field.scene
+  }
+
+  async getPreset (fieldId: number): Promise<PresetEntity | undefined> {
+    const field = await this.fieldRepository.findOneOrFail({ where: { id: fieldId }, relations: ['preset'] })
+    return field.preset
   }
 }

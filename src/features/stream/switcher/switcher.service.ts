@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { SceneEntity } from './scene.entity'
 import { Repository } from 'typeorm'
+import { CameraEntity } from '../camera/camera.entity'
 
 @Injectable()
 export class SwitcherService {
@@ -35,5 +36,10 @@ export class SwitcherService {
     const scene = await this.findOne(id)
     await this.sceneRepo.save({ ...scene, ...data })
     return scene
+  }
+
+  async findCamera (scene: SceneEntity): Promise<CameraEntity | undefined> {
+    const sceneFull = await this.sceneRepo.findOneOrFail({ where: { id: scene.id }, relations: ['camera'] })
+    return sceneFull.camera
   }
 }

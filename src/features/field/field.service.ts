@@ -6,6 +6,7 @@ import { EnableFieldEvent } from './enable-field.event'
 import { DisableFieldEvent } from './disable-field.event'
 import { FindFieldsArgs } from './dto/find-fields.args'
 import { SceneEntity } from '../stream/switcher/scene.entity'
+import { PresetEntity } from '../stream/camera/preset.entity'
 
 @Injectable()
 export class FieldService {
@@ -105,13 +106,16 @@ export class FieldService {
     let field = await this.repo.findByIdOrFail(id)
     this.logger.log(`Updating field ${id} with ${JSON.stringify(update)}`)
 
-    const { name, isCompetition, canRunSkills, isEnabled, sceneId } = update
+    const { name, isCompetition, canRunSkills, isEnabled, sceneId, presetId } = update
 
     if (name !== undefined) field.name = name
     if (isCompetition !== undefined) field.isCompetition = isCompetition
     if (canRunSkills !== undefined) field.skillsEnabled = canRunSkills
     if (sceneId !== undefined) {
       field.sceneId = sceneId
+    }
+    if (presetId !== undefined) {
+      field.presetId = presetId
     }
 
     await this.repo.save(field)
@@ -143,5 +147,9 @@ export class FieldService {
 
   async getScene (fieldId: number): Promise<SceneEntity> {
     return await this.repo.getScene(fieldId)
+  }
+
+  async getPreset (fieldId: number): Promise<PresetEntity | undefined> {
+    return await this.repo.getPreset(fieldId)
   }
 }

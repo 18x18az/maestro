@@ -1,4 +1,5 @@
 import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql'
+import { Camera } from '../camera/camera.object'
 
 @InputType()
 @ObjectType()
@@ -17,4 +18,7 @@ export class SceneEdit extends PartialType(SceneBase) {}
 export class Scene extends SceneBase {
   @Field(() => Int)
     id: number
+
+  @Field(() => Camera, { nullable: true })
+    camera?: Camera
 }

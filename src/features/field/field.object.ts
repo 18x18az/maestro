@@ -3,6 +3,7 @@ import { FieldControl } from '../field-control/field-control.object'
 import { CompetitionField } from '../competition/competition-field/competition-field.object'
 import { Skills } from '../skills/skills.object'
 import { Scene } from '../stream/switcher/scene.object'
+import { Preset } from '../stream/camera/preset.object'
 
 @ObjectType({ description: 'Representation of a single field' })
 export class Field {
@@ -35,4 +36,7 @@ export class Field {
 
   @GField({ description: 'The scene which displays the field', nullable: true })
     scene: Scene
+
+  @GField({ description: 'The camera preset which displays the field', nullable: true })
+    preset: Preset
 }

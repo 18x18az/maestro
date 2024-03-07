@@ -19,4 +19,7 @@ class FieldMutation {
 export class FieldUpdate extends PartialType(FieldMutation) {
   @Field({ description: 'ID of the scene associated with the field', nullable: true })
     sceneId?: number
+
+  @Field({ description: 'ID of the camera preset associated with the field', nullable: true })
+    presetId?: number
 }

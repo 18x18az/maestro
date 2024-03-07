@@ -300,10 +300,30 @@ type Skills {
   fieldId: Float!
 }
 
+type Preset {
+  name: String!
+  id: Int!
+}
+
+type Camera {
+  ip: IP!
+  name: String!
+  id: Int!
+  presets: [Preset!]!
+  currentPreset: Preset
+  scene: Scene!
+}
+
+"""
+A field whose value is either an IPv4 or IPv6 address: https://en.wikipedia.org/wiki/IP_address.
+"""
+scalar IP
+
 type Scene {
   name: String!
   key: String!
   id: Int!
+  camera: Camera
 }
 
 """Representation of a single field"""
@@ -349,6 +369,9 @@ type Field {
 
   """The scene which displays the field"""
   scene: Scene
+
+  """The camera preset which displays the field"""
+  preset: Preset
 }
 
 type TournamentManager {
@@ -472,25 +495,6 @@ enum BackendStatus {
   CONNECTED
 }
 
-type Preset {
-  name: String!
-  id: Int!
-}
-
-type Camera {
-  ip: IP!
-  name: String!
-  id: Int!
-  presets: [Preset!]!
-  currentPreset: Preset
-  scene: Scene!
-}
-
-"""
-A field whose value is either an IPv4 or IPv6 address: https://en.wikipedia.org/wiki/IP_address.
-"""
-scalar IP
-
 type Query {
   backend: Backend!
   teams(inspectionStatus: Inspection): [Team!]!
@@ -513,7 +517,7 @@ type Query {
   displays: [Display!]!
   display(uuid: String!): Display!
   scenes: [Scene!]!
-  scene: Scene!
+  scene(id: Int!): Scene!
   results: Results!
   cameras: [Camera!]!
   camera(id: Int!): Camera!
@@ -607,6 +611,9 @@ input FieldUpdate {
 
   """ID of the scene associated with the field"""
   sceneId: Float
+
+  """ID of the camera preset associated with the field"""
+  presetId: Float
 }
 
 input SceneEdit {

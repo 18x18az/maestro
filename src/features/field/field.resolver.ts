@@ -11,6 +11,7 @@ import { CompetitionFieldEntity } from '../competition/competition-field/competi
 import { SkillsService } from '../skills/skills.service'
 import { Skills } from '../skills/skills.object'
 import { SceneEntity } from '../stream/switcher/scene.entity'
+import { PresetEntity } from '../stream/camera/preset.entity'
 @Resolver(() => Field)
 export class FieldResolver {
   constructor (
@@ -99,5 +100,10 @@ export class FieldResolver {
   @ResolveField()
   async scene (@Parent() field: FieldEntity): Promise<SceneEntity> {
     return await this.fieldService.getScene(field.id)
+  }
+
+  @ResolveField()
+  async preset (@Parent() field: FieldEntity): Promise<PresetEntity | undefined> {
+    return await this.fieldService.getPreset(field.id)
   }
 }
