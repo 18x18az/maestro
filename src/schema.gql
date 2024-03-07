@@ -497,6 +497,14 @@ enum BackendStatus {
 
 type SolidDisplay {
   scene: Scene
+  displayed: SolidDisplayDisplayed!
+}
+
+"""The currently displayed view on the solid display"""
+enum SolidDisplayDisplayed {
+  INSPECTION
+  LOGO
+  RESULTS
 }
 
 type Query {
@@ -570,6 +578,7 @@ type Mutation {
   clearResults: Results!
   promoteResults: Results!
   setSolidDisplayScene(sceneId: Int!): SolidDisplay!
+  setSolidDisplayed(displayed: SolidDisplayDisplayed!): SolidDisplay!
   addScene: [Scene!]!
   removeScene(id: Int!): [Scene!]!
   editScene(id: Int!, data: SceneEdit!): Scene!
