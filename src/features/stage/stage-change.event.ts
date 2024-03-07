@@ -3,7 +3,7 @@ import { EventService } from '../../utils/classes/event-service'
 import { EventStage } from './stage.interface'
 import { StageInternal } from './stage.internal'
 
-interface StageChangePayload {
+export interface StageChangePayload {
   stage: EventStage
 }
 

@@ -9,13 +9,15 @@ import { DisableFieldEvent } from './disable-field.event'
 import { FieldControlModule } from '../field-control/field-control.module'
 import { CompetitionFieldModule } from '../competition/competition-field/competition-field.module'
 import { SkillsModule } from '../skills/skills.module'
+import { StageModule } from '../stage/stage.module'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([FieldEntity]),
     forwardRef(() => FieldControlModule),
     forwardRef(() => CompetitionFieldModule),
-    forwardRef(() => SkillsModule)
+    forwardRef(() => SkillsModule),
+    StageModule
   ],
   providers: [FieldResolver, FieldService, EnableFieldEvent, DisableFieldEvent, FieldRepo],
   exports: [FieldService, EnableFieldEvent, DisableFieldEvent]

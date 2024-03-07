@@ -5,10 +5,21 @@ import { Repository } from 'typeorm'
 import { FindFieldsArgs } from './dto/find-fields.args'
 import { SceneEntity } from '../stream/switcher/scene.entity'
 import { PresetEntity } from '../stream/camera/preset.entity'
+import { StageChangeEvent, StageChangePayload } from '../stage/stage-change.event'
+import { EventStage } from '../stage/stage.interface'
 
 @Injectable()
 export class FieldRepo {
-  constructor (@InjectRepository(FieldEntity) private readonly fieldRepository: Repository<FieldEntity>) { }
+  constructor (
+    @InjectRepository(FieldEntity) private readonly fieldRepository: Repository<FieldEntity>,
+    stageChange: StageChangeEvent
+  ) {
+    stageChange.registerOnComplete(async (data: StageChangePayload) => {
+      if (data.stage === EventStage.WAITING_FOR_TEAMS || data.stage === EventStage.CHECKIN) {
+        await this.setSkillsEnabled(true)
+      }
+    })
+  }
 
   async getEnabledFields (): Promise<FieldEntity[]> {
     return await this.fieldRepository.findBy({ isEnabled: true })
