@@ -11,4 +11,7 @@ export class Competition {
 
   @GField(() => Boolean, { description: 'Whether automation is currently enabled for match queueing' })
     automationEnabled: boolean
+
+  @GField(() => Boolean, { description: 'Whether to automatically go to the match results' })
+    autoAdvance: boolean
 }

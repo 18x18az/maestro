@@ -21,7 +21,7 @@ export class CompetitionResolver {
 
   @Query(() => Competition)
   async competitionInformation (): Promise<Competition> {
-    return this.service.getCompetitionInformation()
+    return await this.service.getCompetitionInformation()
   }
 
   @ResolveField(() => Field, { nullable: true })
@@ -37,19 +37,19 @@ export class CompetitionResolver {
   @Mutation(() => Competition)
   async putOnDeck (@Args({ name: 'fieldId', type: () => Int }) fieldId: number): Promise<Competition> {
     await this.onDeckEvent.execute({ fieldId })
-    return this.service.getCompetitionInformation()
+    return await this.service.getCompetitionInformation()
   }
 
   @Mutation(() => Competition)
   async clearLive (): Promise<Competition> {
     await this.liveRemovedEvent.execute({})
-    return this.service.getCompetitionInformation()
+    return await this.service.getCompetitionInformation()
   }
 
   @Mutation(() => Competition)
   async putLive (): Promise<Competition> {
     await this.onMatchLive.execute({})
-    return this.service.getCompetitionInformation()
+    return await this.service.getCompetitionInformation()
   }
 
   @Mutation(() => Competition)
@@ -59,6 +59,12 @@ export class CompetitionResolver {
     } else {
       await this.automationDisabled.execute()
     }
-    return this.service.getCompetitionInformation()
+    return await this.service.getCompetitionInformation()
+  }
+
+  @Mutation(() => Competition)
+  async setAutoAdvance (@Args({ name: 'enabled', type: () => Boolean }) enabled: boolean): Promise<Competition> {
+    await this.service.setAutoAdvance(enabled)
+    return await this.service.getCompetitionInformation()
   }
 }

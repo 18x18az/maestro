@@ -424,6 +424,9 @@ type Competition {
 
   """Whether automation is currently enabled for match queueing"""
   automationEnabled: Boolean!
+
+  """Whether to automatically go to the match results"""
+  autoAdvance: Boolean!
 }
 
 type Results {
@@ -581,6 +584,7 @@ type Mutation {
   clearLive: Competition!
   putLive: Competition!
   setAutomationEnabled(enabled: Boolean!): Competition!
+  setAutoAdvance(enabled: Boolean!): Competition!
   queueDriverSkills(fieldId: Int!): Skills!
   queueProgrammingSkills(fieldId: Int!): Skills!
   startAllianceSelection: AllianceSelection!

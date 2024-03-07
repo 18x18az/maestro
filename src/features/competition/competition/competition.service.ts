@@ -10,6 +10,9 @@ import { Competition } from './competition.object'
 import { MatchResultEvent } from '../match/match-result.event'
 import { DriverEndEvent } from '../competition-field/driver-end.event'
 import { LiveRemovedEvent } from './live-removed.event'
+import { StorageService } from '../../../utils/storage'
+
+const AUTO_RESULTS_KEY = 'autoResults'
 
 @Injectable()
 export class CompetitionControlService {
@@ -23,7 +26,8 @@ export class CompetitionControlService {
     private readonly onDeck: OnDeckEvent,
     private readonly matchScored: MatchResultEvent,
     private readonly driverEnd: DriverEndEvent,
-    private readonly liveRemoved: LiveRemovedEvent
+    private readonly liveRemoved: LiveRemovedEvent,
+    private readonly storage: StorageService
   ) {}
 
   onModuleInit (): void {
@@ -73,8 +77,18 @@ export class CompetitionControlService {
     return await this.fieldService.getField(id)
   }
 
-  getCompetitionInformation (): Competition {
+  async shouldAutoAdvance (): Promise<boolean> {
+    const autoAdvance = await this.storage.getEphemeral(AUTO_RESULTS_KEY, 'true')
+    return autoAdvance === 'true'
+  }
+
+  async setAutoAdvance (autoAdvance: boolean): Promise<void> {
+    await this.storage.setEphemeral(AUTO_RESULTS_KEY, autoAdvance ? 'true' : 'false')
+  }
+
+  async getCompetitionInformation (): Promise<Competition> {
     return {
+      autoAdvance: await this.shouldAutoAdvance(),
       automationEnabled: this.cache.getAutomationEnabled()
     }
   }

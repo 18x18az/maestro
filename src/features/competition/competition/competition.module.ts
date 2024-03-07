@@ -12,12 +12,14 @@ import { CompetitionFieldModule } from '../competition-field/competition-field.m
 import { AutomationDisabledEvent } from './automation-disabled.event'
 import { AutomationEnabledEvent } from './automation-enabled.event'
 import { AutomationService } from './automation.service'
+import { StorageModule } from '../../../utils/storage'
 
 @Module({
   imports: [
     forwardRef(() => CompetitionFieldModule),
     forwardRef(() => MatchModule),
-    forwardRef(() => FieldModule)
+    forwardRef(() => FieldModule),
+    StorageModule
   ],
   providers: [CompetitionControlCache, CompetitionControlService, CompetitionResolver, OnDeckEvent, OnLiveEvent, OnDeckRemovedEvent,
     LiveRemovedEvent, AutomationDisabledEvent, AutomationEnabledEvent, AutomationService],
