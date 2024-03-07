@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql'
-import { OverlayDisplayed } from './overlay.interface'
+import { AwardStage, OverlayDisplayed } from './overlay.interface'
 import { Award } from '../../award/award.object'
 
 @ObjectType()
@@ -9,4 +9,7 @@ export class Overlay {
 
   @Field(() => Award, { nullable: true })
     award?: Award
+
+  @Field(() => AwardStage)
+    stage: AwardStage
 }

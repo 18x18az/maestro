@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { StorageService } from '../../../utils/storage'
-import { OverlayDisplayed } from './overlay.interface'
+import { AwardStage, OverlayDisplayed } from './overlay.interface'
 import { AwardEntity } from '../../award/award.entity'
 import { AwardService } from '../../award/award.service'
 
@@ -10,6 +10,8 @@ const DISPLAYED_AWARD = 'displayed-award'
 
 @Injectable()
 export class OverlayService {
+  private awardStage: AwardStage = AwardStage.NONE
+
   constructor (
     private readonly storage: StorageService,
     private readonly award: AwardService
@@ -31,6 +33,31 @@ export class OverlayService {
   }
 
   async setAward (awardId: number): Promise<void> {
+    this.awardStage = AwardStage.NONE
     await this.storage.setEphemeral(DISPLAYED_AWARD, awardId.toString())
+  }
+
+  private async clearAward (): Promise<void> {
+    await this.storage.setEphemeral(DISPLAYED_AWARD, '')
+  }
+
+  getAwardStage (): AwardStage {
+    return this.awardStage
+  }
+
+  async advanceAwardStage (): Promise<void> {
+    switch (this.awardStage) {
+      case AwardStage.NONE:
+        if (await this.getAward() === null) throw new BadRequestException('No award selected')
+        this.awardStage = AwardStage.INTRO
+        break
+      case AwardStage.INTRO:
+        this.awardStage = AwardStage.REVEALED
+        break
+      case AwardStage.REVEALED:
+        this.awardStage = AwardStage.NONE
+        await this.clearAward()
+        break
+    }
   }
 }

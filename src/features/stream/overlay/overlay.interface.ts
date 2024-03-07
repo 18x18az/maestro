@@ -9,3 +9,13 @@ export enum OverlayDisplayed {
 registerEnumType(OverlayDisplayed, {
   name: 'OverlayDisplayed'
 })
+
+export enum AwardStage {
+  NONE = 'NONE',
+  INTRO = 'INTRO',
+  REVEALED = 'REVEALED'
+}
+
+registerEnumType(AwardStage, {
+  name: 'AwardStage'
+})

@@ -510,12 +510,19 @@ enum SolidDisplayDisplayed {
 type Overlay {
   displayed: OverlayDisplayed!
   award: Award
+  stage: AwardStage!
 }
 
 enum OverlayDisplayed {
   NONE
   MATCH
   CARD
+}
+
+enum AwardStage {
+  NONE
+  INTRO
+  REVEALED
 }
 
 type Query {
@@ -606,6 +613,7 @@ type Mutation {
   promoteResults: Results!
   setOverlayDisplayed(displayed: OverlayDisplayed!): Overlay!
   setDisplayedAward(awardId: Int!): Overlay!
+  advanceAwardStage: Overlay!
 }
 
 input BackendSetup {
