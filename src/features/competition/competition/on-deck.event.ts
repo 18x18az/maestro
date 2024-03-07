@@ -7,7 +7,7 @@ interface OnDeckEventPayload {
   fieldId: number
 }
 
-interface OnDeckEventContext extends OnDeckEventPayload {
+export interface OnDeckEventContext extends OnDeckEventPayload {
   sittingId: number
 }
 

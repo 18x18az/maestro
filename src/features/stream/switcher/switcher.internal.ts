@@ -9,6 +9,7 @@ import { FieldService } from '../../field/field.service'
 import { LiveRemovedEvent } from '../../competition/competition/live-removed.event'
 import { CompetitionControlService } from '../../competition/competition/competition.service'
 import { SolidDisplayRepo } from '../solid-display/solid-display.repo'
+import { OnDeckEvent, OnDeckEventContext } from '../../competition/competition/on-deck.event'
 
 @Injectable()
 export class SwitcherInternal {
@@ -21,31 +22,40 @@ export class SwitcherInternal {
   private isConnected: boolean = false
   private readonly emitter: EventEmitter = new EventEmitter()
 
+  private needsOnDeckField = true
+
   constructor (
     @InjectRepository(SceneEntity) private readonly sceneRepository: Repository<SceneEntity>,
     onLive: OnLiveEvent,
     liveRemoved: LiveRemovedEvent,
     competition: CompetitionControlService,
     fields: FieldService,
-    solid: SolidDisplayRepo
+    solid: SolidDisplayRepo,
+    onDeck: OnDeckEvent
   ) {
     onLive.registerBefore(async (data: OnLiveEventContext) => {
       await this.transitionToScene()
     })
     onLive.registerOnComplete(async (data: OnLiveEventContext) => {
+      this.needsOnDeckField = false
       const solidScene = await solid.getSolidDisplaySceneId()
       if (solidScene === undefined) return
       await this.setPreviewScene(solidScene)
     })
-    onLive.registerOnComplete(async (data: OnLiveEventContext) => {
-      const onDeckField = await competition.getOnDeckField()
+    onDeck.registerOnComplete(async (data: OnDeckEventContext) => {
+      if (!this.needsOnDeckField) return
 
-      if (onDeckField === null) return
-
-      await this.setPreviewScene(onDeckField.sceneId)
+      const scene = await fields.getScene(data.fieldId)
+      await this.setPreviewScene(scene.id)
     })
     liveRemoved.registerBefore(async () => {
       await this.transitionToScene()
+      this.needsOnDeckField = true
+    })
+    liveRemoved.registerOnComplete(async () => {
+      const onDeck = await competition.getOnDeckField()
+      if (onDeck === null) return
+      await this.setPreviewScene(onDeck.sceneId)
     })
   }
 
