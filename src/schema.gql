@@ -545,8 +545,6 @@ type Query {
   scene(id: Int!): Scene!
   programScene: Scene
   previewScene: Scene
-  cameras: [Camera!]!
-  camera(id: Int!): Camera!
 }
 
 type Mutation {
@@ -597,13 +595,6 @@ type Mutation {
   setPreviewScene(id: Int!): Scene!
   cutToScene: Scene!
   transitionToScene: Scene!
-  addCamera: [Camera!]!
-  removeCamera(id: Int!): [Camera!]!
-  editCamera(id: Int!, data: CameraEdit!): Camera!
-  createPreset(id: Int!): Camera!
-  callPreset(cameraId: Int!, presetId: Int!): Camera!
-  savePreset(id: Int!): Camera!
-  updatePreset(id: Int!, update: PresetUpdate!): Preset!
 }
 
 input BackendSetup {
@@ -651,15 +642,6 @@ input FieldUpdate {
 input SceneEdit {
   name: String
   key: String
-}
-
-input CameraEdit {
-  ip: IP
-  name: String
-}
-
-input PresetUpdate {
-  name: String
 }
 
 type Subscription {

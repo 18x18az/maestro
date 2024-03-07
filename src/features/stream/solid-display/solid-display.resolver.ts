@@ -1,9 +1,9 @@
 import { Args, Int, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { SolidDisplay } from './static.object'
 import { SolidDisplayService } from './solid-display.service'
-import { Scene } from '../scene.service'
 import { SceneEntity } from '../switcher/scene.entity'
 import { SolidDisplayDisplayed } from './solid-display.interface'
+import { Scene } from '../switcher/scene.object'
 
 @Resolver(() => SolidDisplay)
 export class SolidDisplayResolver {

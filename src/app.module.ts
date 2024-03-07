@@ -20,7 +20,6 @@ import { TimeoutModule } from './features/competition/timeout/timeout.module'
 import { AwardModule } from './features/award/award.module'
 import { InspectionModule } from './features/inspection/inspection.module'
 import { BackendModule } from './utils/backend/backend.module'
-import { StreamModule } from './features/stream/stream.module'
 import { SolidDisplayModule } from './features/stream/solid-display/solid-display.module'
 import { OverlayModule } from './features/stream/overlay/overlay.module'
 
@@ -49,7 +48,6 @@ import { OverlayModule } from './features/stream/overlay/overlay.module'
     ResultsModule,
     OverlayModule,
     SolidDisplayModule,
-    StreamModule,
     MatchModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
