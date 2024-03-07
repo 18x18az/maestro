@@ -4,7 +4,7 @@ import { CompetitionFieldService } from '../competition-field/competition-field.
 import { CompetitionControlCache } from './competition.cache'
 import { OnDeckRemovedEvent } from './on-deck-removed.event'
 
-interface OnLiveEventContext {
+export interface OnLiveEventContext {
   fieldId: number
   sittingId: number
 }

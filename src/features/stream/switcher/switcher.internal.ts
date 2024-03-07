@@ -4,6 +4,11 @@ import OBSWebSocket from 'obs-websocket-js'
 import { SceneEntity } from './scene.entity'
 import { Repository } from 'typeorm'
 import { EventEmitter } from 'events'
+import { OnLiveEvent, OnLiveEventContext } from '../../competition/competition/on-live.event'
+import { FieldService } from '../../field/field.service'
+import { LiveRemovedEvent } from '../../competition/competition/live-removed.event'
+import { CompetitionControlService } from '../../competition/competition/competition.service'
+import { SolidDisplayRepo } from '../solid-display/solid-display.repo'
 
 @Injectable()
 export class SwitcherInternal {
@@ -17,8 +22,32 @@ export class SwitcherInternal {
   private readonly emitter: EventEmitter = new EventEmitter()
 
   constructor (
-    @InjectRepository(SceneEntity) private readonly sceneRepository: Repository<SceneEntity>
-  ) { }
+    @InjectRepository(SceneEntity) private readonly sceneRepository: Repository<SceneEntity>,
+    onLive: OnLiveEvent,
+    liveRemoved: LiveRemovedEvent,
+    competition: CompetitionControlService,
+    fields: FieldService,
+    solid: SolidDisplayRepo
+  ) {
+    onLive.registerBefore(async (data: OnLiveEventContext) => {
+      await this.transitionToScene()
+    })
+    onLive.registerOnComplete(async (data: OnLiveEventContext) => {
+      const solidScene = await solid.getSolidDisplaySceneId()
+      if (solidScene === undefined) return
+      await this.setPreviewScene(solidScene)
+    })
+    onLive.registerOnComplete(async (data: OnLiveEventContext) => {
+      const onDeckField = await competition.getOnDeckField()
+
+      if (onDeckField === null) return
+
+      await this.setPreviewScene(onDeckField.sceneId)
+    })
+    liveRemoved.registerBefore(async () => {
+      await this.transitionToScene()
+    })
+  }
 
   async onModuleInit (): Promise<void> {
     void this.tryConnect()

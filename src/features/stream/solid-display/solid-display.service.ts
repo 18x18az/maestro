@@ -3,8 +3,8 @@ import { StorageService } from '../../../utils/storage'
 import { SceneEntity } from '../switcher/scene.entity'
 import { SwitcherService } from '../switcher/switcher.service'
 import { SolidDisplayDisplayed } from './solid-display.interface'
+import { SolidDisplayRepo } from './solid-display.repo'
 
-const SOLID_DISPLAY_KEY = 'solid-display'
 const SOLID_DISPLAY_DISPLAYED_KEY = 'solid-display-displayed'
 
 @Injectable()
@@ -12,22 +12,16 @@ export class SolidDisplayService {
   private readonly logger: Logger = new Logger(SolidDisplayService.name)
   constructor (
     private readonly storageService: StorageService,
+    private readonly repo: SolidDisplayRepo,
     private readonly switcher: SwitcherService
   ) {}
 
   async getSolidDisplayScene (): Promise<SceneEntity | undefined> {
-    const stored = await this.storageService.getPersistent(SOLID_DISPLAY_KEY, '')
-    if (stored === '') return undefined
+    const id = await this.repo.getSolidDisplaySceneId()
 
-    const id = parseInt(stored, 10)
+    if (id === undefined) return undefined
 
-    const scene = await this.switcher.findOne(id)
-    return scene
-  }
-
-  async setSolidDisplay (value: number): Promise<void> {
-    this.logger.log(`Setting solid display to ${value}`)
-    await this.storageService.setPersistent(SOLID_DISPLAY_KEY, value.toString())
+    return await this.switcher.findOne(id)
   }
 
   async getDisplayed (): Promise<SolidDisplayDisplayed> {

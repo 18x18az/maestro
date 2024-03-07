@@ -538,13 +538,15 @@ type Query {
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
-  results: Results!
-  overlay: Overlay!
-  solidDisplay: SolidDisplay!
+  cameras: [Camera!]!
+  camera(id: Int!): Camera!
   scenes: [Scene!]!
   scene(id: Int!): Scene!
   programScene: Scene
   previewScene: Scene
+  solidDisplay: SolidDisplay!
+  results: Results!
+  overlay: Overlay!
 }
 
 type Mutation {
@@ -584,17 +586,24 @@ type Mutation {
   cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
-  clearResults: Results!
-  promoteResults: Results!
-  setOverlayDisplayed(displayed: OverlayDisplayed!): Overlay!
-  setSolidDisplayScene(sceneId: Int!): SolidDisplay!
-  setSolidDisplayed(displayed: SolidDisplayDisplayed!): SolidDisplay!
+  addCamera: [Camera!]!
+  removeCamera(id: Int!): [Camera!]!
+  editCamera(id: Int!, data: CameraEdit!): Camera!
+  createPreset(id: Int!): Camera!
+  callPreset(cameraId: Int!, presetId: Int!): Camera!
+  savePreset(id: Int!): Camera!
+  updatePreset(id: Int!, update: PresetUpdate!): Preset!
   addScene: [Scene!]!
   removeScene(id: Int!): [Scene!]!
   editScene(id: Int!, data: SceneEdit!): Scene!
   setPreviewScene(id: Int!): Scene!
   cutToScene: Scene!
   transitionToScene: Scene!
+  setSolidDisplayScene(sceneId: Int!): SolidDisplay!
+  setSolidDisplayed(displayed: SolidDisplayDisplayed!): SolidDisplay!
+  clearResults: Results!
+  promoteResults: Results!
+  setOverlayDisplayed(displayed: OverlayDisplayed!): Overlay!
 }
 
 input BackendSetup {
@@ -637,6 +646,15 @@ input FieldUpdate {
 
   """ID of the camera preset associated with the field"""
   presetId: Float
+}
+
+input CameraEdit {
+  ip: IP
+  name: String
+}
+
+input PresetUpdate {
+  name: String
 }
 
 input SceneEdit {

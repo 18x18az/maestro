@@ -22,6 +22,7 @@ import { InspectionModule } from './features/inspection/inspection.module'
 import { BackendModule } from './utils/backend/backend.module'
 import { SolidDisplayModule } from './features/stream/solid-display/solid-display.module'
 import { OverlayModule } from './features/stream/overlay/overlay.module'
+import { CameraModule } from './features/stream/camera/camera.module'
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { OverlayModule } from './features/stream/overlay/overlay.module'
     TeamModule,
     DisplayModule,
     SettingsModule,
+    CameraModule,
     StageModule,
     ResultsModule,
     OverlayModule,

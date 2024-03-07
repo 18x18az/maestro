@@ -4,11 +4,13 @@ import { SolidDisplayService } from './solid-display.service'
 import { SceneEntity } from '../switcher/scene.entity'
 import { SolidDisplayDisplayed } from './solid-display.interface'
 import { Scene } from '../switcher/scene.object'
+import { SolidDisplayRepo } from './solid-display.repo'
 
 @Resolver(() => SolidDisplay)
 export class SolidDisplayResolver {
   constructor (
-    private readonly service: SolidDisplayService
+    private readonly service: SolidDisplayService,
+    private readonly repo: SolidDisplayRepo
   ) {}
 
   @Query(() => SolidDisplay)
@@ -28,7 +30,7 @@ export class SolidDisplayResolver {
 
   @Mutation(() => SolidDisplay)
   async setSolidDisplayScene (@Args({ name: 'sceneId', type: () => Int }) sceneId: number): Promise<{}> {
-    await this.service.setSolidDisplay(sceneId)
+    await this.repo.setSolidDisplay(sceneId)
     return {}
   }
 
