@@ -145,6 +145,7 @@ export class BackendService {
   }
 
   async initialConnection (): Promise<BackendStatus> {
+    this.logger.log('Attempting to connect to backend')
     const authorization = await this.storage.getPersistent('backend.password', '')
     const url = this.url
 
@@ -158,6 +159,7 @@ export class BackendService {
       }
     })
 
+    this.logger.log('Attempting to connect to backend')
     const result = await this.tryConnection()
     if (result === BackendStatus.CONNECTED) {
       this.logger.log('Backend connection established')
@@ -176,7 +178,12 @@ export class BackendService {
   async onApplicationBootstrap (): Promise<void> {
     const url = await this.storage.getPersistent('backend.url', '')
 
-    if (url === '') return
+    if (url === '') {
+      this.logger.warn('Backend URL not set')
+      return
+    }
+
+    this.url = new URL(url)
 
     void this.initialConnection()
   }
