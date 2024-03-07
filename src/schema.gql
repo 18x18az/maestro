@@ -507,6 +507,16 @@ enum SolidDisplayDisplayed {
   RESULTS
 }
 
+type Overlay {
+  displayed: OverlayDisplayed!
+}
+
+enum OverlayDisplayed {
+  NONE
+  MATCH
+  CARD
+}
+
 type Query {
   backend: Backend!
   teams(inspectionStatus: Inspection): [Team!]!
@@ -529,6 +539,7 @@ type Query {
   displays: [Display!]!
   display(uuid: String!): Display!
   results: Results!
+  overlay: Overlay!
   solidDisplay: SolidDisplay!
   scenes: [Scene!]!
   scene(id: Int!): Scene!
@@ -577,6 +588,7 @@ type Mutation {
   setDisplayField(uuid: String!, fieldId: Int): Display!
   clearResults: Results!
   promoteResults: Results!
+  setOverlayDisplayed(displayed: OverlayDisplayed!): Overlay!
   setSolidDisplayScene(sceneId: Int!): SolidDisplay!
   setSolidDisplayed(displayed: SolidDisplayDisplayed!): SolidDisplay!
   addScene: [Scene!]!
