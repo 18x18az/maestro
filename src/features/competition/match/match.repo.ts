@@ -307,4 +307,16 @@ export class MatchRepo {
     sitting.block = block
     await this.sittingRepository.save(sitting)
   }
+
+  async updateRedTeams (contestId: number, teams: TeamEntity[]): Promise<void> {
+    const contest = await this.contestRepository.findOneOrFail({ relations: ['redTeams'], where: { id: contestId } })
+    contest.redTeams = teams
+    await this.contestRepository.save(contest)
+  }
+
+  async updateBlueTeams (contestId: number, teams: TeamEntity[]): Promise<void> {
+    const contest = await this.contestRepository.findOneOrFail({ relations: ['blueTeams'], where: { id: contestId } })
+    contest.blueTeams = teams
+    await this.contestRepository.save(contest)
+  }
 }

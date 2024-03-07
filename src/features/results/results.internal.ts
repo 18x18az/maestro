@@ -109,12 +109,36 @@ export class ResultsInternal {
       const { identifier, red, blue } = match
       const identString = `${identifier.round}-${identifier.contest}-${identifier.match}`
 
-      const cached = this.savedMatches.find(m => m === identString)
-      if (cached !== undefined) continue
-      this.savedMatches.push(identString)
-
       const existing = await this.matches.getMatchByIdentifier(identifier)
-      if (existing !== null) continue
+
+      if (existing !== null) {
+        const teamInfo = await this.matches.getContestWithTeams(existing.contestId)
+        const storedRedTeams = teamInfo.redTeams.map(t => t.number)
+        // check if red.team1 is in redTeams
+        const redCorrect = storedRedTeams.includes(red.team1)
+        if (!redCorrect) {
+          const redTeams = [await this.teams.getTeamByNumber(red.team1)]
+          if (red.team2 !== undefined) {
+            const redTeam2 = await this.teams.getTeamByNumber(red.team2)
+            redTeams.push(redTeam2)
+          }
+          this.logger.warn(`Match ${identString} has incorrect red teams, updating`)
+          await this.matches.updateRedTeams(existing.contestId, redTeams)
+        }
+
+        const storedBlueTeams = teamInfo.blueTeams.map(t => t.number)
+        const blueCorrect = storedBlueTeams.includes(blue.team1)
+        if (!blueCorrect) {
+          const blueTeams = [await this.teams.getTeamByNumber(blue.team1)]
+          if (blue.team2 !== undefined) {
+            const blueTeam2 = await this.teams.getTeamByNumber(blue.team2)
+            blueTeams.push(blueTeam2)
+          }
+          this.logger.warn(`Match ${identString} has incorrect blue teams, updating`)
+          await this.matches.updateBlueTeams(existing.contestId, blueTeams)
+        }
+        continue
+      }
 
       this.logger.log(`Creating match ${identString}`)
 

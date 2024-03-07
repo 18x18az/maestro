@@ -73,4 +73,12 @@ export class MatchService {
   async getContestWithTeams (contestId: number): Promise<ContestEntity> {
     return await this.repo.getContestWithTeams(contestId)
   }
+
+  async updateRedTeams (contestId: number, teams: TeamEntity[]): Promise<void> {
+    await this.repo.updateRedTeams(contestId, teams)
+  }
+
+  async updateBlueTeams (contestId: number, teams: TeamEntity[]): Promise<void> {
+    await this.repo.updateBlueTeams(contestId, teams)
+  }
 }
