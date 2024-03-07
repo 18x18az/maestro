@@ -49,10 +49,16 @@ export class SwitcherInternal {
       await this.setPreviewScene(scene.id)
     })
     liveRemoved.registerBefore(async () => {
+      const autoAdvance = await competition.shouldAutoAdvance()
+
+      if (!autoAdvance) return
+
       await this.transitionToScene()
       this.needsOnDeckField = true
     })
     liveRemoved.registerOnComplete(async () => {
+      if (!this.needsOnDeckField) return
+
       const onDeck = await competition.getOnDeckField()
       if (onDeck === null) return
       await this.setPreviewScene(onDeck.sceneId)
