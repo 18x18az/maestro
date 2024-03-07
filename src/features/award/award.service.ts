@@ -72,4 +72,8 @@ export class AwardService {
 
     return winners
   }
+
+  async getAward (id: number): Promise<AwardEntity | null> {
+    return await this.awardRepository.findOne({ where: { id }, relations: ['winners'] })
+  }
 }

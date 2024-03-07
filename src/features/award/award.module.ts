@@ -12,6 +12,7 @@ import { TeamModule } from '../team/team.module'
     TypeOrmModule.forFeature([AwardEntity]),
     forwardRef(() => TeamModule)
   ],
-  providers: [AwardResolver, AwardService]
+  providers: [AwardResolver, AwardService],
+  exports: [AwardService]
 })
 export class AwardModule {}

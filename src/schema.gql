@@ -509,6 +509,7 @@ enum SolidDisplayDisplayed {
 
 type Overlay {
   displayed: OverlayDisplayed!
+  award: Award
 }
 
 enum OverlayDisplayed {
@@ -604,6 +605,7 @@ type Mutation {
   clearResults: Results!
   promoteResults: Results!
   setOverlayDisplayed(displayed: OverlayDisplayed!): Overlay!
+  setDisplayedAward(awardId: Int!): Overlay!
 }
 
 input BackendSetup {
