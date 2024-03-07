@@ -247,7 +247,6 @@ export class BackendService {
 
   private async request (document: string, variables?: any): Promise<unknown> {
     if (this.client === undefined) {
-      this.logger.warn('No client')
       return
     }
 
