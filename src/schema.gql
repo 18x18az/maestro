@@ -518,6 +518,8 @@ type Query {
   display(uuid: String!): Display!
   scenes: [Scene!]!
   scene(id: Int!): Scene!
+  programScene: Scene
+  previewScene: Scene
   results: Results!
   cameras: [Camera!]!
   camera(id: Int!): Camera!
@@ -563,6 +565,9 @@ type Mutation {
   addScene: [Scene!]!
   removeScene(id: Int!): [Scene!]!
   editScene(id: Int!, data: SceneEdit!): Scene!
+  setPreviewScene(id: Int!): Scene!
+  cutToScene: Scene!
+  transitionToScene: Scene!
   clearResults: Results!
   promoteResults: Results!
   addCamera: [Camera!]!

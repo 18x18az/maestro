@@ -5,6 +5,7 @@ import { CameraEntity } from './camera.entity'
 import { Repository } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { PresetEntity } from './preset.entity'
+import { SwitcherService } from '../switcher/switcher.service'
 
 enum PRESET_ACTION {
   SET = 'preset_set',
@@ -21,7 +22,8 @@ export class CameraInternal {
   constructor (
     @InjectRepository(CameraEntity) private readonly cameraRepo: Repository<CameraEntity>,
     @InjectRepository(PresetEntity) private readonly presetRepo: Repository<PresetEntity>,
-    private readonly request: HttpService
+    private readonly request: HttpService,
+    private readonly switcher: SwitcherService
   ) {}
 
   private async cameraCommand (cameraIp: string, payload: any): Promise<void> {
@@ -59,7 +61,12 @@ export class CameraInternal {
 
   async callPreset (cameraId: number, presetId: number): Promise<void> {
     this.logger.log(`Calling preset ${presetId} on camera ${cameraId}`)
-    await this.presetAction(cameraId, presetId, PRESET_ACTION.CALL)
+    const associatedScene = this.cameraRepo.findOneOrFail({ where: { id: cameraId }, relations: ['scene'] })
+    const callPromise = this.presetAction(cameraId, presetId, PRESET_ACTION.CALL)
+    const scenePromise = this.switcher.setPreviewScene((await associatedScene).scene.id)
+
+    await Promise.all([callPromise, scenePromise])
+
     this.currentPresets.set(cameraId, presetId)
   }
 

@@ -19,6 +19,16 @@ export class SceneResolver {
     return await this.service.findOne(id)
   }
 
+  @Query(() => Scene, { nullable: true })
+  async programScene (): Promise<SceneEntity | undefined> {
+    return await this.service.programScene()
+  }
+
+  @Query(() => Scene, { nullable: true })
+  async previewScene (): Promise<SceneEntity | undefined> {
+    return await this.service.previewScene()
+  }
+
   @Mutation(() => [Scene])
   async addScene (): Promise<SceneEntity[]> {
     await this.service.addScene()
@@ -39,5 +49,29 @@ export class SceneResolver {
   @ResolveField(() => Camera)
   async camera (@Parent() scene: SceneEntity): Promise<CameraEntity | undefined> {
     return await this.service.findCamera(scene)
+  }
+
+  @Mutation(() => Scene)
+  async setPreviewScene (@Args('id', { type: () => Int }) id: number): Promise<SceneEntity> {
+    await this.service.setPreviewScene(id)
+    const scene = await this.service.previewScene()
+    if (scene === undefined) throw new Error('Failed to set preview scene')
+    return scene
+  }
+
+  @Mutation(() => Scene)
+  async cutToScene (): Promise<SceneEntity> {
+    await this.service.cutToScene()
+    const scene = await this.service.programScene()
+    if (scene === undefined) throw new Error('Failed to cut to scene')
+    return scene
+  }
+
+  @Mutation(() => Scene)
+  async transitionToScene (): Promise<SceneEntity> {
+    await this.service.transitionToScene()
+    const scene = await this.service.programScene()
+    if (scene === undefined) throw new Error('Failed to transition to scene')
+    return scene
   }
 }
