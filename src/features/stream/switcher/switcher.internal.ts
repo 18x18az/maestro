@@ -4,7 +4,7 @@ import OBSWebSocket from 'obs-websocket-js'
 import { SceneEntity } from './scene.entity'
 import { Repository } from 'typeorm'
 import { EventEmitter } from 'events'
-import { OnLiveEvent, OnLiveEventContext } from '../../competition/competition/on-live.event'
+import { OnLiveEvent } from '../../competition/competition/on-live.event'
 import { FieldService } from '../../field/field.service'
 import { LiveRemovedEvent } from '../../competition/competition/live-removed.event'
 import { CompetitionControlService } from '../../competition/competition/competition.service'
@@ -33,10 +33,10 @@ export class SwitcherInternal {
     solid: SolidDisplayRepo,
     onDeck: OnDeckEvent
   ) {
-    onLive.registerBefore(async (data: OnLiveEventContext) => {
+    onLive.registerBefore(async () => {
       await this.transitionToScene()
     })
-    onLive.registerOnComplete(async (data: OnLiveEventContext) => {
+    onLive.registerOnComplete(async () => {
       this.needsOnDeckField = false
       const solidScene = await solid.getSolidDisplaySceneId()
       if (solidScene === undefined) return
