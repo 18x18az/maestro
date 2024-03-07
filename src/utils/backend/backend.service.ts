@@ -251,8 +251,13 @@ export class BackendService {
       return
     }
 
-    const response = await this.client.request(document, variables)
-    return response
+    try {
+      const response = await this.client.request(document, variables)
+      return response
+    } catch (error: any) {
+      this.logger.warn('Request failed', error)
+      return false
+    }
   }
 
   async createTeams (teams: TeamInput[]): Promise<void> {
