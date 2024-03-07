@@ -495,6 +495,10 @@ enum BackendStatus {
   CONNECTED
 }
 
+type SolidDisplay {
+  scene: Scene
+}
+
 type Query {
   backend: Backend!
   teams(inspectionStatus: Inspection): [Team!]!
@@ -516,11 +520,12 @@ type Query {
   timeout: Timeout!
   displays: [Display!]!
   display(uuid: String!): Display!
+  results: Results!
+  solidDisplay: SolidDisplay!
   scenes: [Scene!]!
   scene(id: Int!): Scene!
   programScene: Scene
   previewScene: Scene
-  results: Results!
   cameras: [Camera!]!
   camera(id: Int!): Camera!
 }
@@ -562,14 +567,15 @@ type Mutation {
   cancelTimeout: Timeout!
   renameDisplay(uuid: String!, name: String!): Display!
   setDisplayField(uuid: String!, fieldId: Int): Display!
+  clearResults: Results!
+  promoteResults: Results!
+  setSolidDisplayScene(sceneId: Int!): SolidDisplay!
   addScene: [Scene!]!
   removeScene(id: Int!): [Scene!]!
   editScene(id: Int!, data: SceneEdit!): Scene!
   setPreviewScene(id: Int!): Scene!
   cutToScene: Scene!
   transitionToScene: Scene!
-  clearResults: Results!
-  promoteResults: Results!
   addCamera: [Camera!]!
   removeCamera(id: Int!): [Camera!]!
   editCamera(id: Int!, data: CameraEdit!): Camera!
