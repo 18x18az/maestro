@@ -1,9 +1,79 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import OBSWebSocket from 'obs-websocket-js'
+import { SceneEntity } from './scene.entity'
+import { Repository } from 'typeorm'
+import { EventEmitter } from 'events'
 
 @Injectable()
 export class SwitcherInternal {
+  private readonly logger: Logger = new Logger(SwitcherInternal.name)
+
   private previewScene?: number
   private programScene?: number
+
+  private readonly obs: OBSWebSocket = new OBSWebSocket()
+  private isConnected: boolean = false
+  private readonly emitter: EventEmitter = new EventEmitter()
+
+  constructor (
+    @InjectRepository(SceneEntity) private readonly sceneRepository: Repository<SceneEntity>
+  ) { }
+
+  async onModuleInit (): Promise<void> {
+    void this.tryConnect()
+    this.obs.on('ConnectionClosed', this.onObsDisconnected.bind(this))
+    this.obs.on('CurrentPreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
+    this.obs.on('CurrentProgramSceneChanged', this.onProgramSceneChanged.bind(this))
+  }
+
+  private async onPreviewSceneChanged (data: { sceneName: string }): Promise<void> {
+    const scene = await this.sceneRepository.findOne({ where: { key: data.sceneName } })
+
+    if (scene === null) {
+      this.logger.warn(`Scene ${data.sceneName} not found in database`)
+      this.previewScene = undefined
+      return
+    }
+
+    this.previewScene = scene.id
+  }
+
+  private async onProgramSceneChanged (data: { sceneName: string }): Promise<void> {
+    const scene = await this.sceneRepository.findOne({ where: { key: data.sceneName } })
+
+    if (scene === null) {
+      this.logger.warn(`Scene ${data.sceneName} not found in database`)
+      this.programScene = undefined
+      this.emitter.emit('activeSceneChange', undefined)
+      return
+    }
+    this.programScene = scene.id
+
+    this.emitter.emit('activeSceneChange', scene.id)
+  }
+
+  private async tryConnect (): Promise<void> {
+    try {
+      await this.obs.connect('ws://localhost:4455')
+      await this.onObsConnected()
+    } catch (error) {
+      setTimeout(() => { void this.tryConnect() }, 1000)
+    }
+  }
+
+  private async onObsConnected (): Promise<void> {
+    this.isConnected = true
+    this.logger.log('Connected to OBS')
+  }
+
+  private async onObsDisconnected (): Promise<void> {
+    if (this.isConnected) {
+      this.isConnected = false
+      this.logger.warn('Disconnected from OBS')
+      await this.tryConnect()
+    }
+  }
 
   private sceneChanged (): void {
     this.programScene = this.previewScene
@@ -15,7 +85,14 @@ export class SwitcherInternal {
       throw new BadRequestException('No preview scene set')
     }
 
-    this.sceneChanged()
+    await this.obs.call('SetCurrentSceneTransition', { transitionName: 'Cut' })
+    await this.obs.call('TriggerStudioModeTransition')
+
+    return await new Promise((resolve) => {
+      this.emitter.once('activeSceneChange', () => {
+        resolve()
+      })
+    })
   }
 
   async transitionToScene (): Promise<void> {
@@ -23,11 +100,31 @@ export class SwitcherInternal {
       throw new BadRequestException('No preview scene set')
     }
 
-    this.sceneChanged()
+    if (!this.isConnected) {
+      this.sceneChanged()
+      return
+    }
+
+    await this.obs.call('SetCurrentSceneTransition', { transitionName: 'Stinger' })
+    await this.obs.call('TriggerStudioModeTransition')
+
+    return await new Promise((resolve) => {
+      this.emitter.once('activeSceneChange', () => {
+        resolve()
+      })
+    })
   }
 
   async setPreviewScene (id: number): Promise<void> {
     this.previewScene = id
+    if (!this.isConnected) {
+      this.logger.debug('Not connected to OBS')
+      return
+    }
+
+    const scene = await this.sceneRepository.findOneOrFail({ where: { id } })
+
+    await this.obs.call('SetCurrentPreviewScene', { sceneName: scene.key })
   }
 
   getProgramScene (): number | undefined {
