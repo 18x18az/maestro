@@ -144,30 +144,41 @@ export class BackendService {
     })
   }
 
-  async onApplicationBootstrap (): Promise<void> {
-    const url = await this.storage.getPersistent('backend.url', '')
+  async initialConnection (): Promise<BackendStatus> {
     const authorization = await this.storage.getPersistent('backend.password', '')
+    const url = this.url
 
-    if (url !== '' && authorization !== '') {
-      this.url = new URL(url)
-      this.client = new GraphQLClient(this.url.href, {
-        headers: {
-          authorization
-        }
-      })
-      const result = await this.tryConnection()
-      if (result === BackendStatus.CONNECTED) {
-        this.logger.log('Backend connection established')
-      } else {
-        this.logger.warn('Backend connection failed')
-        this.url = undefined
-        return
+    if (url === undefined) return BackendStatus.NOT_CONFIGURED
+
+    if (authorization === '') return BackendStatus.AUTH_ERROR
+
+    this.client = new GraphQLClient(url.href, {
+      headers: {
+        authorization
       }
+    })
+
+    const result = await this.tryConnection()
+    if (result === BackendStatus.CONNECTED) {
+      this.logger.log('Backend connection established')
+    } else {
+      this.logger.warn('Backend connection failed')
+      this.url = undefined
+      return BackendStatus.NOT_CONFIGURED
     }
 
     const stage = await this.stage.getStage()
     await this.updateStage(stage)
     await this.updateMatchesOnFields()
+    return BackendStatus.CONNECTED
+  }
+
+  async onApplicationBootstrap (): Promise<void> {
+    const url = await this.storage.getPersistent('backend.url', '')
+
+    if (url === '') return
+
+    void this.initialConnection()
   }
 
   async uploadAll (): Promise<void> {
