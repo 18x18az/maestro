@@ -7681,10 +7681,10 @@ obliterator@^2.0.1:
   resolved "https://registry.yarnpkg.com/obliterator/-/obliterator-2.0.4.tgz#fa650e019b2d075d745e44f1effeb13a2adbe816"
   integrity sha512-lgHwxlxV1qIg1Eap7LgIeoBWIMFibOjbrYPIPJZcI1mmGAI2m3lNYpK12Y+GBdPQ0U1hRwSord7GIaawz962qQ==
 
-obs-websocket-js@^5.0.3:
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/obs-websocket-js/-/obs-websocket-js-5.0.3.tgz#63c7ead3a174a5ee1f9c9531170fadabb6e85a68"
-  integrity sha512-lEsDKVlSgXQ7p0nLuL8DER9SzOBrpqOo7fUO1m0zVRjdUT8pCSCEPb9Xn0I6XH3xoe51fWGybFYo6bN9cO51Pw==
+obs-websocket-js@^5.0.5:
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/obs-websocket-js/-/obs-websocket-js-5.0.5.tgz#4700be77eeca8b7cd2007e325d007264c5808192"
+  integrity sha512-mSMqLXJ4z28jgwy7Ecv8CtpYh/xdbcn524kq0n6wT3kN6xkgWU/Zc6OtiVZo+gyyylC0anjehMLEVF+CDSwccw==
   dependencies:
     "@msgpack/msgpack" "^2.7.1"
     crypto-js "^4.1.1"
@@ -10218,7 +10218,7 @@ write-file-atomic@^5.0.0, write-file-atomic@^5.0.1:
     imurmurhash "^0.1.4"
     signal-exit "^4.0.1"
 
-ws@8.14.2, ws@^8.13.0:
+ws@8.14.2:
   version "8.14.2"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.14.2.tgz#6c249a806eb2db7a20d26d51e7709eab7b2e6c7f"
   integrity sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==
@@ -10228,7 +10228,7 @@ ws@8.14.2, ws@^8.13.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.9.tgz#54fa7db29f4c7cec68b1ddd3a89de099942bb591"
   integrity sha512-F+P9Jil7UiSKSkppIiD94dN07AwvFixvLIj1Og1Rl9GGMuNipJnV9JzjD6XuqmAeiswGvUmNLjr5cFuXwNS77Q==
 
-ws@^8.0.0, ws@^8.11.0, ws@^8.2.2:
+ws@^8.0.0, ws@^8.11.0, ws@^8.13.0, ws@^8.2.2:
   version "8.15.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.15.1.tgz#271ba33a45ca0cc477940f7f200cd7fba7ee1997"
   integrity sha512-W5OZiCjXEmk0yZ66ZN82beM5Sz7l7coYxpRkzS+p9PP+ToQry8szKh+61eNktr7EA9DOwvFGhfC605jDHbP6QQ==
