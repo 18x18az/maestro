@@ -493,10 +493,10 @@
   dependencies:
     text-decoding "^1.0.0"
 
-"@fastify/busboy@^2.0.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.1.0.tgz#0709e9f4cb252351c609c6e6d8d6779a8d25edff"
-  integrity sha512-+KpH+QxZU7O4675t3mnkQKcZZg56u+K/Ct2K+N2AZYNVK8kyeo/bI18tI8aPm3tvNNRyTWfj6s5tnGNlcbQRsA==
+"@fastify/busboy@^2.0.0", "@fastify/busboy@^2.1.0":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.1.1.tgz#b9da6a878a371829a0502c9b6c1c143ef6663f4d"
+  integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
 "@fastify/compress@^6.5.0":
   version "6.5.0"
@@ -555,12 +555,12 @@
     path-to-regexp "^6.1.0"
     reusify "^1.0.4"
 
-"@fastify/multipart@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@fastify/multipart/-/multipart-8.1.0.tgz#92b1cd482202b469b6c08aba568f0cda6fc543ba"
-  integrity sha512-sRX9X4ZhAqRbe2kDvXY2NK7i6Wf1Rm2g/CjpGYYM7+Np8E6uWQXcj761j08qPfPO8PJXM+vJ7yrKbK1GPB+OeQ==
+"@fastify/multipart@^8.2.0":
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/@fastify/multipart/-/multipart-8.2.0.tgz#90359b78eccd0f944cf145a2e907d167a3a6c731"
+  integrity sha512-OZ8nsyyoS2TV7Yeu3ZdrdDGsKUTAbfjrKC9jSxGgT2qdgek+BxpWX31ZubTrWMNZyU5xwk4ox6AvTjAbYWjrWg==
   dependencies:
-    "@fastify/busboy" "^1.0.0"
+    "@fastify/busboy" "^2.1.0"
     "@fastify/deepmerge" "^1.0.0"
     "@fastify/error" "^3.0.0"
     fastify-plugin "^4.0.0"
